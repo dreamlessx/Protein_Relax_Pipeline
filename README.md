@@ -8,14 +8,27 @@ This repository contains structure predictions and relaxation protocols for prot
 
 ## Dataset
 
-**Source:** [Protein-Protein Docking Benchmark 5.5](https://zlab.umassmed.edu/benchmark/)
+**Source:** [Protein-Protein Docking Benchmark 5.5](https://zlab.wenglab.org/benchmark/)
 
 | Category | Count |
 |----------|-------|
-| Total complexes | 225 |
+| Total complexes | 257 |
 | Rigid-body | 162 |
 | Medium difficulty | 60 |
 | Difficult | 35 |
+
+### Non-Standard BM5.5 Entries
+
+BM5.5 includes 4 non-standard entries representing alternate chain combinations from the same PDB structures:
+
+| ID | Parent PDB | Description |
+|----|------------|-------------|
+| BAAD | 3AAD | Alternate chains A:B (Double bromodomain + ASF1) |
+| BOYV | 1OYV | Chains B:I (Subtilisin + Tomato inhibitor) |
+| BP57 | 3P57 | Chains AB:P (MEF2A dimer + p300 TAZ2) |
+| CP57 | 3P57 | Chains CD:P (MEF2A dimer + p300 TAZ2) |
+
+These are counted separately from their parent structures (3AAD, 1OYV, 3P57) as distinct docking cases.
 
 ## Structure Prediction Methods
 
@@ -140,9 +153,18 @@ Only ranked PDB outputs and FASTA files are retained.
 
 | Date | Targets | Status | Notes |
 |------|---------|--------|-------|
-| 2026-02-07 | 45 (afset) | Running | Initial AF2 batch with reduced_dbs |
+| 2026-02-07 | 45 (afset) | Complete | Initial AF2 batch with reduced_dbs |
 | 2026-02-07 | 66 (af_completed) | Complete | Synced to GitHub |
-| 2026-02-07 | 9 (BM5 missing) | Running | Added missing BM5.5 targets |
+| 2026-02-07 | 9 (BM5 missing) | Complete | Added missing BM5.5 targets |
+| 2026-02-08 | 246/257 | Complete | 246 targets synced to GitHub |
+| 2026-02-08 | 15 non-BM5.5 | Removed | Cleaned targets from older benchmark versions |
+| 2026-02-08 | 11 remaining | Running | 7 standard + 4 non-standard (BAAD, BOYV, BP57, CP57) |
+
+### Coverage Summary
+
+- **Standard BM5.5 entries:** 253
+- **Non-standard BM5.5 entries:** 4 (BAAD, BOYV, BP57, CP57)
+- **Total:** 257
 
 ---
-*Last updated: 2026-02-07*
+*Last updated: 2026-02-08*
