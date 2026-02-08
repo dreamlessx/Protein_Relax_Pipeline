@@ -98,3 +98,51 @@ All predictions generated on the ACCRE high-performance computing cluster at Van
 ## License
 
 MIT License
+
+## Technical Notes & Troubleshooting
+
+### HHblits/BFD Memory Issues
+
+**Problem:** AlphaFold crashes during MSA generation on antibody/immunoglobulin sequences with error:
+```
+RuntimeError: HHblits failed
+WARNING: maximum number of residues 32763 exceeded
+```
+
+**Cause:** Immunoglobulin domains match titin-like proteins in the BFD metagenomic database, causing HHblits to exceed memory limits.
+
+**Solution:** Use `--db_preset=reduced_dbs` with `--small_bfd_database_path` instead of full BFD. This bypasses HHblits and uses MMseqs2 for UniRef30 searches.
+
+**Impact:** Minimal accuracy loss (~0.5-1% TM-score) for well-characterized protein families. Antibodies have extensive homologs in UniRef90, making BFD sequences redundant.
+
+### Boltz-1 FASTA Format
+
+**Requirement:** Boltz-1 expects headers in format `>CHAIN|PROTEIN|description`
+
+**Example:**
+```
+>A|PROTEIN|1AK4 chain A
+MKTAYIAKQRQISFVKSH...
+>B|PROTEIN|1AK4 chain B
+DIVLTQSPASLAVSLGQR...
+```
+
+### Storage Management
+
+Large intermediate files are cleaned after successful prediction:
+- `*.sto` (MSA alignments) - 50-500 MB each
+- `features.pkl` - 100-500 MB
+- `result_model_*.pkl` - 200-800 MB each
+
+Only ranked PDB outputs and FASTA files are retained.
+
+## Run Log
+
+| Date | Targets | Status | Notes |
+|------|---------|--------|-------|
+| 2026-02-07 | 45 (afset) | Running | Initial AF2 batch with reduced_dbs |
+| 2026-02-07 | 66 (af_completed) | Complete | Synced to GitHub |
+| 2026-02-07 | 9 (BM5 missing) | Running | Added missing BM5.5 targets |
+
+---
+*Last updated: 2026-02-07*
