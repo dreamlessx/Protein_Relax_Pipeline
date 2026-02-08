@@ -1,0 +1,159 @@
+********  (C) Copyright Rosetta Commons Member Institutions.  ***************
+* Use of Rosetta for commercial purposes may require purchase of a license. *
+********  See LICENSE.md or email license@uw.edu for more details. **********
+core.io.pose_from_sfr.PoseFromSFRBuilder: [ WARNING ] missing density found at residue (rosetta number) 361
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue ARG 99
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue ARG 99
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NE  on residue ARG 99
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CZ  on residue ARG 99
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NH1 on residue ARG 99
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NH2 on residue ARG 99
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue ARG 107
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue ARG 107
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NE  on residue ARG 107
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CZ  on residue ARG 107
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NH1 on residue ARG 107
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NH2 on residue ARG 107
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue ASP 321
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OD1 on residue ASP 321
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OD2 on residue ASP 321
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue GLU 332
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue GLU 332
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue GLU 332
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OE1 on residue GLU 332
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OE2 on residue GLU 332
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue LYS 334
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue LYS 334
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue LYS 334
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE  on residue LYS 334
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NZ  on residue LYS 334
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue ASP 335
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue ASP 335
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OD1 on residue ASP 335
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OD2 on residue ASP 335
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue SER 347
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OG  on residue SER 347
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue ASP 348
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue ASP 348
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OD1 on residue ASP 348
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OD2 on residue ASP 348
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue GLU 350
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue GLU 350
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue GLU 350
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OE1 on residue GLU 350
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OE2 on residue GLU 350
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue GLN:CtermTruncation 361
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue GLN:CtermTruncation 361
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue GLN:CtermTruncation 361
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OE1 on residue GLN:CtermTruncation 361
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NE2 on residue GLN:CtermTruncation 361
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue LYS:NtermTruncation 362
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue LYS:NtermTruncation 362
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue LYS:NtermTruncation 362
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE  on residue LYS:NtermTruncation 362
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NZ  on residue LYS:NtermTruncation 362
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue HIS 372
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue HIS 372
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  ND1 on residue HIS 372
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD2 on residue HIS 372
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE1 on residue HIS 372
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NE2 on residue HIS 372
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue ASN 384
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue ASN 384
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OD1 on residue ASN 384
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  ND2 on residue ASN 384
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue LYS 385
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue LYS 385
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue LYS 385
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE  on residue LYS 385
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NZ  on residue LYS 385
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue ASP:CtermTruncation 395
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OD1 on residue ASP:CtermTruncation 395
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OD2 on residue ASP:CtermTruncation 395
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 7 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 25 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 41 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 109 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 116 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 137 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 148 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 162 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 173 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 183 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 197 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 210 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 262 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 309 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 359 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 363 BRANCH 1
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 7 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 25 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 41 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 109 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 116 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 137 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 148 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 162 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 173 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 183 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 197 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 210 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 262 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 309 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 359 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 363 BRANCH 1
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 7 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 25 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 41 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 109 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 116 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 137 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 148 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 162 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 173 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 183 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 197 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 210 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 262 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 309 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 359 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 363 BRANCH 1
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 7 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 25 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 41 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 109 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 116 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 137 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 148 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 162 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 173 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 183 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 197 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 210 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 262 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 309 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 359 BRANCH 1
+core.pose.util: [ WARNING ] Unable to find atom_tree atom for this Rosetta branch connection angle: residue 363 BRANCH 1
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+protocols.jd2.JobDistributor: [ WARNING ] The following options have been set, but have not yet been used:
+	-packing:flip_HNQ 
+

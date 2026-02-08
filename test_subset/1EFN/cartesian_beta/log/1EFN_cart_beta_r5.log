@@ -1,0 +1,68 @@
+********  (C) Copyright Rosetta Commons Member Institutions.  ***************
+* Use of Rosetta for commercial purposes may require purchase of a license. *
+********  See LICENSE.md or email license@uw.edu for more details. **********
+core.init.score_function_corrections: [ WARNING ] Flag -beta_nov16 is set but either -weights are also specified or this is being used with the genpot score function.  Not changing input weights file!
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue LEU 2
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD1 on residue LEU 2
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD2 on residue LEU 2
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue GLU 14
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue GLU 14
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OE1 on residue GLU 14
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OE2 on residue GLU 14
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue LYS 24
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue LYS 24
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE  on residue LYS 24
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NZ  on residue LYS 24
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue LEU 28
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD1 on residue LEU 28
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD2 on residue LEU 28
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OG  on residue SER 31
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue GLU 37
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue GLU 37
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OE1 on residue GLU 37
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OE2 on residue GLU 37
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CZ  on residue ARG 39
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NH1 on residue ARG 39
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NH2 on residue ARG 39
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue LEU 41
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD1 on residue LEU 41
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD2 on residue LEU 41
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue GLU 45
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue GLU 45
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OE1 on residue GLU 45
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OE2 on residue GLU 45
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OXT on residue VAL:CtermProteinFull 57
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue LYS 81
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue LYS 81
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE  on residue LYS 81
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NZ  on residue LYS 81
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue ARG 136
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue ARG 136
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NE  on residue ARG 136
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CZ  on residue ARG 136
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NH1 on residue ARG 136
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NH2 on residue ARG 136
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OXT on residue PHE:CtermProteinFull 161
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+protocols.jd2.JobDistributor: [ WARNING ] The following options have been set, but have not yet been used:
+	-packing:flip_HNQ 
+

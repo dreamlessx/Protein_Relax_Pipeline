@@ -1,0 +1,828 @@
+##############################################################################################################
+#
+# Rosetta crash log. Please submit the contents of this file to http://crash.rosettacommons.org/
+# or use the script Rosetta/main/source/scripts/python/public/report_crashes.py
+#
+
+[START_CRASH_REPORT]
+[ROSETTA_VERSION]: 2025.37+release.df75a9c
+[COMMIT_DATE]: 2025-09-09T20:16:19.418486
+[APPLICATION]: UNKNOWN APPLICATION
+[MODE]: Release
+[EXTRAS]: default
+[OS]: GNU/Linux
+[COMPILER]: GCC version "11.5.0 20240719 (Red Hat 11.5.0-5)"
+[STDLIB]: libstdc++ version 20240719
+[START_OPTIONS]
+NO OPTIONS SPECIFIED
+
+[END_OPTIONS]
+
+[START_BACKTRACE]: RAW_LIBC
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(backtrace_string[abi:cxx11](int)+0x43) [0x146114b82603]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::excn::Exception::Exception(char const*, int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)+0xce) [0x146114bbe61e]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(+0x196d66) [0x146114b74d66]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load_option_cl(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::list<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)+0x118) [0x146114cbee08]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::list<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, bool)+0x120) [0x146114cc1260]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load(int, char* const*, bool)+0x1b3) [0x146114cc1c13]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libcore.6.so(core::init::init_options(int, char**)+0x20) [0x146119c02b30]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libcore.6.so(core::init::init(int, char**)+0x27) [0x146119c08767]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/bin/relax.linuxgccrelease() [0x4011c8]
+/lib64/libc.so.6(+0x295d0) [0x1461130295d0]
+/lib64/libc.so.6(__libc_start_main+0x80) [0x146113029680]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/bin/relax.linuxgccrelease() [0x401245]
+
+[END_BACKTRACE]
+
+[FILE]: src/utility/options/OptionCollection.cc
+[LINE]: 1467
+[START_MESSAGE]
+Option matching -out:gz not found in command line top-level context
+Did you mean:
+	 -canonical_sampling:probabilities:sc
+	 -chemically_conjugated_docking:pdz
+	 -cm
+	 -cm:nn
+	 -cp
+	 -dc
+	 -dist_cst:sd
+	 -dump_trajectory:gz
+	 -frags:j
+	 -gpu
+	 -in
+	 -in:file:dc
+	 -in:file:l
+	 -in:file:s
+	 -in:file:t
+	 -in:file:xyz
+	 -lh
+	 -ligand_evolution:xyz
+	 -mc
+	 -mh
+	 -mh:match:aa
+	 -mh:match:ss
+	 -motifs:r1
+	 -motifs:r2
+	 -motifs:z1
+	 -motifs:z2
+	 -mp
+	 -mp:geo
+	 -ms
+	 -ms:checkpoint:gz
+	 -noesy:prob:sigmoid:m
+	 -noesy:prob:sigmoid:w
+	 -out:file:o
+	 -out:path:db
+	 -out:sf
+	 -pH
+	 -relax:range:kT
+	 -remodel:rg
+	 -rna:denovo:db
+	 -rotamerdump:xyz
+	 -score:fiber_diffraction:a
+	 -score:fiber_diffraction:b
+	 -score:fiber_diffraction:p
+	 -stepwise:s1
+	 -stepwise:s2
+	 -ufv:ss
+
+
+[END_MESSAGE]
+[END_CRASH_REPORT]
+
+##############################################################################################################
+#
+# Rosetta crash log. Please submit the contents of this file to http://crash.rosettacommons.org/
+# or use the script Rosetta/main/source/scripts/python/public/report_crashes.py
+#
+
+[START_CRASH_REPORT]
+[ROSETTA_VERSION]: 2025.37+release.df75a9c
+[COMMIT_DATE]: 2025-09-09T20:16:19.418486
+[APPLICATION]: UNKNOWN APPLICATION
+[MODE]: Release
+[EXTRAS]: default
+[OS]: GNU/Linux
+[COMPILER]: GCC version "11.5.0 20240719 (Red Hat 11.5.0-5)"
+[STDLIB]: libstdc++ version 20240719
+[START_OPTIONS]
+NO OPTIONS SPECIFIED
+
+[END_OPTIONS]
+
+[START_BACKTRACE]: RAW_LIBC
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(backtrace_string[abi:cxx11](int)+0x43) [0x14629364e603]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::excn::Exception::Exception(char const*, int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)+0xce) [0x14629368a61e]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(+0x196d66) [0x146293640d66]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load_option_cl(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::list<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)+0x118) [0x14629378ae08]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::list<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, bool)+0x120) [0x14629378d260]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load(int, char* const*, bool)+0x1b3) [0x14629378dc13]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libcore.6.so(core::init::init_options(int, char**)+0x20) [0x1462986ceb30]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libcore.6.so(core::init::init(int, char**)+0x27) [0x1462986d4767]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/bin/relax.linuxgccrelease() [0x4011c8]
+/lib64/libc.so.6(+0x295d0) [0x146291c295d0]
+/lib64/libc.so.6(__libc_start_main+0x80) [0x146291c29680]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/bin/relax.linuxgccrelease() [0x401245]
+
+[END_BACKTRACE]
+
+[FILE]: src/utility/options/OptionCollection.cc
+[LINE]: 1467
+[START_MESSAGE]
+Option matching -out:gz not found in command line top-level context
+Did you mean:
+	 -canonical_sampling:probabilities:sc
+	 -chemically_conjugated_docking:pdz
+	 -cm
+	 -cm:nn
+	 -cp
+	 -dc
+	 -dist_cst:sd
+	 -dump_trajectory:gz
+	 -frags:j
+	 -gpu
+	 -in
+	 -in:file:dc
+	 -in:file:l
+	 -in:file:s
+	 -in:file:t
+	 -in:file:xyz
+	 -lh
+	 -ligand_evolution:xyz
+	 -mc
+	 -mh
+	 -mh:match:aa
+	 -mh:match:ss
+	 -motifs:r1
+	 -motifs:r2
+	 -motifs:z1
+	 -motifs:z2
+	 -mp
+	 -mp:geo
+	 -ms
+	 -ms:checkpoint:gz
+	 -noesy:prob:sigmoid:m
+	 -noesy:prob:sigmoid:w
+	 -out:file:o
+	 -out:path:db
+	 -out:sf
+	 -pH
+	 -relax:range:kT
+	 -remodel:rg
+	 -rna:denovo:db
+	 -rotamerdump:xyz
+	 -score:fiber_diffraction:a
+	 -score:fiber_diffraction:b
+	 -score:fiber_diffraction:p
+	 -stepwise:s1
+	 -stepwise:s2
+	 -ufv:ss
+
+
+[END_MESSAGE]
+[END_CRASH_REPORT]
+
+##############################################################################################################
+#
+# Rosetta crash log. Please submit the contents of this file to http://crash.rosettacommons.org/
+# or use the script Rosetta/main/source/scripts/python/public/report_crashes.py
+#
+
+[START_CRASH_REPORT]
+[ROSETTA_VERSION]: 2025.37+release.df75a9c
+[COMMIT_DATE]: 2025-09-09T20:16:19.418486
+[APPLICATION]: UNKNOWN APPLICATION
+[MODE]: Release
+[EXTRAS]: default
+[OS]: GNU/Linux
+[COMPILER]: GCC version "11.5.0 20240719 (Red Hat 11.5.0-5)"
+[STDLIB]: libstdc++ version 20240719
+[START_OPTIONS]
+NO OPTIONS SPECIFIED
+
+[END_OPTIONS]
+
+[START_BACKTRACE]: RAW_LIBC
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(backtrace_string[abi:cxx11](int)+0x43) [0x14574fb6c603]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::excn::Exception::Exception(char const*, int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)+0xce) [0x14574fba861e]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(+0x196d66) [0x14574fb5ed66]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load_option_cl(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::list<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)+0x118) [0x14574fca8e08]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::list<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, bool)+0x120) [0x14574fcab260]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load(int, char* const*, bool)+0x1b3) [0x14574fcabc13]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libcore.6.so(core::init::init_options(int, char**)+0x20) [0x145754becb30]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libcore.6.so(core::init::init(int, char**)+0x27) [0x145754bf2767]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/bin/relax.linuxgccrelease() [0x4011c8]
+/lib64/libc.so.6(+0x295d0) [0x14574e0295d0]
+/lib64/libc.so.6(__libc_start_main+0x80) [0x14574e029680]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/bin/relax.linuxgccrelease() [0x401245]
+
+[END_BACKTRACE]
+
+[FILE]: src/utility/options/OptionCollection.cc
+[LINE]: 1467
+[START_MESSAGE]
+Option matching -out:gz not found in command line top-level context
+Did you mean:
+	 -canonical_sampling:probabilities:sc
+	 -chemically_conjugated_docking:pdz
+	 -cm
+	 -cm:nn
+	 -cp
+	 -dc
+	 -dist_cst:sd
+	 -dump_trajectory:gz
+	 -frags:j
+	 -gpu
+	 -in
+	 -in:file:dc
+	 -in:file:l
+	 -in:file:s
+	 -in:file:t
+	 -in:file:xyz
+	 -lh
+	 -ligand_evolution:xyz
+	 -mc
+	 -mh
+	 -mh:match:aa
+	 -mh:match:ss
+	 -motifs:r1
+	 -motifs:r2
+	 -motifs:z1
+	 -motifs:z2
+	 -mp
+	 -mp:geo
+	 -ms
+	 -ms:checkpoint:gz
+	 -noesy:prob:sigmoid:m
+	 -noesy:prob:sigmoid:w
+	 -out:file:o
+	 -out:path:db
+	 -out:sf
+	 -pH
+	 -relax:range:kT
+	 -remodel:rg
+	 -rna:denovo:db
+	 -rotamerdump:xyz
+	 -score:fiber_diffraction:a
+	 -score:fiber_diffraction:b
+	 -score:fiber_diffraction:p
+	 -stepwise:s1
+	 -stepwise:s2
+	 -ufv:ss
+
+
+[END_MESSAGE]
+[END_CRASH_REPORT]
+
+##############################################################################################################
+#
+# Rosetta crash log. Please submit the contents of this file to http://crash.rosettacommons.org/
+# or use the script Rosetta/main/source/scripts/python/public/report_crashes.py
+#
+
+[START_CRASH_REPORT]
+[ROSETTA_VERSION]: 2025.37+release.df75a9c
+[COMMIT_DATE]: 2025-09-09T20:16:19.418486
+[APPLICATION]: UNKNOWN APPLICATION
+[MODE]: Release
+[EXTRAS]: default
+[OS]: GNU/Linux
+[COMPILER]: GCC version "11.5.0 20240719 (Red Hat 11.5.0-5)"
+[STDLIB]: libstdc++ version 20240719
+[START_OPTIONS]
+NO OPTIONS SPECIFIED
+
+[END_OPTIONS]
+
+[START_BACKTRACE]: RAW_LIBC
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(backtrace_string[abi:cxx11](int)+0x43) [0x14b58f00d603]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::excn::Exception::Exception(char const*, int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)+0xce) [0x14b58f04961e]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(+0x196d66) [0x14b58efffd66]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load_option_cl(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::list<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)+0x118) [0x14b58f149e08]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::list<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, bool)+0x120) [0x14b58f14c260]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load(int, char* const*, bool)+0x1b3) [0x14b58f14cc13]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libcore.6.so(core::init::init_options(int, char**)+0x20) [0x14b59408db30]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libcore.6.so(core::init::init(int, char**)+0x27) [0x14b594093767]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/bin/relax.linuxgccrelease() [0x4011c8]
+/lib64/libc.so.6(+0x295d0) [0x14b58d6295d0]
+/lib64/libc.so.6(__libc_start_main+0x80) [0x14b58d629680]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/bin/relax.linuxgccrelease() [0x401245]
+
+[END_BACKTRACE]
+
+[FILE]: src/utility/options/OptionCollection.cc
+[LINE]: 1467
+[START_MESSAGE]
+Option matching -out:gz not found in command line top-level context
+Did you mean:
+	 -canonical_sampling:probabilities:sc
+	 -chemically_conjugated_docking:pdz
+	 -cm
+	 -cm:nn
+	 -cp
+	 -dc
+	 -dist_cst:sd
+	 -dump_trajectory:gz
+	 -frags:j
+	 -gpu
+	 -in
+	 -in:file:dc
+	 -in:file:l
+	 -in:file:s
+	 -in:file:t
+	 -in:file:xyz
+	 -lh
+	 -ligand_evolution:xyz
+	 -mc
+	 -mh
+	 -mh:match:aa
+	 -mh:match:ss
+	 -motifs:r1
+	 -motifs:r2
+	 -motifs:z1
+	 -motifs:z2
+	 -mp
+	 -mp:geo
+	 -ms
+	 -ms:checkpoint:gz
+	 -noesy:prob:sigmoid:m
+	 -noesy:prob:sigmoid:w
+	 -out:file:o
+	 -out:path:db
+	 -out:sf
+	 -pH
+	 -relax:range:kT
+	 -remodel:rg
+	 -rna:denovo:db
+	 -rotamerdump:xyz
+	 -score:fiber_diffraction:a
+	 -score:fiber_diffraction:b
+	 -score:fiber_diffraction:p
+	 -stepwise:s1
+	 -stepwise:s2
+	 -ufv:ss
+
+
+[END_MESSAGE]
+[END_CRASH_REPORT]
+
+##############################################################################################################
+#
+# Rosetta crash log. Please submit the contents of this file to http://crash.rosettacommons.org/
+# or use the script Rosetta/main/source/scripts/python/public/report_crashes.py
+#
+
+[START_CRASH_REPORT]
+[ROSETTA_VERSION]: 2025.37+release.df75a9c
+[COMMIT_DATE]: 2025-09-09T20:16:19.418486
+[APPLICATION]: UNKNOWN APPLICATION
+[MODE]: Release
+[EXTRAS]: default
+[OS]: GNU/Linux
+[COMPILER]: GCC version "11.5.0 20240719 (Red Hat 11.5.0-5)"
+[STDLIB]: libstdc++ version 20240719
+[START_OPTIONS]
+NO OPTIONS SPECIFIED
+
+[END_OPTIONS]
+
+[START_BACKTRACE]: RAW_LIBC
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(backtrace_string[abi:cxx11](int)+0x43) [0x146dd78da603]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::excn::Exception::Exception(char const*, int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)+0xce) [0x146dd791661e]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(+0x196d66) [0x146dd78ccd66]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load_option_cl(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::list<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)+0x118) [0x146dd7a16e08]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::list<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, bool)+0x120) [0x146dd7a19260]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load(int, char* const*, bool)+0x1b3) [0x146dd7a19c13]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libcore.6.so(core::init::init_options(int, char**)+0x20) [0x146ddc95ab30]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libcore.6.so(core::init::init(int, char**)+0x27) [0x146ddc960767]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/bin/relax.linuxgccrelease() [0x4011c8]
+/lib64/libc.so.6(+0x295d0) [0x146dd5e295d0]
+/lib64/libc.so.6(__libc_start_main+0x80) [0x146dd5e29680]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/bin/relax.linuxgccrelease() [0x401245]
+
+[END_BACKTRACE]
+
+[FILE]: src/utility/options/OptionCollection.cc
+[LINE]: 1467
+[START_MESSAGE]
+Option matching -out:gz not found in command line top-level context
+Did you mean:
+	 -canonical_sampling:probabilities:sc
+	 -chemically_conjugated_docking:pdz
+	 -cm
+	 -cm:nn
+	 -cp
+	 -dc
+	 -dist_cst:sd
+	 -dump_trajectory:gz
+	 -frags:j
+	 -gpu
+	 -in
+	 -in:file:dc
+	 -in:file:l
+	 -in:file:s
+	 -in:file:t
+	 -in:file:xyz
+	 -lh
+	 -ligand_evolution:xyz
+	 -mc
+	 -mh
+	 -mh:match:aa
+	 -mh:match:ss
+	 -motifs:r1
+	 -motifs:r2
+	 -motifs:z1
+	 -motifs:z2
+	 -mp
+	 -mp:geo
+	 -ms
+	 -ms:checkpoint:gz
+	 -noesy:prob:sigmoid:m
+	 -noesy:prob:sigmoid:w
+	 -out:file:o
+	 -out:path:db
+	 -out:sf
+	 -pH
+	 -relax:range:kT
+	 -remodel:rg
+	 -rna:denovo:db
+	 -rotamerdump:xyz
+	 -score:fiber_diffraction:a
+	 -score:fiber_diffraction:b
+	 -score:fiber_diffraction:p
+	 -stepwise:s1
+	 -stepwise:s2
+	 -ufv:ss
+
+
+[END_MESSAGE]
+[END_CRASH_REPORT]
+
+##############################################################################################################
+#
+# Rosetta crash log. Please submit the contents of this file to http://crash.rosettacommons.org/
+# or use the script Rosetta/main/source/scripts/python/public/report_crashes.py
+#
+
+[START_CRASH_REPORT]
+[ROSETTA_VERSION]: 2025.37+release.df75a9c
+[COMMIT_DATE]: 2025-09-09T20:16:19.418486
+[APPLICATION]: UNKNOWN APPLICATION
+[MODE]: Release
+[EXTRAS]: default
+[OS]: GNU/Linux
+[COMPILER]: GCC version "11.5.0 20240719 (Red Hat 11.5.0-5)"
+[STDLIB]: libstdc++ version 20240719
+[START_OPTIONS]
+NO OPTIONS SPECIFIED
+
+[END_OPTIONS]
+
+[START_BACKTRACE]: RAW_LIBC
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(backtrace_string[abi:cxx11](int)+0x43) [0x147f91dd4603]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::excn::Exception::Exception(char const*, int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)+0xce) [0x147f91e1061e]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(+0x196d66) [0x147f91dc6d66]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load_option_cl(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::list<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)+0x118) [0x147f91f10e08]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::list<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, bool)+0x120) [0x147f91f13260]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load(int, char* const*, bool)+0x1b3) [0x147f91f13c13]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libcore.6.so(core::init::init_options(int, char**)+0x20) [0x147f96e54b30]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libcore.6.so(core::init::init(int, char**)+0x27) [0x147f96e5a767]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/bin/relax.linuxgccrelease() [0x4011c8]
+/lib64/libc.so.6(+0x295d0) [0x147f904295d0]
+/lib64/libc.so.6(__libc_start_main+0x80) [0x147f90429680]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/bin/relax.linuxgccrelease() [0x401245]
+
+[END_BACKTRACE]
+
+[FILE]: src/utility/options/OptionCollection.cc
+[LINE]: 1467
+[START_MESSAGE]
+Option matching -out:file:gz not found in command line top-level context
+Did you mean:
+	 -canonical_sampling:probabilities:sc
+	 -chemically_conjugated_docking:pdz
+	 -cm
+	 -cm:nn
+	 -cp
+	 -dc
+	 -dist_cst:sd
+	 -dump_trajectory:gz
+	 -frags:j
+	 -gpu
+	 -in
+	 -in:file:dc
+	 -in:file:l
+	 -in:file:s
+	 -in:file:t
+	 -in:file:xyz
+	 -lh
+	 -ligand_evolution:xyz
+	 -mc
+	 -mh
+	 -mh:match:aa
+	 -mh:match:ss
+	 -motifs:r1
+	 -motifs:r2
+	 -motifs:z1
+	 -motifs:z2
+	 -mp
+	 -mp:geo
+	 -ms
+	 -ms:checkpoint:gz
+	 -noesy:prob:sigmoid:m
+	 -noesy:prob:sigmoid:w
+	 -out:file:o
+	 -out:path:db
+	 -out:sf
+	 -pH
+	 -relax:range:kT
+	 -remodel:rg
+	 -rna:denovo:db
+	 -rotamerdump:xyz
+	 -score:fiber_diffraction:a
+	 -score:fiber_diffraction:b
+	 -score:fiber_diffraction:p
+	 -stepwise:s1
+	 -stepwise:s2
+	 -ufv:ss
+
+
+[END_MESSAGE]
+[END_CRASH_REPORT]
+
+##############################################################################################################
+#
+# Rosetta crash log. Please submit the contents of this file to http://crash.rosettacommons.org/
+# or use the script Rosetta/main/source/scripts/python/public/report_crashes.py
+#
+
+[START_CRASH_REPORT]
+[ROSETTA_VERSION]: 2025.37+release.df75a9c
+[COMMIT_DATE]: 2025-09-09T20:16:19.418486
+[APPLICATION]: UNKNOWN APPLICATION
+[MODE]: Release
+[EXTRAS]: default
+[OS]: GNU/Linux
+[COMPILER]: GCC version "11.5.0 20240719 (Red Hat 11.5.0-5)"
+[STDLIB]: libstdc++ version 20240719
+[START_OPTIONS]
+NO OPTIONS SPECIFIED
+
+[END_OPTIONS]
+
+[START_BACKTRACE]: RAW_LIBC
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(backtrace_string[abi:cxx11](int)+0x43) [0x152ca8ee7603]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::excn::Exception::Exception(char const*, int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)+0xce) [0x152ca8f2361e]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(+0x196d66) [0x152ca8ed9d66]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load_option_cl(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::list<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)+0x118) [0x152ca9023e08]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::list<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, bool)+0x120) [0x152ca9026260]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load(int, char* const*, bool)+0x1b3) [0x152ca9026c13]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libcore.6.so(core::init::init_options(int, char**)+0x20) [0x152cadf67b30]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libcore.6.so(core::init::init(int, char**)+0x27) [0x152cadf6d767]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/bin/relax.linuxgccrelease() [0x4011c8]
+/lib64/libc.so.6(+0x295d0) [0x152ca74295d0]
+/lib64/libc.so.6(__libc_start_main+0x80) [0x152ca7429680]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/bin/relax.linuxgccrelease() [0x401245]
+
+[END_BACKTRACE]
+
+[FILE]: src/utility/options/OptionCollection.cc
+[LINE]: 1467
+[START_MESSAGE]
+Option matching -out:file:gz not found in command line top-level context
+Did you mean:
+	 -canonical_sampling:probabilities:sc
+	 -chemically_conjugated_docking:pdz
+	 -cm
+	 -cm:nn
+	 -cp
+	 -dc
+	 -dist_cst:sd
+	 -dump_trajectory:gz
+	 -frags:j
+	 -gpu
+	 -in
+	 -in:file:dc
+	 -in:file:l
+	 -in:file:s
+	 -in:file:t
+	 -in:file:xyz
+	 -lh
+	 -ligand_evolution:xyz
+	 -mc
+	 -mh
+	 -mh:match:aa
+	 -mh:match:ss
+	 -motifs:r1
+	 -motifs:r2
+	 -motifs:z1
+	 -motifs:z2
+	 -mp
+	 -mp:geo
+	 -ms
+	 -ms:checkpoint:gz
+	 -noesy:prob:sigmoid:m
+	 -noesy:prob:sigmoid:w
+	 -out:file:o
+	 -out:path:db
+	 -out:sf
+	 -pH
+	 -relax:range:kT
+	 -remodel:rg
+	 -rna:denovo:db
+	 -rotamerdump:xyz
+	 -score:fiber_diffraction:a
+	 -score:fiber_diffraction:b
+	 -score:fiber_diffraction:p
+	 -stepwise:s1
+	 -stepwise:s2
+	 -ufv:ss
+
+
+[END_MESSAGE]
+[END_CRASH_REPORT]
+
+##############################################################################################################
+#
+# Rosetta crash log. Please submit the contents of this file to http://crash.rosettacommons.org/
+# or use the script Rosetta/main/source/scripts/python/public/report_crashes.py
+#
+
+[START_CRASH_REPORT]
+[ROSETTA_VERSION]: 2025.37+release.df75a9c
+[COMMIT_DATE]: 2025-09-09T20:16:19.418486
+[APPLICATION]: UNKNOWN APPLICATION
+[MODE]: Release
+[EXTRAS]: default
+[OS]: GNU/Linux
+[COMPILER]: GCC version "11.5.0 20240719 (Red Hat 11.5.0-5)"
+[STDLIB]: libstdc++ version 20240719
+[START_OPTIONS]
+NO OPTIONS SPECIFIED
+
+[END_OPTIONS]
+
+[START_BACKTRACE]: RAW_LIBC
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(backtrace_string[abi:cxx11](int)+0x43) [0x148cc2bb8603]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::excn::Exception::Exception(char const*, int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)+0xce) [0x148cc2bf461e]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(+0x196d66) [0x148cc2baad66]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load_option_cl(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::list<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)+0x118) [0x148cc2cf4e08]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::list<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, bool)+0x120) [0x148cc2cf7260]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load(int, char* const*, bool)+0x1b3) [0x148cc2cf7c13]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libcore.6.so(core::init::init_options(int, char**)+0x20) [0x148cc7c38b30]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libcore.6.so(core::init::init(int, char**)+0x27) [0x148cc7c3e767]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/bin/relax.linuxgccrelease() [0x4011c8]
+/lib64/libc.so.6(+0x295d0) [0x148cc12295d0]
+/lib64/libc.so.6(__libc_start_main+0x80) [0x148cc1229680]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/bin/relax.linuxgccrelease() [0x401245]
+
+[END_BACKTRACE]
+
+[FILE]: src/utility/options/OptionCollection.cc
+[LINE]: 1467
+[START_MESSAGE]
+Option matching -out:file:gz not found in command line top-level context
+Did you mean:
+	 -canonical_sampling:probabilities:sc
+	 -chemically_conjugated_docking:pdz
+	 -cm
+	 -cm:nn
+	 -cp
+	 -dc
+	 -dist_cst:sd
+	 -dump_trajectory:gz
+	 -frags:j
+	 -gpu
+	 -in
+	 -in:file:dc
+	 -in:file:l
+	 -in:file:s
+	 -in:file:t
+	 -in:file:xyz
+	 -lh
+	 -ligand_evolution:xyz
+	 -mc
+	 -mh
+	 -mh:match:aa
+	 -mh:match:ss
+	 -motifs:r1
+	 -motifs:r2
+	 -motifs:z1
+	 -motifs:z2
+	 -mp
+	 -mp:geo
+	 -ms
+	 -ms:checkpoint:gz
+	 -noesy:prob:sigmoid:m
+	 -noesy:prob:sigmoid:w
+	 -out:file:o
+	 -out:path:db
+	 -out:sf
+	 -pH
+	 -relax:range:kT
+	 -remodel:rg
+	 -rna:denovo:db
+	 -rotamerdump:xyz
+	 -score:fiber_diffraction:a
+	 -score:fiber_diffraction:b
+	 -score:fiber_diffraction:p
+	 -stepwise:s1
+	 -stepwise:s2
+	 -ufv:ss
+
+
+[END_MESSAGE]
+[END_CRASH_REPORT]
+
+##############################################################################################################
+#
+# Rosetta crash log. Please submit the contents of this file to http://crash.rosettacommons.org/
+# or use the script Rosetta/main/source/scripts/python/public/report_crashes.py
+#
+
+[START_CRASH_REPORT]
+[ROSETTA_VERSION]: 2025.37+release.df75a9c
+[COMMIT_DATE]: 2025-09-09T20:16:19.418486
+[APPLICATION]: UNKNOWN APPLICATION
+[MODE]: Release
+[EXTRAS]: default
+[OS]: GNU/Linux
+[COMPILER]: GCC version "11.5.0 20240719 (Red Hat 11.5.0-5)"
+[STDLIB]: libstdc++ version 20240719
+[START_OPTIONS]
+NO OPTIONS SPECIFIED
+
+[END_OPTIONS]
+
+[START_BACKTRACE]: RAW_LIBC
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(backtrace_string[abi:cxx11](int)+0x43) [0x149469c5b603]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::excn::Exception::Exception(char const*, int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)+0xce) [0x149469c9761e]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(+0x196d66) [0x149469c4dd66]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load_option_cl(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::list<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)+0x118) [0x149469d97e08]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::list<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, bool)+0x120) [0x149469d9a260]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libutility.so(utility::options::OptionCollection::load(int, char* const*, bool)+0x1b3) [0x149469d9ac13]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libcore.6.so(core::init::init_options(int, char**)+0x20) [0x14946ecdbb30]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/build/src/release/linux/5.14/64/x86/gcc/11/default/libcore.6.so(core::init::init(int, char**)+0x27) [0x14946ece1767]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/bin/relax.linuxgccrelease() [0x4011c8]
+/lib64/libc.so.6(+0x295d0) [0x1494682295d0]
+/lib64/libc.so.6(__libc_start_main+0x80) [0x149468229680]
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/bin/relax.linuxgccrelease() [0x401245]
+
+[END_BACKTRACE]
+
+[FILE]: src/utility/options/OptionCollection.cc
+[LINE]: 1467
+[START_MESSAGE]
+Option matching -out:file:gz not found in command line top-level context
+Did you mean:
+	 -canonical_sampling:probabilities:sc
+	 -chemically_conjugated_docking:pdz
+	 -cm
+	 -cm:nn
+	 -cp
+	 -dc
+	 -dist_cst:sd
+	 -dump_trajectory:gz
+	 -frags:j
+	 -gpu
+	 -in
+	 -in:file:dc
+	 -in:file:l
+	 -in:file:s
+	 -in:file:t
+	 -in:file:xyz
+	 -lh
+	 -ligand_evolution:xyz
+	 -mc
+	 -mh
+	 -mh:match:aa
+	 -mh:match:ss
+	 -motifs:r1
+	 -motifs:r2
+	 -motifs:z1
+	 -motifs:z2
+	 -mp
+	 -mp:geo
+	 -ms
+	 -ms:checkpoint:gz
+	 -noesy:prob:sigmoid:m
+	 -noesy:prob:sigmoid:w
+	 -out:file:o
+	 -out:path:db
+	 -out:sf
+	 -pH
+	 -relax:range:kT
+	 -remodel:rg
+	 -rna:denovo:db
+	 -rotamerdump:xyz
+	 -score:fiber_diffraction:a
+	 -score:fiber_diffraction:b
+	 -score:fiber_diffraction:p
+	 -stepwise:s1
+	 -stepwise:s2
+	 -ufv:ss
+
+
+[END_MESSAGE]
+[END_CRASH_REPORT]
+

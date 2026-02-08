@@ -1,0 +1,86 @@
+********  (C) Copyright Rosetta Commons Member Institutions.  ***************
+* Use of Rosetta for commercial purposes may require purchase of a license. *
+********  See LICENSE.md or email license@uw.edu for more details. **********
+********  (C) Copyright Rosetta Commons Member Institutions.  ***************
+* Use of Rosetta for commercial purposes may require purchase of a license. *
+********  See LICENSE.md or email license@uw.edu for more details. **********
+core.init.score_function_corrections: [ WARNING ] Flag -beta_nov16 is set but either -weights are also specified or this is being used with the genpot score function.  Not changing input weights file!
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue LYS 89
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE  on residue LYS 89
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NZ  on residue LYS 89
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue LYS 233
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE  on residue LYS 233
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NZ  on residue LYS 233
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue LYS 255
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue LYS 255
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE  on residue LYS 255
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NZ  on residue LYS 255
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OXT on residue SER:CtermProteinFull 326
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OG  on residue SER:CtermProteinFull 326
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue LYS 415
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE  on residue LYS 415
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NZ  on residue LYS 415
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue LYS 559
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE  on residue LYS 559
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NZ  on residue LYS 559
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue LYS 581
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue LYS 581
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE  on residue LYS 581
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NZ  on residue LYS 581
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OXT on residue SER:CtermProteinFull 652
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OG  on residue SER:CtermProteinFull 652
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue LYS 741
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE  on residue LYS 741
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NZ  on residue LYS 741
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue LYS 885
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE  on residue LYS 885
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NZ  on residue LYS 885
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue LYS 907
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue LYS 907
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE  on residue LYS 907
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NZ  on residue LYS 907
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OXT on residue SER:CtermProteinFull 978
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OG  on residue SER:CtermProteinFull 978
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue LYS 1067
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE  on residue LYS 1067
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NZ  on residue LYS 1067
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue LYS 1211
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE  on residue LYS 1211
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NZ  on residue LYS 1211
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue LYS 1233
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue LYS 1233
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE  on residue LYS 1233
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NZ  on residue LYS 1233
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OXT on residue SER:CtermProteinFull 1304
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OG  on residue SER:CtermProteinFull 1304
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OXT on residue ALA:CtermProteinFull 1395
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OXT on residue ALA:CtermProteinFull 1486
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OXT on residue ALA:CtermProteinFull 1577
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OXT on residue ALA:CtermProteinFull 1668
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+protocols.jd2.JobDistributor: [ WARNING ] The following options have been set, but have not yet been used:
+	-packing:flip_HNQ 
+
+********  (C) Copyright Rosetta Commons Member Institutions.  ***************
+* Use of Rosetta for commercial purposes may require purchase of a license. *
+********  See LICENSE.md or email license@uw.edu for more details. **********
+core.init.score_function_corrections: [ WARNING ] Flag -beta_nov16 is set but either -weights are also specified or this is being used with the genpot score function.  Not changing input weights file!

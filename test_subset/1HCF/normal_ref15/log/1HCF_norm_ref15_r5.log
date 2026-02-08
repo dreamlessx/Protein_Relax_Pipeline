@@ -1,0 +1,50 @@
+********  (C) Copyright Rosetta Commons Member Institutions.  ***************
+* Use of Rosetta for commercial purposes may require purchase of a license. *
+********  See LICENSE.md or email license@uw.edu for more details. **********
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CB  on residue VAL:NtermProteinFull 1
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG1 on residue VAL:NtermProteinFull 1
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG2 on residue VAL:NtermProteinFull 1
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NE  on residue ARG 27
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CZ  on residue ARG 27
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NH1 on residue ARG 27
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NH2 on residue ARG 27
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NE  on residue ARG 35
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CZ  on residue ARG 35
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NH1 on residue ARG 35
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NH2 on residue ARG 35
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue LYS 61
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE  on residue LYS 61
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NZ  on residue LYS 61
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NE  on residue ARG 76
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CZ  on residue ARG 76
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NH1 on residue ARG 76
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NH2 on residue ARG 76
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue ARG 100
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NE  on residue ARG 100
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CZ  on residue ARG 100
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NH1 on residue ARG 100
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NH2 on residue ARG 100
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OXT on residue THR:CtermProteinFull 120
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue ARG 167
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NE  on residue ARG 167
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CZ  on residue ARG 167
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NH1 on residue ARG 167
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NH2 on residue ARG 167
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue LYS 176
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE  on residue LYS 176
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NZ  on residue LYS 176
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OXT on residue GLY:CtermProteinFull 241
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue GLU 330
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OE1 on residue GLU 330
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OE2 on residue GLU 330
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OXT on residue GLY:CtermProteinFull 342
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+protocols.jd2.JobDistributor: [ WARNING ] The following options have been set, but have not yet been used:
+	-packing:flip_HNQ 
+

@@ -1,0 +1,36 @@
+********  (C) Copyright Rosetta Commons Member Institutions.  ***************
+* Use of Rosetta for commercial purposes may require purchase of a license. *
+********  See LICENSE.md or email license@uw.edu for more details. **********
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG1 on residue ILE:NtermProteinFull 1
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG2 on residue ILE:NtermProteinFull 1
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD1 on residue ILE:NtermProteinFull 1
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue LYS 105
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue LYS 105
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CE  on residue LYS 105
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  NZ  on residue LYS 105
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OXT on residue ASP:CtermProteinFull 181
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OXT on residue ASP:CtermProteinFull 363
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue ASN:NtermProteinFull 364
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OD1 on residue ASN:NtermProteinFull 364
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  ND2 on residue ASN:NtermProteinFull 364
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue GLU 435
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD  on residue GLU 435
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OE1 on residue GLU 435
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OE2 on residue GLU 435
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  OXT on residue LEU:CtermProteinFull 482
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CG  on residue LEU:CtermProteinFull 482
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD1 on residue LEU:CtermProteinFull 482
+core.conformation.Conformation: [ WARNING ] missing heavyatom:  CD2 on residue LEU:CtermProteinFull 482
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+core.optimization.Minimizer: [ WARNING ] LBFGS MAX CYCLES 200 EXCEEDED, BUT FUNC NOT CONVERGED!
+protocols.jd2.JobDistributor: [ WARNING ] The following options have been set, but have not yet been used:
+	-packing:flip_HNQ 
+
