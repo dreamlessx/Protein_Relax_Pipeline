@@ -35,7 +35,7 @@ These are counted separately from their parent structures (3AAD, 1OYV, 3P57) as 
 ### AlphaFold 2.3.2
 - Database preset: `reduced_dbs` (UniRef30 via MMseqs2)
 - Model preset: Auto-detect (monomer for 1 chain, multimer for 2+ chains)
-- 5 AMBER-relaxed ranked models per target (`--use_gpu_relax`)
+- 5 AMBER-relaxed ranked models per target (`--use_gpu_relax --models_to_relax=all`)
 - Template date: unrestricted
 - Memory: 60 GB RAM, NVIDIA RTX A6000 GPU
 
@@ -168,6 +168,8 @@ Only ranked PDB outputs and FASTA files are retained.
 **Remaining targets:**
 - Need AF: 1WEJ, 2BTF, 4CPA, 5JMO
 - Need Boltz: 4GXU, 5HYS, BAAD, BOYV, BP57, CP57
+
+**Note:** Earlier predictions (before 2026-02-08) have only ranked_0 AMBER-relaxed. Later predictions use `--models_to_relax=all` for all 5 models.
 
 - **Standard BM5.5 entries:** 253
 - **Non-standard BM5.5 entries:** 4 (BAAD, BOYV, BP57, CP57)
