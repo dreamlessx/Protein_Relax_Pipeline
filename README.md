@@ -34,9 +34,10 @@ These are counted separately from their parent structures (3AAD, 1OYV, 3P57) as 
 
 ### AlphaFold 2.3.2
 - Database preset: `reduced_dbs` (UniRef30 via MMseqs2)
-- 5 ranked models per target
-- GPU-accelerated relaxation enabled
+- Model preset: Auto-detect (monomer for 1 chain, multimer for 2+ chains)
+- 5 AMBER-relaxed ranked models per target (`--use_gpu_relax`)
 - Template date: unrestricted
+- Memory: 60 GB RAM, NVIDIA RTX A6000 GPU
 
 ### Boltz-1 v0.4.1
 - MSA server for sequence alignments
@@ -158,9 +159,15 @@ Only ranked PDB outputs and FASTA files are retained.
 | 2026-02-07 | 9 (BM5 missing) | Complete | Added missing BM5.5 targets |
 | 2026-02-08 | 246/257 | Complete | 246 targets synced to GitHub |
 | 2026-02-08 | 15 non-BM5.5 | Removed | Cleaned targets from older benchmark versions |
-| 2026-02-08 | 11 remaining | Running | 7 standard + 4 non-standard (BAAD, BOYV, BP57, CP57) |
+| 2026-02-08 | 10 remaining | Running | 4 need AF, 6 need Boltz |
 
 ### Coverage Summary
+
+**Current Progress:** 247/257 complete (96%)
+
+**Remaining targets:**
+- Need AF: 1WEJ, 2BTF, 4CPA, 5JMO
+- Need Boltz: 4GXU, 5HYS, BAAD, BOYV, BP57, CP57
 
 - **Standard BM5.5 entries:** 253
 - **Non-standard BM5.5 entries:** 4 (BAAD, BOYV, BP57, CP57)
