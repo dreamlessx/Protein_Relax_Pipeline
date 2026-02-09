@@ -152,28 +152,43 @@ Only ranked PDB outputs and FASTA files are retained.
 
 ## Run Log
 
-| Date | Targets | Status | Notes |
-|------|---------|--------|-------|
-| 2026-02-07 | 45 (afset) | Complete | Initial AF2 batch with reduced_dbs |
-| 2026-02-07 | 66 (af_completed) | Complete | Synced to GitHub |
-| 2026-02-07 | 9 (BM5 missing) | Complete | Added missing BM5.5 targets |
-| 2026-02-08 | 246/257 | Complete | 246 targets synced to GitHub |
-| 2026-02-08 | 15 non-BM5.5 | Removed | Cleaned targets from older benchmark versions |
-| 2026-02-08 | 10 remaining | Running | 4 need AF, 6 need Boltz |
+| Date | Event | Details |
+|------|-------|---------|
+| 2026-02-07 | Initial batch | AF2 with reduced_dbs preset |
+| 2026-02-08 | Cleanup | Removed 15 non-BM5.5 targets from older benchmarks |
+| 2026-02-08 | Added | 4 non-standard BM5.5 entries (BAAD, BOYV, BP57, CP57) |
+| 2026-02-08 | Script update | Added `--models_to_relax=all` for full AMBER relaxation |
 
 ### Coverage Summary
 
-**Current Progress:** 247/257 complete (96%)
+| Metric | Count |
+|--------|-------|
+| Standard BM5.5 entries | 253 |
+| Non-standard BM5.5 entries | 4 |
+| **Total** | **257** |
 
-**Remaining targets:**
-- Need AF: 1WEJ, 2BTF, 4CPA, 5JMO
-- Need Boltz: 4GXU, 5HYS, BAAD, BOYV, BP57, CP57
+### Current Progress
 
-**Note:** Earlier predictions (before 2026-02-08) have only ranked_0 AMBER-relaxed. Later predictions use `--models_to_relax=all` for all 5 models.
+**Status:** 247/257 complete (96%)
 
-- **Standard BM5.5 entries:** 253
-- **Non-standard BM5.5 entries:** 4 (BAAD, BOYV, BP57, CP57)
-- **Total:** 257
+**Remaining (10 targets):**
+
+| Target | AlphaFold | Boltz-1 |
+|--------|-----------|---------|
+| 1WEJ | pending | done |
+| 2BTF | pending | done |
+| 4CPA | pending | done |
+| 5JMO | pending | done |
+| 4GXU | done | pending |
+| 5HYS | done | pending |
+| BAAD | done | pending |
+| BOYV | done | pending |
+| BP57 | done | pending |
+| CP57 | done | pending |
+
+### AMBER Relaxation Note
+
+Predictions completed before 2026-02-08 have only `ranked_0.pdb` AMBER-relaxed (default AlphaFold behavior). Predictions after this date use `--models_to_relax=all` to relax all 5 ranked models.
 
 ---
 *Last updated: 2026-02-08*
