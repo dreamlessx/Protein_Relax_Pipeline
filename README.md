@@ -131,15 +131,17 @@ WARNING: maximum number of residues 32763 exceeded
 
 ### Boltz-1 FASTA Format
 
-**Requirement:** Boltz-1 expects headers in format `>CHAIN|PROTEIN|description`
+**Requirement:** Boltz-1 expects headers in format `>CHAIN|protein|description`
 
 **Example:**
 ```
->A|PROTEIN|1AK4 chain A
+>A|protein|chain A
 MKTAYIAKQRQISFVKSH...
->B|PROTEIN|1AK4 chain B
+>B|protein|chain B
 DIVLTQSPASLAVSLGQR...
 ```
+
+**Note:** Simple headers like `>A` will fail with "Invalid record id" error. The `|protein|` designation is required.
 
 ### Storage Management
 
@@ -157,7 +159,8 @@ Only ranked PDB outputs and FASTA files are retained.
 | 2026-02-07 | Initial batch | AF2 with reduced_dbs preset |
 | 2026-02-08 | Cleanup | Removed 15 non-BM5.5 targets from older benchmarks |
 | 2026-02-08 | Added | 4 non-standard BM5.5 entries (BAAD, BOYV, BP57, CP57) |
-| 2026-02-08 | Script update | Added `--models_to_relax=all` for full AMBER relaxation |
+| 2026-02-08 | Script update | Added `--models_to_relax=all` for new predictions |
+| 2026-02-08 | AMBER batch | Running standalone AMBER relaxation on all ranked_1-4 models |
 
 ### Coverage Summary
 
@@ -169,7 +172,7 @@ Only ranked PDB outputs and FASTA files are retained.
 
 ### Current Progress
 
-**Status:** 247/257 complete (96%)
+**Predictions:** 247/257 complete (96%)
 
 **Remaining (10 targets):**
 
@@ -186,9 +189,15 @@ Only ranked PDB outputs and FASTA files are retained.
 | BP57 | done | pending |
 | CP57 | done | pending |
 
-### AMBER Relaxation Note
+### AMBER Relaxation
 
-Predictions completed before 2026-02-08 have only `ranked_0.pdb` AMBER-relaxed (default AlphaFold behavior). Predictions after this date use `--models_to_relax=all` to relax all 5 ranked models.
+All 5 AlphaFold ranked models (ranked_0 through ranked_4) are AMBER-relaxed using OpenMM with the AMBER ff14SB force field. This ensures consistent geometry optimization across all predictions for downstream Rosetta relaxation analysis.
+
+**Relaxation parameters:**
+- Force field: AMBER ff14SB
+- Energy tolerance: 2.39 kcal/mol
+- Position restraint stiffness: 10.0 kcal/mol/A^2
+- Max iterations: unlimited (until convergence)
 
 ---
 *Last updated: 2026-02-08*
