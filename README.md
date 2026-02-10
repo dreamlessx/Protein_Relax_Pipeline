@@ -52,19 +52,13 @@ These are counted separately from their parent structures (3AAD, 1OYV, 3P57) as 
 ```
 data/
 ├── {PDB_ID}/
-│   ├── af_out/                    # AlphaFold AMBER-relaxed (default)
+│   ├── af_out/                    # AlphaFold AMBER-relaxed
 │   │   ├── ranked_0.pdb
 │   │   ├── ranked_1.pdb
 │   │   ├── ranked_2.pdb
 │   │   ├── ranked_3.pdb
 │   │   └── ranked_4.pdb
 │   ├── af_out_unrelaxed/          # AlphaFold unrelaxed
-│   │   ├── unrelaxed_model_1_*.pdb
-│   │   ├── unrelaxed_model_2_*.pdb
-│   │   ├── unrelaxed_model_3_*.pdb
-│   │   ├── unrelaxed_model_4_*.pdb
-│   │   └── unrelaxed_model_5_*.pdb
-│   ├── af_out_relaxed/            # AlphaFold AMBER-relaxed (explicit)
 │   │   ├── ranked_0.pdb
 │   │   ├── ranked_1.pdb
 │   │   ├── ranked_2.pdb
