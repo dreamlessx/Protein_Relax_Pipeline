@@ -229,6 +229,7 @@ Only PDB outputs and FASTA files retained.
 | Target | Issue | Status |
 |--------|-------|--------|
 | 1ATN | AMBER relaxation failed (residue with no atoms) | Unrelaxed saved, will use for Rosetta |
+| 1H9D | DNA chains in FASTA, predicted with invalid input | FASTA fixed, needs re-prediction |
 
 ## References
 
