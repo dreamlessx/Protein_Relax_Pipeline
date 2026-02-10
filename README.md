@@ -186,7 +186,8 @@ Only ranked PDB outputs and FASTA files are retained.
 
 ### Current Progress
 
-**AlphaFold:** Re-running all 257 targets (Job 8849208)
+**AlphaFold:** Running all 257 targets (Job 8849933)
+- Using `full_dbs` with auto-fallback to `reduced_dbs` for antibody sequences
 - Saving both unrelaxed and AMBER-relaxed versions
 - Native AlphaFold AMBER relaxation (OpenMM ff14SB)
 
