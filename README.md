@@ -11,6 +11,7 @@ This repository contains structure predictions and relaxation protocols for prot
 - Both unrelaxed and AMBER-relaxed AlphaFold outputs
 - 7 relaxation protocols (1 AMBER + 6 Rosetta)
 - Automatic database fallback for antibody sequences
+- Cross-pipeline verification with independent FASTA regeneration
 
 ## Dataset
 
@@ -34,6 +35,56 @@ BM5.5 includes 4 non-standard entries representing alternate chain combinations:
 | BP57 | 3P57 | Chains AB:P (MEF2A dimer + p300 TAZ2) |
 | CP57 | 3P57 | Chains CD:P (MEF2A dimer + p300 TAZ2) |
 
+### DNA/RNA Exclusion Policy
+
+DNA/RNA chains present in crystal structures are excluded from predictions:
+- AlphaFold Multimer only accepts protein sequences
+- Boltz-1 standard models are protein-focused
+- BM5.5 evaluates protein-protein interfaces only
+
+Targets with DNA-mediated interfaces (e.g., 3P57) may have reduced DockQ scores due to missing nucleic acid mediators.
+
+## Repository Structure
+
+```
+Protein_Relax_Pipeline/
+├── cleaned/                    # PI-cleaned crystal structures (266 PDBs)
+├── fasta/                      # Authoritative FASTA sequences (265 files)
+├── merged/                     # Merged bound structures for relaxation
+├── structures/                 # Raw BM5.5 structures (bound/unbound)
+│   └── {PDB}_[l|r]_[b|u].pdb  # ligand/receptor, bound/unbound
+├── old_scripts/                # Reference scripts from earlier runs
+├── scripts/
+│   ├── prediction/             # AlphaFold & Boltz prediction scripts
+│   ├── relaxation/             # Rosetta relaxation protocols
+│   ├── analysis/               # Analysis scripts
+│   ├── data_preparation/       # FASTA preparation
+│   └── validation/             # Validation scripts
+├── data/                       # Per-target prediction outputs
+│   └── {PDB_ID}/
+│       ├── af_out/             # AlphaFold AMBER-relaxed (5 models)
+│       ├── af_out_unrelaxed/   # AlphaFold unrelaxed (5 models)
+│       ├── boltz_out/          # Boltz-1 predictions (5 models)
+│       ├── sequence.fasta      # Input FASTA
+│       └── db_preset_used.txt  # Records full_dbs or reduced_dbs
+└── test_subset/                # Test data (20 targets)
+```
+
+### Input Data Folders
+
+| Folder | Files | Description |
+|--------|-------|-------------|
+| `cleaned/` | 266 PDBs | PI-cleaned crystal structures (merged complexes) |
+| `fasta/` | 265 FASTAs | Authoritative sequences from RCSB |
+| `merged/` | 266 PDBs | Merged bound structures for Rosetta |
+| `structures/` | 1086 PDBs | Raw BM5.5 (271 targets × 4 files each) |
+
+**structures/ naming convention:**
+- `{PDB}_l_b.pdb` - ligand, bound conformation
+- `{PDB}_l_u.pdb` - ligand, unbound conformation
+- `{PDB}_r_b.pdb` - receptor, bound conformation
+- `{PDB}_r_u.pdb` - receptor, unbound conformation
+
 ## Structure Prediction Methods
 
 ### AlphaFold 2.3.2
@@ -55,49 +106,8 @@ BM5.5 includes 4 non-standard entries representing alternate chain combinations:
 | MSA | MSA server |
 | Recycling steps | 10 |
 | Sampling steps | 200 |
-| Diffusion samples | 5 per target |
+| Diffusion samples | 5 per target (1 for >1500 residue targets) |
 | Output | Unrelaxed (native Boltz) |
-
-## Directory Structure
-
-```
-data/
-├── {PDB_ID}/
-│   ├── af_out/                    # AlphaFold AMBER-relaxed
-│   │   ├── ranked_0.pdb
-│   │   ├── ranked_1.pdb
-│   │   ├── ranked_2.pdb
-│   │   ├── ranked_3.pdb
-│   │   └── ranked_4.pdb
-│   ├── af_out_unrelaxed/          # AlphaFold unrelaxed
-│   │   ├── ranked_0.pdb
-│   │   ├── ranked_1.pdb
-│   │   ├── ranked_2.pdb
-│   │   ├── ranked_3.pdb
-│   │   └── ranked_4.pdb
-│   ├── boltz_out/                 # Boltz-1 predictions (unrelaxed)
-│   │   ├── boltz_input_model_0.pdb
-│   │   ├── boltz_input_model_1.pdb
-│   │   ├── boltz_input_model_2.pdb
-│   │   ├── boltz_input_model_3.pdb
-│   │   └── boltz_input_model_4.pdb
-│   ├── db_preset_used.txt         # Records full_dbs or reduced_dbs
-│   ├── boltz_input.fasta          # Boltz-format FASTA
-│   └── sequence.fasta             # Standard FASTA
-└── ...
-
-scripts/
-├── prediction/
-│   ├── af_full.slurm              # AlphaFold with full_dbs + fallback
-│   ├── alphafold_array.slurm      # AlphaFold array job
-│   ├── alphafold_single.slurm     # AlphaFold single target
-│   ├── boltz_array.slurm          # Boltz-1 array job
-│   └── boltz_single.slurm         # Boltz-1 single target
-├── relaxation/                    # Rosetta relaxation scripts
-├── analysis/                      # Analysis scripts
-├── data_preparation/              # FASTA preparation
-└── validation/                    # Validation scripts
-```
 
 ## Relaxation Protocols
 
@@ -144,7 +154,7 @@ All predictions generated on ACCRE (Vanderbilt University HPC).
 | Resource | Specification |
 |----------|---------------|
 | Partition | batch_gpu (csb_gpu_acc) |
-| GPU | NVIDIA RTX A6000 / L40S |
+| GPU | NVIDIA RTX A6000 / L40S / H100 |
 | Memory | 80 GB per job |
 | Time limit | 72 hours |
 
@@ -162,6 +172,20 @@ full_dbs (HHblits + BFD) → fails on antibodies → reduced_dbs (MMseqs2)
 
 **Impact:** Minimal accuracy loss (~0.5-1% TM-score) since antibodies have extensive UniRef90 coverage.
 
+### FASTA Verification
+
+All input FASTAs verified against RCSB:
+- 10 targets regenerated from RCSB to fix missing/incomplete chains
+- All sequences match authoritative source (chain order may differ)
+- DNA/RNA chains excluded per policy
+
+### Cross-Pipeline Verification
+
+Two independent pipelines (Blue and Green) verify each other:
+- Both use 257 targets with identical sequences
+- Chain order may differ (RCSB vs BM5.5 receptor-first)
+- Independent FASTA regeneration confirms convergence
+
 ### Boltz-1 FASTA Format
 
 Boltz-1 requires specific header format:
@@ -171,8 +195,6 @@ MKTAYIAKQRQISFVKSH...
 >B|protein|chain B
 DIVLTQSPASLAVSLGQR...
 ```
-
-Simple headers like `>A` fail with "Invalid record id" error.
 
 ### Storage Management
 
@@ -191,14 +213,22 @@ Only PDB outputs and FASTA files retained.
 | 2026-02-08 | Cleanup | Removed 15 non-BM5.5 targets |
 | 2026-02-08 | Added | 4 non-standard entries (BAAD, BOYV, BP57, CP57) |
 | 2026-02-09 | Full re-run | All 257 targets, full_dbs + fallback, both relaxed/unrelaxed |
+| 2026-02-10 | Input verification | Cross-checked FASTAs, fixed 10 targets |
+| 2026-02-10 | FASTA regeneration | Regenerated 10 FASTAs from RCSB, all match authoritative |
 
 ### Current Progress
 
 | Method | Status | Details |
 |--------|--------|---------|
-| AlphaFold | Running | Job 8849933, 257 targets, full_dbs + fallback |
+| AlphaFold | Running | Job 8849933, 43/257 complete |
 | Boltz-1 | Pending | After AlphaFold completion |
 | Rosetta relax | Pending | After predictions complete |
+
+### Known Issues
+
+| Target | Issue | Status |
+|--------|-------|--------|
+| 1ATN | AMBER relaxation failed (residue with no atoms) | Unrelaxed saved, will use for Rosetta |
 
 ## References
 
@@ -211,4 +241,4 @@ Only PDB outputs and FASTA files retained.
 MIT License
 
 ---
-*Last updated: 2026-02-09*
+*Last updated: 2026-02-10*
