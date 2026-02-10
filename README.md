@@ -33,12 +33,12 @@ These are counted separately from their parent structures (3AAD, 1OYV, 3P57) as 
 ## Structure Prediction Methods
 
 ### AlphaFold 2.3.2
-- Database preset: `reduced_dbs` (UniRef30 via MMseqs2)
+- Database preset: `full_dbs` (BFD + UniRef30 via HHblits), with automatic fallback to `reduced_dbs` for antibody sequences that exceed HHblits limits
 - Model preset: Auto-detect (monomer for 1 chain, multimer for 2+ chains)
 - 5 ranked models per target
 - **Both unrelaxed and AMBER-relaxed versions saved** (`--models_to_relax=all`)
 - Template date: unrestricted
-- Memory: 60 GB RAM, NVIDIA RTX A6000 GPU
+- Memory: 80 GB RAM, NVIDIA RTX A6000 GPU
 
 ### Boltz-1 v0.4.1
 - MSA server for sequence alignments
