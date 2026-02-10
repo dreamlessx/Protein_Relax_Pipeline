@@ -6,6 +6,12 @@ A comprehensive benchmarking framework for evaluating AI-based protein structure
 
 This repository contains structure predictions and relaxation protocols for protein-protein complexes from the BM5.5 benchmark. We systematically compare AlphaFold 2.3.2 and Boltz-1 predictions against experimental crystal structures, with subsequent relaxation across multiple scoring functions.
 
+**Key Features:**
+- Full BM5.5 coverage (257 complexes)
+- Both unrelaxed and AMBER-relaxed AlphaFold outputs
+- 7 relaxation protocols (1 AMBER + 6 Rosetta)
+- Automatic database fallback for antibody sequences
+
 ## Dataset
 
 **Source:** [Protein-Protein Docking Benchmark 5.5](https://zlab.wenglab.org/benchmark/)
@@ -19,7 +25,7 @@ This repository contains structure predictions and relaxation protocols for prot
 
 ### Non-Standard BM5.5 Entries
 
-BM5.5 includes 4 non-standard entries representing alternate chain combinations from the same PDB structures:
+BM5.5 includes 4 non-standard entries representing alternate chain combinations:
 
 | ID | Parent PDB | Description |
 |----|------------|-------------|
@@ -28,24 +34,29 @@ BM5.5 includes 4 non-standard entries representing alternate chain combinations 
 | BP57 | 3P57 | Chains AB:P (MEF2A dimer + p300 TAZ2) |
 | CP57 | 3P57 | Chains CD:P (MEF2A dimer + p300 TAZ2) |
 
-These are counted separately from their parent structures (3AAD, 1OYV, 3P57) as distinct docking cases.
-
 ## Structure Prediction Methods
 
 ### AlphaFold 2.3.2
-- Database preset: `full_dbs` (BFD + UniRef30 via HHblits), with automatic fallback to `reduced_dbs` for antibody sequences that exceed HHblits limits
-- Model preset: Auto-detect (monomer for 1 chain, multimer for 2+ chains)
-- 5 ranked models per target
-- **Both unrelaxed and AMBER-relaxed versions saved** (`--models_to_relax=all`)
-- Template date: unrestricted
-- Memory: 80 GB RAM, NVIDIA RTX A6000 GPU
+
+| Parameter | Value |
+|-----------|-------|
+| Database | `full_dbs` (BFD + UniRef30 via HHblits) with auto-fallback to `reduced_dbs` |
+| Model preset | Auto-detect (monomer/multimer) |
+| Models per target | 5 ranked models |
+| Relaxation | All 5 models AMBER-relaxed (`--models_to_relax=all`) |
+| Output | Both relaxed and unrelaxed saved |
+| Memory | 80 GB RAM |
+| GPU | NVIDIA RTX A6000 |
 
 ### Boltz-1 v0.4.1
-- MSA server for sequence alignments
-- 10 recycling steps
-- 200 sampling steps
-- 5 diffusion samples per target
-- Outputs are unrelaxed (native Boltz predictions)
+
+| Parameter | Value |
+|-----------|-------|
+| MSA | MSA server |
+| Recycling steps | 10 |
+| Sampling steps | 200 |
+| Diffusion samples | 5 per target |
+| Output | Unrelaxed (native Boltz) |
 
 ## Directory Structure
 
@@ -70,9 +81,22 @@ data/
 │   │   ├── boltz_input_model_2.pdb
 │   │   ├── boltz_input_model_3.pdb
 │   │   └── boltz_input_model_4.pdb
-│   ├── boltz_input.fasta
-│   └── sequence.fasta
+│   ├── db_preset_used.txt         # Records full_dbs or reduced_dbs
+│   ├── boltz_input.fasta          # Boltz-format FASTA
+│   └── sequence.fasta             # Standard FASTA
 └── ...
+
+scripts/
+├── prediction/
+│   ├── af_full.slurm              # AlphaFold with full_dbs + fallback
+│   ├── alphafold_array.slurm      # AlphaFold array job
+│   ├── alphafold_single.slurm     # AlphaFold single target
+│   ├── boltz_array.slurm          # Boltz-1 array job
+│   └── boltz_single.slurm         # Boltz-1 single target
+├── relaxation/                    # Rosetta relaxation scripts
+├── analysis/                      # Analysis scripts
+├── data_preparation/              # FASTA preparation
+└── validation/                    # Validation scripts
 ```
 
 ## Relaxation Protocols
@@ -80,29 +104,32 @@ data/
 ### AMBER Relaxation (AlphaFold Native)
 
 AlphaFold's built-in AMBER relaxation using OpenMM:
-- Force field: AMBER ff14SB
-- Energy tolerance: 2.39 kcal/mol
-- Position restraint stiffness: 10.0 kcal/mol/A^2
-- GPU-accelerated (`--use_gpu_relax`)
+
+| Parameter | Value |
+|-----------|-------|
+| Force field | AMBER ff14SB |
+| Energy tolerance | 2.39 kcal/mol |
+| Position restraint | 10.0 kcal/mol/Å² |
+| Acceleration | GPU (`--use_gpu_relax`) |
 
 ### Rosetta Relaxation Protocols
 
 Six Rosetta relaxation protocols with 5 replicates each:
 
-| Protocol | Description |
-|----------|-------------|
-| `cartesian_beta` | Cartesian space, beta_nov16 scoring |
-| `cartesian_ref15` | Cartesian space, REF2015 scoring |
-| `dualspace_beta` | Dual space with bond geometry optimization, beta_nov16 |
-| `dualspace_ref15` | Dual space with bond geometry optimization, REF2015 |
-| `normal_beta` | Torsion space, beta_nov16 scoring |
-| `normal_ref15` | Torsion space, REF2015 scoring |
+| Protocol | Space | Scoring Function |
+|----------|-------|------------------|
+| `cartesian_beta` | Cartesian | beta_nov16 |
+| `cartesian_ref15` | Cartesian | REF2015 |
+| `dualspace_beta` | Dual (bond geometry) | beta_nov16 |
+| `dualspace_ref15` | Dual (bond geometry) | REF2015 |
+| `normal_beta` | Torsion | beta_nov16 |
+| `normal_ref15` | Torsion | REF2015 |
 
-### Summary of Relaxation Types
+### Summary: 7 Relaxation Types
 
 | # | Type | Method | Applied To |
 |---|------|--------|------------|
-| 1 | AMBER (native) | AlphaFold OpenMM | AlphaFold predictions |
+| 1 | AMBER (native) | AlphaFold/OpenMM | AlphaFold predictions |
 | 2 | cartesian_beta | Rosetta | All predictions |
 | 3 | cartesian_ref15 | Rosetta | All predictions |
 | 4 | dualspace_beta | Rosetta | All predictions |
@@ -112,11 +139,66 @@ Six Rosetta relaxation protocols with 5 replicates each:
 
 ## Computational Resources
 
-All predictions generated on the ACCRE high-performance computing cluster at Vanderbilt University.
+All predictions generated on ACCRE (Vanderbilt University HPC).
 
-- **Partition:** batch_gpu (csb_gpu_acc)
-- **GPU:** NVIDIA RTX A6000 / L40S
-- **Memory:** 40-64 GB per job
+| Resource | Specification |
+|----------|---------------|
+| Partition | batch_gpu (csb_gpu_acc) |
+| GPU | NVIDIA RTX A6000 / L40S |
+| Memory | 80 GB per job |
+| Time limit | 72 hours |
+
+## Technical Notes
+
+### Database Fallback Strategy
+
+The pipeline attempts `full_dbs` first for maximum accuracy, then automatically falls back to `reduced_dbs` if HHblits fails:
+
+```
+full_dbs (HHblits + BFD) → fails on antibodies → reduced_dbs (MMseqs2)
+```
+
+**Why fallback?** HHblits has a hard-coded limit (32763 residues) that antibody/immunoglobulin sequences exceed when matching titin-like proteins in BFD.
+
+**Impact:** Minimal accuracy loss (~0.5-1% TM-score) since antibodies have extensive UniRef90 coverage.
+
+### Boltz-1 FASTA Format
+
+Boltz-1 requires specific header format:
+```
+>A|protein|chain A
+MKTAYIAKQRQISFVKSH...
+>B|protein|chain B
+DIVLTQSPASLAVSLGQR...
+```
+
+Simple headers like `>A` fail with "Invalid record id" error.
+
+### Storage Management
+
+Intermediate files cleaned after prediction:
+- `*.sto` (MSA) - 50-500 MB each
+- `features.pkl` - 100-500 MB
+- `result_model_*.pkl` - 200-800 MB each
+
+Only PDB outputs and FASTA files retained.
+
+## Run Log
+
+| Date | Event | Details |
+|------|-------|---------|
+| 2026-02-07 | Initial batch | AF2 with reduced_dbs |
+| 2026-02-08 | Cleanup | Removed 15 non-BM5.5 targets |
+| 2026-02-08 | Added | 4 non-standard entries (BAAD, BOYV, BP57, CP57) |
+| 2026-02-09 | Full re-run | All 257 targets, full_dbs + fallback, both relaxed/unrelaxed |
+
+### Current Progress
+
+| Method | Status | Details |
+|--------|--------|---------|
+| AlphaFold | Running | Job 8849933, 257 targets, full_dbs + fallback |
+| Boltz-1 | Pending | After AlphaFold completion |
+| Rosetta relax | Pending | After predictions complete |
 
 ## References
 
@@ -127,71 +209,6 @@ All predictions generated on the ACCRE high-performance computing cluster at Van
 ## License
 
 MIT License
-
-## Technical Notes & Troubleshooting
-
-### HHblits/BFD Memory Issues
-
-**Problem:** AlphaFold crashes during MSA generation on antibody/immunoglobulin sequences with error:
-```
-RuntimeError: HHblits failed
-WARNING: maximum number of residues 32763 exceeded
-```
-
-**Cause:** Immunoglobulin domains match titin-like proteins in the BFD metagenomic database, causing HHblits to exceed memory limits.
-
-**Solution:** Use `--db_preset=reduced_dbs` with `--small_bfd_database_path` instead of full BFD. This bypasses HHblits and uses MMseqs2 for UniRef30 searches.
-
-**Impact:** Minimal accuracy loss (~0.5-1% TM-score) for well-characterized protein families. Antibodies have extensive homologs in UniRef90, making BFD sequences redundant.
-
-### Boltz-1 FASTA Format
-
-**Requirement:** Boltz-1 expects headers in format `>CHAIN|protein|description`
-
-**Example:**
-```
->A|protein|chain A
-MKTAYIAKQRQISFVKSH...
->B|protein|chain B
-DIVLTQSPASLAVSLGQR...
-```
-
-**Note:** Simple headers like `>A` will fail with "Invalid record id" error. The `|protein|` designation is required.
-
-### Storage Management
-
-Large intermediate files are cleaned after successful prediction:
-- `*.sto` (MSA alignments) - 50-500 MB each
-- `features.pkl` - 100-500 MB
-- `result_model_*.pkl` - 200-800 MB each
-
-Only ranked PDB outputs and FASTA files are retained.
-
-## Run Log
-
-| Date | Event | Details |
-|------|-------|---------|
-| 2026-02-07 | Initial batch | AF2 with reduced_dbs preset |
-| 2026-02-08 | Cleanup | Removed 15 non-BM5.5 targets from older benchmarks |
-| 2026-02-08 | Added | 4 non-standard BM5.5 entries (BAAD, BOYV, BP57, CP57) |
-| 2026-02-09 | Full re-run | All 257 targets with native AMBER relaxation, saving both relaxed and unrelaxed |
-
-### Coverage Summary
-
-| Metric | Count |
-|--------|-------|
-| Standard BM5.5 entries | 253 |
-| Non-standard BM5.5 entries | 4 |
-| **Total** | **257** |
-
-### Current Progress
-
-**AlphaFold:** Running all 257 targets (Job 8849933)
-- Using `full_dbs` with auto-fallback to `reduced_dbs` for antibody sequences
-- Saving both unrelaxed and AMBER-relaxed versions
-- Native AlphaFold AMBER relaxation (OpenMM ff14SB)
-
-**Boltz-1:** Pending (after AlphaFold completion)
 
 ---
 *Last updated: 2026-02-09*
