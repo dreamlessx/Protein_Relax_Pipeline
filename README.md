@@ -4,7 +4,7 @@ A comprehensive benchmarking framework for evaluating AI-based protein structure
 
 ## Overview
 
-This repository contains structure predictions and relaxation protocols for protein-protein complexes from the BM5.5 benchmark. We systematically compare AlphaFold 2.3.2 and Boltz-1 predictions against experimental crystal structures, with subsequent Rosetta relaxation across multiple scoring functions.
+This repository contains structure predictions and relaxation protocols for protein-protein complexes from the BM5.5 benchmark. We systematically compare AlphaFold 2.3.2 and Boltz-1 predictions against experimental crystal structures, with subsequent relaxation across multiple scoring functions.
 
 ## Dataset
 
@@ -35,28 +35,42 @@ These are counted separately from their parent structures (3AAD, 1OYV, 3P57) as 
 ### AlphaFold 2.3.2
 - Database preset: `reduced_dbs` (UniRef30 via MMseqs2)
 - Model preset: Auto-detect (monomer for 1 chain, multimer for 2+ chains)
-- 5 AMBER-relaxed ranked models per target (`--use_gpu_relax --models_to_relax=all`)
+- 5 ranked models per target
+- **Both unrelaxed and AMBER-relaxed versions saved** (`--models_to_relax=all`)
 - Template date: unrestricted
 - Memory: 60 GB RAM, NVIDIA RTX A6000 GPU
 
 ### Boltz-1 v0.4.1
 - MSA server for sequence alignments
 - 10 recycling steps
-- 200 sampling steps  
+- 200 sampling steps
 - 5 diffusion samples per target
+- Outputs are unrelaxed (native Boltz predictions)
 
 ## Directory Structure
 
 ```
 data/
 ├── {PDB_ID}/
-│   ├── af_out/
+│   ├── af_out/                    # AlphaFold AMBER-relaxed (default)
 │   │   ├── ranked_0.pdb
 │   │   ├── ranked_1.pdb
 │   │   ├── ranked_2.pdb
 │   │   ├── ranked_3.pdb
 │   │   └── ranked_4.pdb
-│   ├── boltz_out/
+│   ├── af_out_unrelaxed/          # AlphaFold unrelaxed
+│   │   ├── unrelaxed_model_1_*.pdb
+│   │   ├── unrelaxed_model_2_*.pdb
+│   │   ├── unrelaxed_model_3_*.pdb
+│   │   ├── unrelaxed_model_4_*.pdb
+│   │   └── unrelaxed_model_5_*.pdb
+│   ├── af_out_relaxed/            # AlphaFold AMBER-relaxed (explicit)
+│   │   ├── ranked_0.pdb
+│   │   ├── ranked_1.pdb
+│   │   ├── ranked_2.pdb
+│   │   ├── ranked_3.pdb
+│   │   └── ranked_4.pdb
+│   ├── boltz_out/                 # Boltz-1 predictions (unrelaxed)
 │   │   ├── boltz_input_model_0.pdb
 │   │   ├── boltz_input_model_1.pdb
 │   │   ├── boltz_input_model_2.pdb
@@ -65,24 +79,19 @@ data/
 │   ├── boltz_input.fasta
 │   └── sequence.fasta
 └── ...
-
-test_subset/
-├── {PDB_ID}/
-│   ├── AF/                    # AlphaFold predictions
-│   ├── Boltz/                 # Boltz-1 predictions
-│   ├── relax/                 # Rosetta relaxation results
-│   │   ├── AF/
-│   │   └── Boltz/
-│   ├── cartesian_beta/        # Relaxed experimental structure
-│   ├── cartesian_ref15/
-│   ├── dualspace_beta/
-│   ├── dualspace_ref15/
-│   ├── normal_beta/
-│   └── normal_ref15/
-└── ...
 ```
 
 ## Relaxation Protocols
+
+### AMBER Relaxation (AlphaFold Native)
+
+AlphaFold's built-in AMBER relaxation using OpenMM:
+- Force field: AMBER ff14SB
+- Energy tolerance: 2.39 kcal/mol
+- Position restraint stiffness: 10.0 kcal/mol/A^2
+- GPU-accelerated (`--use_gpu_relax`)
+
+### Rosetta Relaxation Protocols
 
 Six Rosetta relaxation protocols with 5 replicates each:
 
@@ -94,6 +103,18 @@ Six Rosetta relaxation protocols with 5 replicates each:
 | `dualspace_ref15` | Dual space with bond geometry optimization, REF2015 |
 | `normal_beta` | Torsion space, beta_nov16 scoring |
 | `normal_ref15` | Torsion space, REF2015 scoring |
+
+### Summary of Relaxation Types
+
+| # | Type | Method | Applied To |
+|---|------|--------|------------|
+| 1 | AMBER (native) | AlphaFold OpenMM | AlphaFold predictions |
+| 2 | cartesian_beta | Rosetta | All predictions |
+| 3 | cartesian_ref15 | Rosetta | All predictions |
+| 4 | dualspace_beta | Rosetta | All predictions |
+| 5 | dualspace_ref15 | Rosetta | All predictions |
+| 6 | normal_beta | Rosetta | All predictions |
+| 7 | normal_ref15 | Rosetta | All predictions |
 
 ## Computational Resources
 
@@ -159,8 +180,7 @@ Only ranked PDB outputs and FASTA files are retained.
 | 2026-02-07 | Initial batch | AF2 with reduced_dbs preset |
 | 2026-02-08 | Cleanup | Removed 15 non-BM5.5 targets from older benchmarks |
 | 2026-02-08 | Added | 4 non-standard BM5.5 entries (BAAD, BOYV, BP57, CP57) |
-| 2026-02-08 | Script update | Added `--models_to_relax=all` for new predictions |
-| 2026-02-08 | AMBER batch | Running standalone AMBER relaxation on all ranked_1-4 models |
+| 2026-02-09 | Full re-run | All 257 targets with native AMBER relaxation, saving both relaxed and unrelaxed |
 
 ### Coverage Summary
 
@@ -172,32 +192,11 @@ Only ranked PDB outputs and FASTA files are retained.
 
 ### Current Progress
 
-**Predictions:** 247/257 complete (96%)
+**AlphaFold:** Re-running all 257 targets (Job 8849208)
+- Saving both unrelaxed and AMBER-relaxed versions
+- Native AlphaFold AMBER relaxation (OpenMM ff14SB)
 
-**Remaining (10 targets):**
-
-| Target | AlphaFold | Boltz-1 |
-|--------|-----------|---------|
-| 1WEJ | pending | done |
-| 2BTF | pending | done |
-| 4CPA | pending | done |
-| 5JMO | pending | done |
-| 4GXU | done | pending |
-| 5HYS | done | pending |
-| BAAD | done | pending |
-| BOYV | done | pending |
-| BP57 | done | pending |
-| CP57 | done | pending |
-
-### AMBER Relaxation
-
-All 5 AlphaFold ranked models (ranked_0 through ranked_4) are AMBER-relaxed using OpenMM with the AMBER ff14SB force field. This ensures consistent geometry optimization across all predictions for downstream Rosetta relaxation analysis.
-
-**Relaxation parameters:**
-- Force field: AMBER ff14SB
-- Energy tolerance: 2.39 kcal/mol
-- Position restraint stiffness: 10.0 kcal/mol/A^2
-- Max iterations: unlimited (until convergence)
+**Boltz-1:** Pending (after AlphaFold completion)
 
 ---
-*Last updated: 2026-02-08*
+*Last updated: 2026-02-09*
