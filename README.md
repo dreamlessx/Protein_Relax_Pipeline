@@ -215,21 +215,45 @@ Only PDB outputs and FASTA files retained.
 | 2026-02-09 | Full re-run | All 257 targets, full_dbs + fallback, both relaxed/unrelaxed |
 | 2026-02-10 | Input verification | Cross-checked FASTAs, fixed 10 targets |
 | 2026-02-10 | FASTA regeneration | Regenerated 10 FASTAs from RCSB, all match authoritative |
+| 2026-02-11 | AF complete | 257/257, 7 AMBER failures with unrelaxed saved |
+| 2026-02-15 | Boltz complete | 233/257 (9 OOM expected) |
+| 2026-02-15 | Rosetta started | Job 9011797, 6 protocols × 5 replicates |
 
 ### Current Progress
 
 | Method | Status | Details |
 |--------|--------|---------|
-| AlphaFold | Running | Job 8849933, 43/257 complete |
-| Boltz-1 | Pending | After AlphaFold completion |
-| Rosetta relax | Pending | After predictions complete |
+| AlphaFold | ✅ Complete | 257/257 (250 AMBER + 7 unrelaxed only) |
+| Boltz-1 | ✅ Complete | 233/257 (9 OOM expected) |
+| Rosetta relax | 🔄 Running | Job 9011797, 6 protocols × 5 reps |
+| MolProbity | Pending | After Rosetta completion |
 
-### Known Issues
+### AMBER Failures (7 targets)
+
+| Target | Issue | Resolution |
+|--------|-------|------------|
+| 1ATN | AMBER crash (non-standard atoms) | Unrelaxed saved to af_out_unrelaxed/ |
+| 1DFJ | AMBER crash | Unrelaxed saved |
+| 1FC2 | AMBER crash | Unrelaxed saved |
+| 1WEJ | AMBER crash | Unrelaxed saved |
+| 2BTF | AMBER crash | Unrelaxed saved |
+| 4CPA | AMBER crash | Unrelaxed saved |
+| 5JMO | AMBER crash | Unrelaxed saved |
+
+### Superseded PDBs
+
+| Original | Superseded By | Resolution |
+|----------|---------------|------------|
+| 1A2K | 5BXQ | FASTA from 5BXQ, re-predicted |
+| 3RVW | 5VPG | FASTA from 5VPG, re-predicted |
+
+### Fixed Issues
 
 | Target | Issue | Status |
 |--------|-------|--------|
-| 1ATN | AMBER relaxation failed (residue with no atoms) | Unrelaxed saved, will use for Rosetta |
-| 1H9D | DNA chains in FASTA, predicted with invalid input | FASTA fixed, needs re-prediction |
+| 1H9D | DNA chains contaminated FASTA | ✅ Fixed, re-predicted |
+| 1A2K | Obsolete PDB | ✅ Using 5BXQ |
+| 3RVW | Obsolete PDB | ✅ Using 5VPG |
 
 ## References
 
@@ -242,4 +266,4 @@ Only PDB outputs and FASTA files retained.
 MIT License
 
 ---
-*Last updated: 2026-02-10*
+*Last updated: 2026-02-15*
