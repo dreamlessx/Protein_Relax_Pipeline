@@ -53,20 +53,15 @@ Protein_Relax_Pipeline/
 ├── merged/                     # Merged bound structures for relaxation
 ├── structures/                 # Raw BM5.5 structures (bound/unbound)
 │   └── {PDB}_[l|r]_[b|u].pdb  # ligand/receptor, bound/unbound
-├── old_scripts/                # Reference scripts from earlier runs
-├── scripts/
-│   ├── prediction/             # AlphaFold & Boltz prediction scripts
-│   ├── relaxation/             # Rosetta relaxation protocols
-│   ├── analysis/               # Analysis scripts
-│   ├── data_preparation/       # FASTA preparation
-│   └── validation/             # Validation scripts
-├── data/                       # Per-target prediction outputs
-│   └── {PDB_ID}/
-│       ├── af_out/             # AlphaFold AMBER-relaxed (5 models)
-│       ├── af_out_unrelaxed/   # AlphaFold unrelaxed (5 models)
-│       ├── boltz_out/          # Boltz-1 predictions (5 models)
-│       ├── sequence.fasta      # Input FASTA
-│       └── db_preset_used.txt  # Records full_dbs or reduced_dbs
+├── predictions/
+│   ├── alphafold/              # AF2 AMBER-relaxed ranked PDBs (255 targets)
+│   │   └── {PDB_ID}/ranked_0..4.pdb
+│   ├── alphafold_unrelaxed/    # AF2 unrelaxed ranked PDBs (257 targets)
+│   │   └── {PDB_ID}/ranked_0..4.pdb
+│   └── boltz/                  # Boltz-1 predictions (244+ targets)
+│       └── {PDB_ID}/boltz_input_model_0..4.pdb
+├── scripts/                    # All SLURM scripts (prediction, relaxation, fixes)
+├── AMBER_FIX_LOG.txt           # Log of FASTA modifications for AMBER fixes
 └── test_subset/                # Test data (20 targets)
 ```
 
@@ -216,29 +211,45 @@ Only PDB outputs and FASTA files retained.
 | 2026-02-10 | Input verification | Cross-checked FASTAs, fixed 10 targets |
 | 2026-02-10 | FASTA regeneration | Regenerated 10 FASTAs from RCSB, all match authoritative |
 | 2026-02-11 | AF complete | 257/257, 7 AMBER failures with unrelaxed saved |
-| 2026-02-15 | Boltz complete | 233/257 (9 OOM expected) |
-| 2026-02-15 | Rosetta started | Job 9011797, 6 protocols × 5 replicates |
+| 2026-02-15 | Boltz batch 1 | 233/257 (24 missing) |
+| 2026-02-15 | Rosetta attempt 1 | Job 9011797 — FAILED (wrong binary path) |
+| 2026-02-20 | AMBER root cause | X/Z non-standard residues, FASTAs trimmed |
+| 2026-02-20 | AMBER re-run | 5/7 fixed, 2 pending (1FC2, 5JMO) |
+| 2026-02-22 | Boltz fixes | 12 header/FASTA fixes resubmitted (Job 9195326) |
+| 2026-02-22 | Boltz OOM retry | 5 borderline targets with reduced recycling (Job 9195327) |
+| 2026-02-22 | Rosetta resubmit | Job 9195328 — correct binary (Rosetta 3.15), includes Boltz |
+| 2026-02-22 | GitHub backup | All predictions synced to repo |
 
 ### Current Progress
 
 | Method | Status | Details |
 |--------|--------|---------|
-| AlphaFold | ✅ Complete | 257/257 (250 AMBER + 7 unrelaxed only) |
-| Boltz-1 | ✅ Complete | 233/257 (9 OOM expected) |
-| Rosetta relax | 🔄 Running | Job 9011797, 6 protocols × 5 reps |
+| AlphaFold | ✅ 255/257 | AMBER-relaxed; 2 remaining (1FC2, 5JMO re-running) |
+| AlphaFold (unrelaxed) | ✅ 257/257 | All targets have unrelaxed models |
+| Boltz-1 | 🔄 244/257 | 12 fixable targets resubmitted, ~7 true OOM |
+| Rosetta relax | 🔄 Running | Job 9195328 (6 protocols × 5 reps × all predictions) |
 | MolProbity | Pending | After Rosetta completion |
+| PoseBusters | Pending | After Rosetta completion |
 
-### AMBER Failures (7 targets)
+### AMBER Failure Root Cause
 
-| Target | Issue | Resolution |
-|--------|-------|------------|
-| 1ATN | AMBER crash (non-standard atoms) | Unrelaxed saved to af_out_unrelaxed/ |
-| 1DFJ | AMBER crash | Unrelaxed saved |
-| 1FC2 | AMBER crash | Unrelaxed saved |
-| 1WEJ | AMBER crash | Unrelaxed saved |
-| 2BTF | AMBER crash | Unrelaxed saved |
-| 4CPA | AMBER crash | Unrelaxed saved |
-| 5JMO | AMBER crash | Unrelaxed saved |
+All 7 original AMBER failures were caused by **non-standard amino acid codes** (X = unknown, Z = ambiguous Glu/Gln) in terminal positions of FASTA sequences. AlphaFold predicted these residues but could not place atoms for them, causing AMBER's `_check_residues_are_well_defined()` to reject the entire model.
+
+**Fix:** Trimmed non-standard terminal residues from input FASTAs. Originals backed up as `sequence.fasta.original`. Changes logged in `AMBER_FIX_LOG.txt`.
+
+| Target | Chain | Residues Removed | Code | New Length |
+|--------|-------|------------------|------|------------|
+| 1ATN | 0 (N-term) | 1 `X` | Unknown AA | 372 |
+| 1DFJ | 1 (N-term) | 1 `X` | Unknown AA | 456 |
+| 1FC2 | 0 (C-term) | 3 `XXK` | Unknown + Lys | 55 |
+| 1WEJ | 2 (N-term) | 1 `X` | Unknown AA | 104 |
+| 2BTF | 0,1 (N-term) | 1 `X` each | Unknown AA | 374, 139 |
+| 4CPA | 1 (N-term) | 2 `ZZ` | Ambiguous Glu/Gln | 36 |
+| 5JMO | 2 (both terms) | 2 `X` | Unknown AA | 4 |
+
+**Result:** 5/7 now AMBER-relaxed (1ATN, 1DFJ, 1WEJ, 2BTF, 4CPA). 1FC2 and 5JMO re-running with further trimming.
+
+**Impact:** Minimal — removed 1-3 residues per chain that AlphaFold couldn't model anyway (zero atom mask).
 
 ### Superseded PDBs
 
@@ -265,5 +276,29 @@ Only PDB outputs and FASTA files retained.
 
 MIT License
 
+### Rosetta Binary Path
+
+The correct Rosetta binary path on ACCRE is:
+```
+/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/bin/relax.linuxgccrelease
+```
+Database: `/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/database`
+
+**Note:** The previous path (`/dors/meilerlab/apps/rosetta/rosetta-3.14/...`) does NOT exist and caused Job 9011797 to produce zero output.
+
+### Boltz-1 Expected OOM Targets
+
+Targets exceeding A6000 48GB VRAM:
+
+| Target | Residues | Chains | Status |
+|--------|----------|--------|--------|
+| 1DE4 | 5,120 | 12 | OOM |
+| 1K5D | 4,096 | 10 | OOM |
+| 1N2C | 3,840 | 4 | OOM |
+| 1WDW | 3,584 | 12 | OOM |
+| 1ZM4 | 3,328 | 8 | OOM |
+| 6EY6 | 3,200 | 4 | OOM |
+| 1GXD | 1,650 | 4 | Partial OOM |
+
 ---
-*Last updated: 2026-02-15*
+*Last updated: 2026-02-22*
