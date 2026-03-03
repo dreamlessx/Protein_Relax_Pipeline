@@ -219,15 +219,21 @@ Only PDB outputs and FASTA files retained.
 | 2026-02-22 | Boltz OOM retry | 5 borderline targets with reduced recycling (Job 9195327) |
 | 2026-02-22 | Rosetta resubmit | Job 9195328 — correct binary (Rosetta 3.15), includes Boltz |
 | 2026-02-22 | GitHub backup | All predictions synced to repo |
+| 2026-03-02 | Boltz H100 complete | 5 targets succeeded on H100 80GB → 250/250 |
+| 2026-03-02 | 1FC2 + 5JMO fixed | All 7 AMBER failures now relaxed → 250/250 |
+| 2026-03-02 | Rosetta progress | 70 done, 17 resumed (time limit), 120 pending |
+| 2026-03-02 | Datasets aligned | AF=250, Boltz=250, all synced to GitHub |
 
 ### Current Progress
 
+**Active benchmark: 250 targets** (257 total - 7 OOM excluded)
+
 | Method | Status | Details |
 |--------|--------|---------|
-| AlphaFold | ✅ 255/257 | AMBER-relaxed; 2 remaining (1FC2, 5JMO re-running) |
-| AlphaFold (unrelaxed) | ✅ 257/257 | All targets have unrelaxed models |
-| Boltz-1 | 🔄 244/257 | 12 fixable targets resubmitted, ~7 true OOM |
-| Rosetta relax | 🔄 Running | Job 9195328 (6 protocols × 5 reps × all predictions) |
+| AlphaFold (relaxed) | ✅ 250/250 | All AMBER failures fixed via FASTA trimming |
+| AlphaFold (unrelaxed) | ✅ 250/250 | Complete |
+| Boltz-1 | ✅ 250/250 | 12 FASTA fixes + 5 H100 GPU retries |
+| Rosetta relax | 🔄 Running | Job 9195328 (70 done, 17 resumed, 120 pending) |
 | MolProbity | Pending | After Rosetta completion |
 | PoseBusters | Pending | After Rosetta completion |
 
@@ -247,7 +253,7 @@ All 7 original AMBER failures were caused by **non-standard amino acid codes** (
 | 4CPA | 1 (N-term) | 2 `ZZ` | Ambiguous Glu/Gln | 36 |
 | 5JMO | 2 (both terms) | 2 `X` | Unknown AA | 4 |
 
-**Result:** 5/7 now AMBER-relaxed (1ATN, 1DFJ, 1WEJ, 2BTF, 4CPA). 1FC2 and 5JMO re-running with further trimming.
+**Result:** All 7 now AMBER-relaxed. 250/250 AF complete.
 
 **Impact:** Minimal — removed 1-3 residues per chain that AlphaFold couldn't model anyway (zero atom mask).
 
@@ -301,4 +307,4 @@ Targets exceeding A6000 48GB VRAM:
 | 1GXD | 1,650 | 4 | Partial OOM |
 
 ---
-*Last updated: 2026-02-22*
+*Last updated: 2026-03-02*
