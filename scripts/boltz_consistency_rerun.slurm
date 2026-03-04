@@ -10,13 +10,13 @@
 #SBATCH --output=/data/p_csb_meiler/agarwm5/protein_pipeline/logs/boltz_consistency_%A_%a.out
 #SBATCH --error=/data/p_csb_meiler/agarwm5/protein_pipeline/logs/boltz_consistency_%A_%a.err
 
-# Boltz-1 re-prediction for 50 targets with consistency-fixed FASTAs
-# Fixes: removed extra chains (DNA, peptides, non-crystal proteins) + His-tags
-# Submit with: sbatch --array=1-50%10 boltz_consistency_rerun.slurm
+# Boltz-1 re-prediction for 236 targets with crystal-derived FASTAs
+# All FASTAs derived from crystal PDB coordinates for exact consistency
+# Submit with: sbatch --array=1-236%10 boltz_consistency_rerun.slurm
 
 set -euo pipefail
 
-DIRLIST=/data/p_csb_meiler/agarwm5/protein_pipeline/boltz_consistency_rerun_dirlist.txt
+DIRLIST=/data/p_csb_meiler/agarwm5/protein_pipeline/boltz_crystal_derived_dirlist.txt
 BOLTZ_MINICONDA="/sb/apps/boltz1-v0.4.1/miniconda3"
 
 CALCDIR=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$DIRLIST")

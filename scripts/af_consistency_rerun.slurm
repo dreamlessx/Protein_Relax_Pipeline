@@ -11,13 +11,13 @@
 #SBATCH --output=/data/p_csb_meiler/agarwm5/protein_pipeline/logs/af_consistency_%A_%a.out
 #SBATCH --error=/data/p_csb_meiler/agarwm5/protein_pipeline/logs/af_consistency_%A_%a.err
 
-# AlphaFold 2.3.2 re-prediction for 50 targets with consistency-fixed FASTAs
-# Fixes: removed extra chains (DNA, peptides, non-crystal proteins) + His-tags
-# Submit with: sbatch --array=1-50%10 af_consistency_rerun.slurm
+# AlphaFold 2.3.2 re-prediction for 236 targets with crystal-derived FASTAs
+# All FASTAs derived from crystal PDB coordinates for exact consistency
+# Submit with: sbatch --array=1-236%10 af_consistency_rerun.slurm
 
 set -uo pipefail
 
-DIRLIST=/data/p_csb_meiler/agarwm5/protein_pipeline/af_consistency_rerun_dirlist.txt
+DIRLIST=/data/p_csb_meiler/agarwm5/protein_pipeline/af_crystal_derived_dirlist.txt
 AF2_MINICONDA=/sb/apps/alphafold232/miniconda3
 AF2_DATADIR=/csbtmp/alphafold-data.230
 AF2_REPO=/sb/apps/alphafold232/alphafold
