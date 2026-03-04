@@ -262,6 +262,9 @@ Only PDB outputs and FASTA files retained.
 | 2026-03-03 | Boltz re-run | Job 9304637: 135 targets with deduplicated FASTAs |
 | 2026-03-03 | Full 257 restored | AF 257/257 complete, Boltz 122/257 correct + 135 re-running |
 | 2026-03-03 | GitHub sync | Crystal structures, FASTAs, AF predictions all pushed |
+| 2026-03-03 | Consistency fix | Removed extra chains + His-tags from 50 FASTAs |
+| 2026-03-03 | AF consistency rerun | Job 9304893: 50 targets with fixed FASTAs |
+| 2026-03-03 | Boltz consistency rerun | Job 9304894: 26 targets (24 handled by Job 9304637) |
 
 ### Current Progress
 
@@ -269,12 +272,46 @@ Only PDB outputs and FASTA files retained.
 
 | Method | Status | Details |
 |--------|--------|---------|
-| AlphaFold (relaxed) | 257/257 | All targets complete including former OOMs |
-| AlphaFold (unrelaxed) | 257/257 | All targets complete |
-| Boltz-1 | 122/257 correct | 135 re-running with deduplicated FASTAs (Job 9304637) |
-| Rosetta relax | Running | Job 9195328 + 9292713 (needs restart after Boltz completes) |
+| AlphaFold (relaxed) | 207/257 | 50 re-running with consistency-fixed FASTAs (Job 9304893) |
+| AlphaFold (unrelaxed) | 207/257 | 50 re-running (same job) |
+| Boltz-1 | Running | Job 9304637 (135 dedup) + Job 9304894 (26 consistency) |
+| Rosetta relax | Running | Job 9195328 + 9292713 (needs restart after predictions complete) |
 | MolProbity | Pending | After Rosetta completion |
 | PoseBusters | Pending | After Rosetta completion |
+
+### Crystal-FASTA Consistency Fix (2026-03-03)
+
+**Goal:** Ensure crystal structures, AF FASTAs, and Boltz FASTAs all have identical protein chain sets for fair benchmarking.
+
+**Analysis results:**
+- 188 targets: Crystal and FASTA already consistent (same unique chain count)
+- 23 targets: Crystal has extra homo-multimer copies not in FASTA (correct — RCSB FASTAs list unique sequences only, DockQ handles multi-chain mapping)
+- 9 targets: FASTA had extra protein/DNA chains not in crystal (fixed)
+- 41 targets: FASTA had His-tag expression artifacts (fixed)
+
+**FASTA chain composition fixes (9 targets):**
+
+| Target | Removed | Description |
+|--------|---------|-------------|
+| 1AKJ | Entry 2 (9 res) | HIV RT epitope peptide — not in crystal |
+| 1FAK | Entry 3 (55 res) | 5L15 inhibitor — not in crystal |
+| 1FQJ | Entry 2 (42 res) | PDE gamma subunit — not in crystal |
+| 1KLU | Entry 2 (15 res) | Triosephosphate isomerase peptide — not in crystal |
+| 2FD6 | Entry 0 (122 res) | Urokinase (uPA) — not in crystal |
+| 2MTA | Entry 1 (147 res) | Cytochrome C551I — not in crystal |
+| 5JMO | Entry 2 (4 res) | CMK-inhibitor peptide — not in crystal |
+| BP57 | Entries 1,2 (15+15 res) | DNA chains — AF/Boltz protein-only |
+| CP57 | Entries 1,2 (15+15 res) | DNA chains — AF/Boltz protein-only |
+
+Additionally, 5KOV had chain L (108 res) added from crystal to FASTA.
+
+**His-tag removal (41 targets):**
+
+Expression artifact sequences (MRGSHHHHHHGS..., MGHHHHHHG..., etc.) removed from FASTAs. These are purification tags not present in crystal structures. Common patterns:
+- N-terminal: `MRGSHHHHHHGSM`, `MGHHHHHHG`, `MSYYHHHHHHLESTSLYKKAGL`
+- C-terminal: `SHHHHHH`
+
+**Impact:** 50 unique targets need AF + Boltz re-prediction (9 chain fixes + 41 His-tag removals, 1 overlap).
 
 ### Chain Deduplication Fix (2026-03-03)
 

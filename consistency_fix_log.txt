@@ -1,0 +1,37 @@
+CRYSTAL-FASTA CONSISTENCY FIX LOG
+Date: 2026-03-03
+
+REMOVED 1AKJ: entry 2 (9 res) - >1AKJ_3|Chain C|HIV REVERSE TRANSCRIPTASE EPITOPE|Human immunodeficien
+  -> 1AKJ: 4 entries -> 3 entries
+  -> Verified: sequence.fasta has 3 entries, boltz_input.fasta has 3 entries
+REMOVED 1FAK: entry 3 (55 res) - >1FAK_4|Chain D[auth I]|PROTEIN (5L15)|null
+  -> 1FAK: 4 entries -> 3 entries
+  -> Verified: sequence.fasta has 3 entries, boltz_input.fasta has 3 entries
+REMOVED 1FQJ: entry 2 (42 res) - >1FQJ_3|Chain C|Retinal rod rhodopsin-sensitive cGMP 3',5'-cyclic phos
+  -> 1FQJ: 3 entries -> 2 entries
+  -> Verified: sequence.fasta has 2 entries, boltz_input.fasta has 2 entries
+REMOVED 1KLU: entry 2 (15 res) - >1KLU_3|Chain C|Triosephosphate isomerase peptide|null
+  -> 1KLU: 4 entries -> 3 entries
+  -> Verified: sequence.fasta has 3 entries, boltz_input.fasta has 3 entries
+REMOVED 2FD6: entry 0 (122 res) - >2FD6_1|Chain A|Urokinase-type plasminogen activator|Homo sapiens (960
+  -> 2FD6: 4 entries -> 3 entries
+  -> Verified: sequence.fasta has 3 entries, boltz_input.fasta has 3 entries
+REMOVED 2MTA: entry 1 (147 res) - >2MTA_4|Chain D[auth C]|CYTOCHROME C551I|Paracoccus denitrificans (266
+  -> 2MTA: 4 entries -> 3 entries
+  -> Verified: sequence.fasta has 3 entries, boltz_input.fasta has 3 entries
+REMOVED 5JMO: entry 2 (4 res) - >5JMO_3|Chains E[auth G], F[auth H]|CMK-inhibitor|synthetic construct 
+  -> 5JMO: 3 entries -> 2 entries
+  -> Verified: sequence.fasta has 2 entries, boltz_input.fasta has 2 entries
+REMOVED BP57: entry 1 (15 res) - >3P57_3|Chains H[auth F], J[auth H], L|DNA (5'-D(*TP*TP*CP*TP*TP*AP*TP
+REMOVED BP57: entry 2 (15 res) - >3P57_2|Chains G[auth E], I[auth G], K|DNA (5'-D(*A*AP*AP*CP*TP*AP*TP*
+  -> BP57: 4 entries -> 2 entries
+  -> Verified: sequence.fasta has 2 entries, boltz_input.fasta has 2 entries
+REMOVED CP57: entry 1 (15 res) - >3P57_2|Chains G[auth E], I[auth G], K|DNA (5'-D(*A*AP*AP*CP*TP*AP*TP*
+REMOVED CP57: entry 2 (15 res) - >3P57_3|Chains H[auth F], J[auth H], L|DNA (5'-D(*TP*TP*CP*TP*TP*AP*TP
+  -> CP57: 4 entries -> 2 entries
+  -> Verified: sequence.fasta has 2 entries, boltz_input.fasta has 2 entries
+ADDED 5KOV: chain L (108 res) from crystal
+  -> 5KOV: now has 3 entries in sequence.fasta, 3 in boltz_input.fasta
+
+Total targets fixed: 10
+Targets: 1AKJ, 1FAK, 1FQJ, 1KLU, 2FD6, 2MTA, 5JMO, 5KOV, BP57, CP57
