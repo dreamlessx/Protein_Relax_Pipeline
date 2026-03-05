@@ -8,11 +8,11 @@ This repository contains structure predictions and relaxation protocols for prot
 
 **Key Features:**
 - Full BM5.5 coverage (257 complexes)
+- Crystal-derived FASTAs: all sequences extracted directly from crystal PDB coordinates
+- Perfect consistency: Crystal == AF FASTA == Boltz FASTA for all 257 targets
+- No duplicate chains in any FASTA or crystal PDB
 - Both unrelaxed and AMBER-relaxed AlphaFold outputs
 - 7 relaxation protocols (1 AMBER + 6 Rosetta)
-- Deduplicated FASTAs (unique chains only, consistent across AF and Boltz)
-- PI-cleaned crystal structures for all 257 targets
-- Automatic database fallback for antibody sequences
 
 ## Dataset
 
@@ -24,6 +24,9 @@ This repository contains structure predictions and relaxation protocols for prot
 | Rigid-body | 162 |
 | Medium difficulty | 60 |
 | Difficult | 35 |
+
+**Total chains:** 605 across all targets
+**Total residues:** 122,966
 
 ### Non-Standard BM5.5 Entries
 
@@ -43,53 +46,65 @@ DNA/RNA chains present in crystal structures are excluded from predictions:
 - Boltz-1 standard models are protein-focused
 - BM5.5 evaluates protein-protein interfaces only
 
-Targets with DNA-mediated interfaces (e.g., 3P57) may have reduced DockQ scores due to missing nucleic acid mediators.
+## FASTA Derivation from Crystal Structures
+
+All 257 FASTAs are derived directly from crystal PDB coordinates (ATOM records, CA atoms), ensuring exact sequence-structure consistency for benchmarking.
+
+**Why crystal-derived?** RCSB canonical sequences often differ from what is resolved in the crystal:
+- Terminal extensions not present in electron density
+- Expression tags (His-tags found in 41 targets)
+- Missing chains or extra entities in RCSB metadata
+- Construct variants vs canonical UniProt sequences
+
+**Impact of crystal derivation (241 targets changed):**
+- Net change: -3,956 residues (crystal constructs shorter than RCSB canonical)
+- 227 targets got shorter (trimmed unresolved termini)
+- 14 targets got longer (gained chains missing from RCSB FASTA)
+- 13 targets gained additional chains from crystal
+- Mean change: -16.4 residues / -2.8% per target
+
+**Prediction quality improved:**
+- Boltz: +0.026 mean confidence score (72% of targets improved)
+- AF: +1.40 mean pLDDT (73% of targets improved)
+- 22 AF targets improved by +5 pLDDT or more
+
+### Crystal PDB Stripping
+
+36 crystal PDBs were stripped of homo-multimer duplicate chains to match FASTAs. Only unique chains are retained (e.g., 1EXB: 8 chains reduced to 2).
+
+### Consistency Verification
+
+All 257 targets verified across 10 checks:
+1. Crystal chain sequences == AF FASTA sequences (exact, bidirectional)
+2. AF FASTA == Boltz FASTA (same sequences, same order, same count)
+3. No duplicate sequences in any FASTA
+4. No duplicate chains in any crystal PDB
+5. Crystal chain count == FASTA entry count
+6. Boltz headers have correct `|PROTEIN|` format
+7. No empty sequences
+8. No non-standard amino acids
+9. No His-tags or expression artifacts
+10. No extra non-protein chains
 
 ## Repository Structure
 
 ```
 Protein_Relax_Pipeline/
-├── cleaned/                    # PI-cleaned crystal structures (257 PDBs)
-├── fasta/                      # Deduplicated FASTA sequences (257 files)
+├── cleaned/                    # Crystal structures (257 PDBs, stripped to unique chains)
+├── fasta/                      # Crystal-derived FASTA sequences (257 files)
 ├── predictions/
-│   ├── alphafold/              # AF2 AMBER-relaxed ranked PDBs (257 targets)
+│   ├── alphafold/              # AF2 AMBER-relaxed ranked PDBs
 │   │   └── {PDB_ID}/ranked_0..4.pdb
-│   ├── alphafold_unrelaxed/    # AF2 unrelaxed ranked PDBs (257 targets)
+│   ├── alphafold_unrelaxed/    # AF2 unrelaxed ranked PDBs
 │   │   └── {PDB_ID}/ranked_0..4.pdb
-│   └── boltz/                  # Boltz-1 predictions (122 correct, 135 re-running)
+│   └── boltz/                  # Boltz-1 predictions
 │       └── {PDB_ID}/boltz_input_model_0..4.pdb
-├── scripts/                    # All SLURM scripts
-├── AMBER_FIX_LOG.txt           # Log of FASTA modifications for AMBER fixes
+├── scripts/                    # SLURM and processing scripts
+├── AMBER_FIX_LOG.txt           # Log of AMBER-related FASTA fixes
+├── consistency_fix_log.txt     # Log of chain composition fixes
+├── histag_fix_log.txt          # Log of His-tag removals
 └── test_subset/                # Test data (20 targets)
 ```
-
-### Input Data Folders
-
-| Folder | Files | Description |
-|--------|-------|-------------|
-| `cleaned/` | 257 PDBs | PI-cleaned crystal structures (Rosetta clean_pdb.py) |
-| `fasta/` | 257 FASTAs | Deduplicated sequences from RCSB (unique chains only) |
-
-### FASTA Deduplication
-
-All FASTAs use **unique chains only** (deduplicated). This ensures AlphaFold and Boltz-1 predict the same complex:
-
-- RCSB FASTAs list unique protein entities (e.g., "Chains A, D" = one entry for both copies)
-- Both AF and Boltz receive identical sequences per target
-- Homo-multimeric copies are NOT duplicated
-- Boltz FASTAs use `>A|PROTEIN|` header format, regenerated from `sequence.fasta`
-
-**Impact of deduplication:** 7 targets previously classified as "OOM" were only OOM due to duplicated chains. After dedup, all fit on L40S 48GB.
-
-| Target | Before (duplicated) | After (deduplicated) |
-|--------|--------------------|--------------------|
-| 1DE4 | 9 chains, 3042 res | 3 chains, 1014 res |
-| 1GXD | 4 chains, 1650 res | 2 chains, 825 res |
-| 1K5D | 12 chains, 3212 res | 3 chains, 803 res |
-| 1N2C | 8 chains, 3182 res | 3 chains, 1302 res |
-| 1WDW | 12 chains, 3798 res | 2 chains, 633 res |
-| 1ZM4 | 6 chains, 3147 res | 2 chains, 1049 res |
-| 6EY6 | 16 chains, 3624 res | 2 chains, 453 res |
 
 ## Structure Prediction Methods
 
@@ -113,8 +128,8 @@ All FASTAs use **unique chains only** (deduplicated). This ensures AlphaFold and
 | Recycling steps | 10 |
 | Sampling steps | 200 |
 | Diffusion samples | 5 per target |
-| Output | Unrelaxed (native Boltz) |
-| GPU | NVIDIA L40S (primary), H100 80GB (for large targets) |
+| Output format | PDB |
+| GPU | NVIDIA L40S 48GB |
 
 ## Relaxation Protocols
 
@@ -126,12 +141,12 @@ AlphaFold's built-in AMBER relaxation using OpenMM:
 |-----------|-------|
 | Force field | AMBER ff14SB |
 | Energy tolerance | 2.39 kcal/mol |
-| Position restraint | 10.0 kcal/mol/Å² |
+| Position restraint | 10.0 kcal/mol/A^2 |
 | Acceleration | GPU (`--use_gpu_relax`) |
 
-### Rosetta Relaxation Protocols
+### Rosetta 3.15 Relaxation
 
-Six Rosetta relaxation protocols with 5 replicates each:
+Six relaxation protocols with 5 replicates each:
 
 | Protocol | Space | Scoring Function |
 |----------|-------|------------------|
@@ -147,12 +162,9 @@ Six Rosetta relaxation protocols with 5 replicates each:
 | # | Type | Method | Applied To |
 |---|------|--------|------------|
 | 1 | AMBER (native) | AlphaFold/OpenMM | AlphaFold predictions |
-| 2 | cartesian_beta | Rosetta | All predictions |
-| 3 | cartesian_ref15 | Rosetta | All predictions |
-| 4 | dualspace_beta | Rosetta | All predictions |
-| 5 | dualspace_ref15 | Rosetta | All predictions |
-| 6 | normal_beta | Rosetta | All predictions |
-| 7 | normal_ref15 | Rosetta | All predictions |
+| 2-7 | Rosetta protocols | Rosetta 3.15 | All predictions (AF relaxed, AF unrelaxed, Boltz) |
+
+Each target produces: 5 AF relaxed + 5 AF unrelaxed + 5 Boltz = 15 input structures, each relaxed with 6 Rosetta protocols x 5 replicates = 450 Rosetta outputs per target.
 
 ## Computational Resources
 
@@ -160,66 +172,24 @@ All predictions generated on ACCRE (Vanderbilt University HPC).
 
 | Resource | Specification |
 |----------|---------------|
-| Partition | batch_gpu (p_meiler_acc) |
-| GPU | NVIDIA L40S 48GB / H100 80GB |
-| Memory | 80-256 GB per job |
-| Rosetta | CPU-only, batch partition |
-
-### Rosetta Binary Path
-
-```
-/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/source/bin/relax.linuxgccrelease
-```
-Database: `/data/p_csb_meiler/apps/rosetta/rosetta-3.15/main/database`
+| AF GPU | NVIDIA RTX A6000 (`csb_gpu_acc`) |
+| Boltz GPU | NVIDIA L40S 48GB (`p_meiler_acc`) |
+| Rosetta | CPU-only, `batch` partition (`p_csb_meiler`) |
+| Memory | 80 GB per prediction job |
 
 ## Technical Notes
 
 ### Database Fallback Strategy
 
-The pipeline attempts `full_dbs` first for maximum accuracy, then automatically falls back to `reduced_dbs` if HHblits fails:
-
 ```
-full_dbs (HHblits + BFD) → fails on antibodies → reduced_dbs (MMseqs2)
+full_dbs (HHblits + BFD) -> fails on antibodies -> reduced_dbs (MMseqs2)
 ```
 
-**Why fallback?** HHblits has a hard-coded limit (32763 residues) that antibody/immunoglobulin sequences exceed when matching titin-like proteins in BFD.
-
-**Impact:** Minimal accuracy loss (~0.5-1% TM-score) since antibodies have extensive UniRef90 coverage.
-
-### FASTA Verification
-
-All input FASTAs verified against RCSB and crystal structures:
-- 10 targets regenerated from RCSB to fix missing/incomplete chains
-- All sequences match authoritative source (chain order may differ)
-- DNA/RNA chains excluded per policy
-- 135 Boltz FASTAs regenerated to remove homo-multimer chain duplication
-
-### AMBER Failure Root Cause
-
-7 original AMBER failures were caused by **non-standard amino acid codes** (X = unknown, Z = ambiguous Glu/Gln) in terminal positions of FASTA sequences.
-
-**Fix:** Trimmed non-standard terminal residues from input FASTAs. Changes logged in `AMBER_FIX_LOG.txt`.
-
-| Target | Chain | Residues Removed | Code | New Length |
-|--------|-------|------------------|------|------------|
-| 1ATN | 0 (N-term) | 1 `X` | Unknown AA | 372 |
-| 1DFJ | 1 (N-term) | 1 `X` | Unknown AA | 456 |
-| 1FC2 | 0 (C-term) | 3 `XXK` | Unknown + Lys | 55 |
-| 1WEJ | 2 (N-term) | 1 `X` | Unknown AA | 104 |
-| 2BTF | 0,1 (N-term) | 1 `X` each | Unknown AA | 374, 139 |
-| 4CPA | 1 (N-term) | 2 `ZZ` | Ambiguous Glu/Gln | 36 |
-| 5JMO | 2 (both terms) | 2 `X` | Unknown AA | 4 |
-
-### Superseded PDBs
-
-| Original | Superseded By | Resolution |
-|----------|---------------|------------|
-| 1A2K | 5BXQ | FASTA from 5BXQ, re-predicted |
-| 3RVW | 5VPG | FASTA from 5VPG, re-predicted |
+HHblits has a hard-coded limit (32763 residues) that some antibody/immunoglobulin sequences exceed. Minimal accuracy loss (~0.5-1% TM-score) with fallback.
 
 ### Boltz-1 FASTA Format
 
-Boltz-1 requires specific header format with deduplicated unique chains:
+Boltz-1 requires specific header format:
 ```
 >A|PROTEIN|
 MKTAYIAKQRQISFVKSH...
@@ -236,90 +206,45 @@ Intermediate files cleaned after prediction:
 
 Only PDB outputs and FASTA files retained.
 
+## Processing Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `derive_all_from_crystal.py` | Derive all 257 FASTAs from crystal PDB coordinates |
+| `strip_crystals.py` | Strip crystal PDBs to match FASTA (remove homo-multimer duplicates) |
+| `af_consistency_rerun.slurm` | AF re-prediction for crystal-derived FASTAs |
+| `boltz_consistency_rerun.slurm` | Boltz re-prediction for crystal-derived FASTAs |
+| `rosetta_relax.slurm` | Rosetta relaxation (6 protocols x 5 replicates) |
+
 ## Run Log
 
 | Date | Event | Details |
 |------|-------|---------|
-| 2026-02-07 | Initial batch | AF2 with reduced_dbs |
-| 2026-02-08 | Cleanup | Removed 15 non-BM5.5 targets |
-| 2026-02-08 | Added | 4 non-standard entries (BAAD, BOYV, BP57, CP57) |
-| 2026-02-09 | Full re-run | All 257 targets, full_dbs + fallback, both relaxed/unrelaxed |
-| 2026-02-10 | Input verification | Cross-checked FASTAs, fixed 10 targets |
-| 2026-02-10 | FASTA regeneration | Regenerated 10 FASTAs from RCSB, all match authoritative |
-| 2026-02-11 | AF complete | 257/257, 7 AMBER failures with unrelaxed saved |
-| 2026-02-15 | Boltz batch 1 | 233/257 (24 missing) |
-| 2026-02-15 | Rosetta attempt 1 | Job 9011797 — FAILED (wrong binary path) |
-| 2026-02-20 | AMBER root cause | X/Z non-standard residues, FASTAs trimmed |
-| 2026-02-20 | AMBER re-run | 5/7 fixed, 2 pending (1FC2, 5JMO) |
-| 2026-02-22 | Boltz fixes | 12 header/FASTA fixes resubmitted (Job 9195326) |
-| 2026-02-22 | Rosetta resubmit | Job 9195328 — correct binary (Rosetta 3.15) |
-| 2026-02-22 | GitHub backup | All predictions synced to repo |
-| 2026-03-02 | Boltz H100 complete | 5 targets succeeded on H100 80GB |
-| 2026-03-02 | 1FC2 + 5JMO fixed | All 7 AMBER failures now relaxed |
-| 2026-03-02 | Rosetta progress | 70 done, 17 resumed (time limit), 120 pending |
-| 2026-03-03 | FASTA deduplication | Found 135 Boltz FASTAs had duplicated homo-multimer chains |
-| 2026-03-03 | OOM targets recovered | All 7 "OOM" targets now feasible after dedup (max 1302 res) |
-| 2026-03-03 | Boltz re-run | Job 9304637: 135 targets with deduplicated FASTAs |
-| 2026-03-03 | Full 257 restored | AF 257/257 complete, Boltz 122/257 correct + 135 re-running |
-| 2026-03-03 | GitHub sync | Crystal structures, FASTAs, AF predictions all pushed |
-| 2026-03-03 | Consistency fix | Removed extra chains + His-tags from 50 FASTAs |
-| 2026-03-03 | AF consistency rerun | Job 9304893: 50 targets with fixed FASTAs |
-| 2026-03-03 | Boltz consistency rerun | Job 9304894: 26 targets (24 handled by Job 9304637) |
+| 2026-02-07 | Initial batch | AF2 257 targets with reduced_dbs |
+| 2026-02-09 | Full re-run | All 257 with full_dbs + fallback |
+| 2026-02-11 | AF complete | 257/257, 7 AMBER failures (unrelaxed saved) |
+| 2026-02-15 | Boltz batch 1 | 233/257 completed |
+| 2026-02-20 | AMBER root cause | X/Z non-standard residues in FASTAs, trimmed |
+| 2026-02-22 | Rosetta started | Job 9195328, 6 protocols x 5 replicates |
+| 2026-03-02 | Boltz complete | All 257 targets (L40S + H100) |
+| 2026-03-03 | FASTA deduplication | 135 Boltz FASTAs had duplicated homo-multimer chains |
+| 2026-03-03 | Consistency fix | Removed extra chains (9 targets) + His-tags (41 targets) |
+| 2026-03-04 | Crystal-derived FASTAs | All 257 FASTAs derived from crystal PDB coordinates |
+| 2026-03-04 | Crystal stripping | 36 PDBs stripped of homo-multimer duplicate chains |
+| 2026-03-05 | Boltz re-prediction | Job 9304974: 236 targets complete (251/257 valid) |
+| 2026-03-05 | AF re-prediction | Job 9304973: 236 targets (215/257 valid, rest running) |
+| 2026-03-05 | Rosetta restart needed | Current Rosetta jobs used old predictions, need restart |
 
-### Current Progress
-
-**Active benchmark: 257 targets** (full BM5.5)
+### Current Progress (2026-03-05)
 
 | Method | Status | Details |
 |--------|--------|---------|
-| AlphaFold (relaxed) | 207/257 | 50 re-running with consistency-fixed FASTAs (Job 9304893) |
-| AlphaFold (unrelaxed) | 207/257 | 50 re-running (same job) |
-| Boltz-1 | Running | Job 9304637 (135 dedup) + Job 9304894 (26 consistency) |
-| Rosetta relax | Running | Job 9195328 + 9292713 (needs restart after predictions complete) |
+| Input consistency | 257/257 | Crystal == AF FASTA == Boltz FASTA |
+| AlphaFold | 242/257 | 11 running (Job 9304973) + 1KTZ (Job 9323854) |
+| Boltz-1 | 255/257 | 2 missing (Job 9324269: 1S1Q, 1WEJ) |
+| Rosetta relax | Needs restart | Must restart after AF/Boltz complete (old results are stale) |
 | MolProbity | Pending | After Rosetta completion |
 | PoseBusters | Pending | After Rosetta completion |
-
-### Crystal-FASTA Consistency Fix (2026-03-03)
-
-**Goal:** Ensure crystal structures, AF FASTAs, and Boltz FASTAs all have identical protein chain sets for fair benchmarking.
-
-**Analysis results:**
-- 188 targets: Crystal and FASTA already consistent (same unique chain count)
-- 23 targets: Crystal has extra homo-multimer copies not in FASTA (correct — RCSB FASTAs list unique sequences only, DockQ handles multi-chain mapping)
-- 9 targets: FASTA had extra protein/DNA chains not in crystal (fixed)
-- 41 targets: FASTA had His-tag expression artifacts (fixed)
-
-**FASTA chain composition fixes (9 targets):**
-
-| Target | Removed | Description |
-|--------|---------|-------------|
-| 1AKJ | Entry 2 (9 res) | HIV RT epitope peptide — not in crystal |
-| 1FAK | Entry 3 (55 res) | 5L15 inhibitor — not in crystal |
-| 1FQJ | Entry 2 (42 res) | PDE gamma subunit — not in crystal |
-| 1KLU | Entry 2 (15 res) | Triosephosphate isomerase peptide — not in crystal |
-| 2FD6 | Entry 0 (122 res) | Urokinase (uPA) — not in crystal |
-| 2MTA | Entry 1 (147 res) | Cytochrome C551I — not in crystal |
-| 5JMO | Entry 2 (4 res) | CMK-inhibitor peptide — not in crystal |
-| BP57 | Entries 1,2 (15+15 res) | DNA chains — AF/Boltz protein-only |
-| CP57 | Entries 1,2 (15+15 res) | DNA chains — AF/Boltz protein-only |
-
-Additionally, 5KOV had chain L (108 res) added from crystal to FASTA.
-
-**His-tag removal (41 targets):**
-
-Expression artifact sequences (MRGSHHHHHHGS..., MGHHHHHHG..., etc.) removed from FASTAs. These are purification tags not present in crystal structures. Common patterns:
-- N-terminal: `MRGSHHHHHHGSM`, `MGHHHHHHG`, `MSYYHHHHHHLESTSLYKKAGL`
-- C-terminal: `SHHHHHH`
-
-**Impact:** 50 unique targets need AF + Boltz re-prediction (9 chain fixes + 41 His-tag removals, 1 overlap).
-
-### Chain Deduplication Fix (2026-03-03)
-
-**Root cause:** The original Boltz FASTA generation script expanded RCSB headers like "Chains A, D" into separate entries for each chain letter, creating duplicate sequences for homo-multimeric targets.
-
-**Impact:** 135 of 257 targets had Boltz predicting larger complexes than intended (e.g., 1AHW: 6 chains instead of 3). Additionally, 7 targets classified as "OOM" were only OOM due to these inflated chain counts.
-
-**Fix:** Regenerated all `boltz_input.fasta` from `sequence.fasta` (unique chains only). Boltz re-predictions submitted as Job 9304637.
 
 ## References
 
@@ -332,4 +257,4 @@ Expression artifact sequences (MRGSHHHHHHGS..., MGHHHHHHG..., etc.) removed from
 MIT License
 
 ---
-*Last updated: 2026-03-03*
+*Last updated: 2026-03-05*
