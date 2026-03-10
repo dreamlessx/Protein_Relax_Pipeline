@@ -247,12 +247,12 @@ Only PDB outputs and FASTA files retained.
 | Method | Status | Details |
 |--------|--------|---------|
 | Input consistency | 257/257 | Crystal == AF FASTA == Boltz FASTA |
-| AlphaFold | 257/257 | COMPLETE (all 5 models per target) |
-| AF built-in AMBER | 257/257 | COMPLETE (all have ranked_0..4.pdb) |
-| AF unrelaxed | 257/257 | COMPLETE |
+| AlphaFold (built-in AMBER) | 257/257 | COMPLETE |
+| AlphaFold (unrelaxed) | 257/257 | COMPLETE |
 | Boltz-1 | 257/257 | COMPLETE |
-| Standalone AMBER | 256/257 | 1KTZ finishing (Job 9399617) |
-| Rosetta relax | IN PROGRESS | Jobs 9373165 + 9371774, ~50/257 targets, ~2,512/~200k runs |
+| Standalone AMBER (AF) | 257/257 | COMPLETE |
+| Standalone AMBER (Boltz) | 257/257 | COMPLETE |
+| Rosetta v2 relax | In progress | Job 9371774: 50/257 running, 207 queued (6 inputs × 6 protocols × 5 reps) |
 | MolProbity | Pending | After Rosetta completion |
 | PoseBusters | Pending | After Rosetta completion |
 
