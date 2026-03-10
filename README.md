@@ -162,9 +162,9 @@ Six relaxation protocols with 5 replicates each:
 | # | Type | Method | Applied To |
 |---|------|--------|------------|
 | 1 | AMBER (native) | AlphaFold/OpenMM | AlphaFold predictions |
-| 2-7 | Rosetta protocols | Rosetta 3.15 | All predictions (AF relaxed, AF unrelaxed, Boltz) |
+| 2-7 | Rosetta protocols | Rosetta 3.15 | All 6 input types (AF relaxed, AF unrelaxed, Boltz, AMBER-AF, AMBER-Boltz, crystal) |
 
-Each target produces: 5 AF relaxed + 5 AF unrelaxed + 5 Boltz = 15 input structures, each relaxed with 6 Rosetta protocols x 5 replicates = 450 Rosetta outputs per target.
+Each target produces up to 780 Rosetta runs: 6 input types x 6 protocols x 5 replicates. Total across 257 targets: ~200,000 runs.
 
 ## Computational Resources
 
@@ -215,6 +215,9 @@ Only PDB outputs and FASTA files retained.
 | `af_consistency_rerun.slurm` | AF re-prediction for crystal-derived FASTAs |
 | `boltz_consistency_rerun.slurm` | Boltz re-prediction for crystal-derived FASTAs |
 | `rosetta_relax.slurm` | Rosetta relaxation (6 protocols x 5 replicates) |
+| `green_amber_relax.py` | Standalone AMBER relaxation for AF + Boltz models |
+| `green_amber.slurm` | SLURM wrapper for standalone AMBER |
+| `green_rosetta.slurm` | Rosetta v2: all 6 input types x 6 protocols x 5 reps |
 
 ## Run Log
 
@@ -234,17 +237,28 @@ Only PDB outputs and FASTA files retained.
 | 2026-03-05 | Boltz re-prediction | Job 9304974: 236 targets complete (251/257 valid) |
 | 2026-03-05 | AF re-prediction | Job 9304973: 236 targets (215/257 valid, rest running) |
 | 2026-03-05 | Rosetta restart needed | Current Rosetta jobs used old predictions, need restart |
+| 2026-03-08 | All predictions complete | AF 257/257, Boltz 257/257, AF built-in AMBER 257/257 |
+| 2026-03-08 | 1KTZ fix applied | AF completed, symlinks created, AMBER submitted |
+| 2026-03-09 | Rosetta relaxation | IN PROGRESS: ~50/257 targets, ~2,512/~200k runs (Jobs 9373165, 9371774) |
+| 2026-03-09 | Standalone AMBER | 256/257 complete, 1KTZ finishing (Job 9399617) |
 
-### Current Progress (2026-03-05)
+### Current Progress (2026-03-09)
 
 | Method | Status | Details |
 |--------|--------|---------|
 | Input consistency | 257/257 | Crystal == AF FASTA == Boltz FASTA |
-| AlphaFold | 242/257 | 11 running (Job 9304973) + 1KTZ (Job 9323854) |
-| Boltz-1 | 255/257 | 2 missing (Job 9324269: 1S1Q, 1WEJ) |
-| Rosetta relax | Needs restart | Must restart after AF/Boltz complete (old results are stale) |
+| AlphaFold | 257/257 | COMPLETE (all 5 models per target) |
+| AF built-in AMBER | 257/257 | COMPLETE (all have ranked_0..4.pdb) |
+| AF unrelaxed | 257/257 | COMPLETE |
+| Boltz-1 | 257/257 | COMPLETE |
+| Standalone AMBER | 256/257 | 1KTZ finishing (Job 9399617) |
+| Rosetta relax | IN PROGRESS | Jobs 9373165 + 9371774, ~50/257 targets, ~2,512/~200k runs |
 | MolProbity | Pending | After Rosetta completion |
 | PoseBusters | Pending | After Rosetta completion |
+
+**Rosetta details:** 6 input types (af_relaxed, af_unrelaxed, boltz, amber_af, amber_boltz, crystal) x 6 protocols (cartesian_beta, cartesian_ref15, dualspace_beta, dualspace_ref15, normal_beta, normal_ref15) x 5 replicates = 780 runs/target max.
+
+**Green pipeline** = our independent verification of Blue's protocol. All SLURM jobs tagged with `green_` prefix.
 
 ## References
 
@@ -257,4 +271,4 @@ Only PDB outputs and FASTA files retained.
 MIT License
 
 ---
-*Last updated: 2026-03-05*
+*Last updated: 2026-03-09*
