@@ -239,26 +239,33 @@ Only PDB outputs and FASTA files retained.
 | 2026-03-05 | Rosetta restart needed | Current Rosetta jobs used old predictions, need restart |
 | 2026-03-08 | All predictions complete | AF 257/257, Boltz 257/257, AF built-in AMBER 257/257 |
 | 2026-03-08 | 1KTZ fix applied | AF completed, symlinks created, AMBER submitted |
-| 2026-03-09 | Rosetta relaxation | IN PROGRESS: ~50/257 targets, ~2,512/~200k runs (Jobs 9373165, 9371774) |
-| 2026-03-09 | Standalone AMBER | 256/257 complete, 1KTZ finishing (Job 9399617) |
+| 2026-03-09 | Rosetta relaxation | IN PROGRESS: ~50/257 targets (Jobs 9373165, 9371774) |
+| 2026-03-09 | Standalone AMBER | 257/257 COMPLETE |
+| 2026-03-12 | Rosetta timeout fix | 48/50 tasks timed out at 72h limit; resubmitted with 7-day limit (Job 9458817) |
+| 2026-03-13 | AMBER naming bug | Green identified collision: all 5 AMBER models map to same dir. Fix planned after current jobs. |
 
-### Current Progress (2026-03-09)
+### Current Progress (2026-03-13)
 
 | Method | Status | Details |
 |--------|--------|---------|
 | Input consistency | 257/257 | Crystal == AF FASTA == Boltz FASTA |
-| AlphaFold | 257/257 | COMPLETE (all 5 models per target) |
-| AF built-in AMBER | 257/257 | COMPLETE (all have ranked_0..4.pdb) |
-| AF unrelaxed | 257/257 | COMPLETE |
+| AlphaFold (built-in AMBER) | 257/257 | COMPLETE |
+| AlphaFold (unrelaxed) | 257/257 | COMPLETE |
 | Boltz-1 | 257/257 | COMPLETE |
-| Standalone AMBER | 256/257 | 1KTZ finishing (Job 9399617) |
-| Rosetta relax | IN PROGRESS | Jobs 9373165 + 9371774, ~50/257 targets, ~2,512/~200k runs |
+| Standalone AMBER (AF) | 257/257 | COMPLETE |
+| Standalone AMBER (Boltz) | 257/257 | COMPLETE |
+| Rosetta v2 relax | In progress | ~14,600/~200K files, 100/257 targets started, 0 complete |
+| AMBER Rosetta fix | Planned | Naming collision — only 1/5 AMBER models per type getting relaxed |
 | MolProbity | Pending | After Rosetta completion |
 | PoseBusters | Pending | After Rosetta completion |
 
+**Active Blue jobs:**
+- Job 9371774 (rosetta_v2, 72h): 50 running, 48 timed out, 157 pending
+- Job 9458817 (blue_rosetta_resume, 7d): 50 running, 4 done, 203 pending
+
 **Rosetta details:** 6 input types (af_relaxed, af_unrelaxed, boltz, amber_af, amber_boltz, crystal) x 6 protocols (cartesian_beta, cartesian_ref15, dualspace_beta, dualspace_ref15, normal_beta, normal_ref15) x 5 replicates = 780 runs/target max.
 
-**Green pipeline** = our independent verification of Blue's protocol. All SLURM jobs tagged with `green_` prefix.
+**Blue pipeline** = primary. **Green pipeline** = independent verification. Job prefixes: `blue_` and `green_`.
 
 ## References
 
@@ -271,4 +278,4 @@ Only PDB outputs and FASTA files retained.
 MIT License
 
 ---
-*Last updated: 2026-03-09*
+*Last updated: 2026-03-13*
