@@ -1,0 +1,17 @@
+pipeline	comparison	metric	delta	p_value	n
+blue	af_unrelaxed→amber_af	clashscore	-21.805768292682927	3.663890942678321e-15	82
+blue	af_unrelaxed→amber_af	molprobity_score	-0.8703414634146343	3.6623535044671176e-15	82
+blue	af_unrelaxed→amber_af	rota_outliers	-0.24643089430894338	7.225355719585559e-06	82
+blue	af_unrelaxed→amber_af	rms_bonds	-0.00973536585365854	3.662968407211321e-15	82
+blue	boltz→amber_boltz	clashscore	-12.784545454545452	2.4625962840678287e-14	77
+blue	boltz→amber_boltz	molprobity_score	-0.7251233766233764	2.4614241866372108e-14	77
+blue	boltz→amber_boltz	rota_outliers	0.08207792207792206	0.0014227173050457345	77
+blue	boltz→amber_boltz	rms_bonds	-0.0011055844155844138	0.0070679294437652924	77
+green	af_unrelaxed→amber_af	clashscore	-19.577092307692308	2.4051050298460756e-12	65
+green	af_unrelaxed→amber_af	molprobity_score	-0.8686923076923077	2.4041406551319205e-12	65
+green	af_unrelaxed→amber_af	rota_outliers	-0.19021538461538479	0.0005993004053432523	65
+green	af_unrelaxed→amber_af	rms_bonds	-0.00920461538461538	2.4047835320338643e-12	65
+green	boltz→amber_boltz	clashscore	-12.120898437500001	3.5250119441458793e-12	64
+green	boltz→amber_boltz	molprobity_score	-0.7207499999999999	3.5240398708360293e-12	64
+green	boltz→amber_boltz	rota_outliers	0.09497656250000003	0.00128051570445032	64
+green	boltz→amber_boltz	rms_bonds	-0.0009989062500000007	0.06689232805504862	64

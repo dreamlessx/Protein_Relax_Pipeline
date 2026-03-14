@@ -1,0 +1,18 @@
+\begin{table}[htbp]
+\centering
+\caption{AMBER relaxation effect: structural accuracy (TM-score) vs.\ local geometry (MolProbity). $\Delta$ = after $-$ before; $d$ = Cliff's delta effect size.}
+\label{tab:amber-dual}
+\begin{tabular}{llrrrr}
+\toprule
+Comparison & Metric & $\Delta$ & $p$-value & $d$ & Effect \\
+\midrule
+  AF $\to$ AMBER(AF) & TM-score & -0.0004 & 7.2e-22 & -0.012 & negligible \\
+  & Clashscore & -21.81 & 3.7e-15 & -0.996 & large \\
+  & MP Score & -0.87 & 3.7e-15 & -0.914 & large \\
+  \midrule
+  Boltz $\to$ AMBER(Boltz) & TM-score & -0.0009 & 4.9e-33 & -0.010 & negligible \\
+  & Clashscore & -12.78 & 2.5e-14 & -1.000 & large \\
+  & MP Score & -0.73 & 2.5e-14 & -0.983 & large \\
+\bottomrule
+\end{tabular}
+\end{table}

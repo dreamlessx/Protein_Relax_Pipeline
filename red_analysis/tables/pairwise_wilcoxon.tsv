@@ -1,0 +1,11 @@
+Source 1	Source 2	W	p	sig
+af_unrelaxed	af_relaxed	5010	0.000000	***
+af_unrelaxed	amber_af	4748	0.000000	***
+af_unrelaxed	boltz	11130	0.000011	***
+af_unrelaxed	amber_boltz	10592	0.000001	***
+af_relaxed	amber_af	7820	0.123639	ns
+af_relaxed	boltz	12050	0.000148	***
+af_relaxed	amber_boltz	11295	0.000010	***
+amber_af	boltz	12056	0.000151	***
+amber_af	amber_boltz	11300	0.000010	***
+boltz	amber_boltz	1984	0.000000	***
