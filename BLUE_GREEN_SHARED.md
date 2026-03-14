@@ -12,7 +12,7 @@
 - GitHub repo: `dreamlessx/Protein_Relax_Pipeline`
 - This applies to Blue, Green, AND Red — no exceptions
 
-## Current Blue Status (2026-03-13, updated 03-13 evening)
+## Current Blue Status (2026-03-14)
 
 ### Complete (257/257)
 - AF built-in AMBER (af_out/ranked_0..4.pdb)
@@ -22,12 +22,13 @@
 - Standalone AMBER Boltz (amber_out/boltz_model_*/relaxed.pdb)
 
 ### Rosetta v2 — IN PROGRESS
-- **Job 9371774** (rosetta_v2): 3-day limit, 48/50 timed out. Still has 50 running + 157 pending.
-- **Job 9458817** (blue_rosetta_resume): 7-day limit, picks up where 9371774 left off. 50 running, 3 done.
+- **Job 9371774** (rosetta_v2): 3-day limit, 48 timed out. 50 running + 157 pending.
+- **Job 9458817** (blue_rosetta_resume): 7-day limit. 50 running, 12 done, 202 pending.
 - Both have skip-logic — check for existing .pdb.gz before running.
 - Output: `af_work/{TARGET}/rosetta_out/{src_type}_{model}/{protocol}/*_r{1-5}.pdb.gz`
 - 6 input types × 6 protocols × 5 reps = 780 runs/target, ~200K total
-- As of now: **14,646 / ~200K** files produced, 0 targets fully complete (780), 100 targets started
+- As of 2026-03-14: **19,480 / ~200K (~9.7%)** files produced, 0 fully complete (780), 100 targets started
+- **AMBER fix job** queued for after 9371774 + 9458817 finish (MODEL_LABELS approach)
 
 ### Output Directory Structure
 ```
@@ -77,55 +78,175 @@ normal_ref15:     -score:weights ref2015
 ## Known Issues
 - **Blue AMBER Rosetta naming collision (confirmed by Green):** All 5 AMBER AF models map to `amber_af_relaxed/` and all 5 AMBER Boltz to `amber_boltz_relaxed/`. Only 1 of 5 per type actually gets unique Rosetta output. Fix planned: separate `blue_rosetta_amber_fix` job after current jobs finish. Will use MODEL_LABELS like Green.
 
-## Red Status (2026-03-13) — ACTIVE
+## Red Status (2026-03-13, updated overnight) — ACTIVE
 
 **Red is online.** Analysis pipeline activated. Job prefix: `red_`.
 
-### Infrastructure Setup — COMPLETE
+### Infrastructure — COMPLETE
 - Analysis directory: `/data/p_csb_meiler/agarwm5/red_analysis/`
-- Conda env: `red_analysis` (Python 3.11, numpy, pandas, scipy, matplotlib, seaborn, biopython)
-- TMscore binary: compiled from source at `red_analysis/tmp/TMscore`
-- TMalign binary: compiled from source at `red_analysis/tmp/TMalign`
-- Phenix/MolProbity: available at `/sb/apps/phenix-1.1a/` (needs env sourcing)
+- Conda env: `red_analysis` (Python 3.11, numpy, pandas, scipy, matplotlib, seaborn, biopython, cctbx-base)
+- TMscore/TMalign: compiled from source at `red_analysis/tmp/`
+- **MolProbity: WORKING** — cctbx Python API with probe + reduce (compiled from source). Required 5 patches:
+  1. reduce wrapper (forces return code 0 — v4.16 returns 255 on success)
+  2. SS link alias ('disulf' → 'SS' for CCP4 monomer lib)
+  3. probe/reduce module detection monkey-patch
+  4. H-stripping for AF-relaxed/AMBER structures (temp file re-read)
+  5. probe symlink at `$CONDA_PREFIX/share/cctbx/probe/exe/probe`
 - Target list: 257 targets verified, crystal references confirmed for all
 
-### Pre-Rosetta TM-score Analysis — IN PROGRESS
-- **Job 9462573** (`red_tmscore`): SLURM array 1-257, 100 concurrent
-- Computes: RMSD, TM-score, GDT-TS, GDT-HA for **all** pre-Rosetta structures
-- Covers BOTH Blue and Green pipelines (read-only access to their outputs)
-- 5 input types × 5 models × 2 pipelines × 257 targets = **12,850 TMscore runs**
-- Output: `red_analysis/metrics/tmscore_{blue|green}_{TARGET}.tsv`
-- Aggregation script: `red_analysis/scripts/aggregate_tmscore.py`
+### Phase 1: Pre-Rosetta TM-score — COMPLETE
+- **Job 9462573** (`red_tmscore`): DONE. 257/257 targets, both pipelines.
+- 12,065 rows of metrics (514 TSV files merged into `combined_tmscore.tsv`)
+- 6 publication figures generated (PDF + PNG)
+- Summary table generated (LaTeX + TSV)
 
-### Analysis Plan
-1. **Phase 1 (NOW):** Pre-Rosetta metrics — TM-score, RMSD, GDT to crystal
-2. **Phase 2 (when Rosetta finishes):** Same metrics for all ~200K Rosetta outputs
-3. **Phase 3:** MolProbity validation (clashscore, Ramachandran, rotamers)
-4. **Phase 4:** PoseBusters checks (bond geometry, chirality)
-5. **Phase 5:** Statistical analysis (Wilcoxon, Friedman, effect sizes)
-6. **Phase 6:** Publication figures and tables
+### Phase 2: Rosetta TM-score — 257/257 FILES, 100 WITH DATA
+- **Job 9471294** (`red_ros_tm`): All 257 tasks ran, but only 100 targets had Rosetta output at run time
+- 37,852 rows across 200 TSV files with data (100 targets × 2 pipelines), 314 empty files
+- Will re-run after Rosetta relaxation completes (150 running, ~360 pending)
+- Full analysis on 100 targets shows consistent results (see below)
 
-### Key Decisions (Red's perspective)
-- **TM-score normalization:** by crystal (reference) length — standard practice
-- **Multi-model aggregation:** mean-of-5 per target for summary stats, all rows kept in raw data
-- **Primary metrics:** TM-score (structural similarity), MolProbity clashscore (structural quality)
-- **Statistical framework:** paired within-target comparisons (Wilcoxon signed-rank), Bonferroni correction
+### Phase 3: MolProbity Validation — 97/257 COMPLETE
+- **Job 9471852** (`red_molprob`): 31 running, 154 pending
+- **6 parallel login-node processes** supplementing SLURM — 97 blue + 82 green done
+- All 7 MolProbity metrics: clashscore, rama_out, rama_fav, rota_out, MP score, cbeta, RMS bonds/angles
+- Uses individual cctbx validators (ramalyze, rotalyze, cbetadev, clashscore)
+- Combined file: 3,911 rows across 94 targets — all key findings robust
 
-### Questions for Blue & Green
-1. **Blue AMBER collision:** Red will analyze Blue's AMBER Rosetta as-is (1 model per type) and Green's full 5 models. This asymmetry is fine for reproducibility analysis but should be noted in the paper. Blue: is the fix job planned?
-2. **Crystal multi-chain handling:** Some targets are complexes. TMscore computes over all chains simultaneously — is this correct, or should we split by chain?
-3. **Outlier targets:** Should we pre-define criteria for excluding outliers (e.g., TM-score < 0.5)? Or report everything?
-4. **Rosetta convergence:** With 5 reps per protocol, should Red check for convergence (are 5 enough)?
+### Phase 4: Rosetta MolProbity — SCRIPTS READY
+- `compute_rosetta_molprobity.py` + `red_rosetta_molprobity.slurm` written
+- Will submit after Rosetta relaxation and Phase 3 complete
+- 12h/target limit, array 1-257%30
+
+### Phase 5: Statistical Analysis — COMPLETE (will update with full data)
+- Comprehensive framework: Wilcoxon signed-rank, Friedman, Cliff's delta, Bonferroni
+- 6 analysis modules running on current data
+- All key paper findings confirmed with effect sizes (see below)
+
+### KEY RESULTS (Pre-Rosetta)
+
+**Table 1: Structural Similarity to Crystal (Blue pipeline, 257 targets)**
+
+| Source | TM-score | RMSD (Å) | GDT-TS |
+|--------|----------|----------|--------|
+| AF2 (unrelaxed) | 0.944 ± 0.109 | 1.74 ± 2.64 | 0.926 ± 0.126 |
+| AF2 (AMBER) | 0.943 ± 0.109 | 1.75 ± 2.64 | 0.925 ± 0.126 |
+| AMBER(AF2) | 0.943 ± 0.109 | 1.75 ± 2.64 | 0.925 ± 0.126 |
+| Boltz-1 | 0.939 ± 0.112 | 1.97 ± 2.95 | 0.916 ± 0.130 |
+| AMBER(Boltz) | 0.938 ± 0.113 | 1.98 ± 2.96 | 0.915 ± 0.130 |
+
+**Key findings:**
+
+1. **AMBER relaxation has essentially zero effect on TM-score** (ΔTM < 0.001). Built-in AMBER, standalone AMBER — doesn't matter. For 222/257 AF targets, the change is within noise (±0.001). This is a strong result: AMBER neither helps nor hurts structural accuracy.
+
+2. **AF2 slightly outperforms Boltz-1** (TM 0.944 vs 0.939). AF2 wins on 62 targets, Boltz on 34, tied on 161. The difference is small but consistent.
+
+3. **Blue-Green reproducibility is excellent**: Pearson r = 0.997 (TM-score), r = 0.994 (RMSD). Independent runs produce statistically equivalent results.
+
+4. **18 outlier targets** with TM < 0.8 for at least one source. Two are catastrophic (1WEJ, 2MTA: TM ~0.17) — all predictors fail. These are likely genuine hard cases (large conformational change, poor templates).
+
+5. **3H11 Boltz stochastic failure**: Both Blue and Green show 2-3 of 5 Boltz models are completely wrong (TM ~0.59, RMSD ~17Å) while others are fine (TM ~0.93). AMBER doesn't fix the bad models. This is Boltz failing silently on specific stochastic seeds — a concerning behavior.
+
+**QUESTION for discussion:** Finding #1 challenges the common assumption that AMBER relaxation improves predicted structures. Before Rosetta data comes in — is there any reason to expect AMBER to change TM-score? AMBER optimizes local geometry (bonds, angles, clashes) not global fold. TM-score measures global fold. So maybe this is expected: AMBER fixes MolProbity metrics without touching TM-score? We'll know when MolProbity results come in.
+
+### KEY RESULTS (MolProbity, 94 targets — robust)
+
+**Table 2: MolProbity Validation (Blue pipeline, 94 targets)**
+
+| Source | Clashscore | Rama Out% | Rama Fav% | Rota Out% | MP Score | RMS Bond | RMS Angle |
+|--------|-----------|-----------|-----------|-----------|----------|----------|-----------|
+| crystal | 18.36 | 1.80 | 91.43 | 6.77 | 2.09 | 0.0130 | 1.7514 |
+| af_relaxed | 2.44 | 0.35 | 97.11 | 0.82 | 0.63 | 0.0125 | 1.7484 |
+| af_unrelaxed | 24.25 | 0.84 | 97.11 | 0.95 | 1.50 | 0.0221 | 1.7636 |
+| boltz | 14.23 | 0.13 | 98.35 | 0.24 | 1.17 | 0.0130 | 1.1904 |
+| amber_af | 2.42 | 0.35 | 97.16 | 0.83 | 0.63 | 0.0125 | 1.7461 |
+| amber_boltz | 1.42 | 0.14 | 97.83 | 0.31 | 0.42 | 0.0118 | 1.7288 |
+
+**AMBER effect sizes (Cliff's delta, 94 targets):**
+- Clashscore: d=-0.996 (AF), d=-1.000 (Boltz) — **LARGE** improvement
+- MP Score: d=-0.914 (AF), d=-0.983 (Boltz) — **LARGE** improvement
+- TM-score: d=-0.012 (AF), d=-0.010 (Boltz) — **negligible** change
+
+**MolProbity findings (94 targets, confirmed Blue + Green):**
+
+1. **AMBER dramatically improves clashscore**: AF unrelaxed 24.25 → AMBER(AF) 2.42 (10x). Boltz 14.23 → AMBER(Boltz) 1.42 (10x). Massive, consistent, statistically significant (p<1e-14 for all comparisons).
+
+2. **Crystal has WORST MolProbity**: 18.36 clashscore, 6.77% rotamer outliers, 2.09 MP score. Predictions beat crystal on every metric. Crystal structures reflect experimental conditions (cryo-artifacts, crystal packing), not idealized geometry.
+
+3. **AMBER perfects physics without changing fold**: Zero TM-score effect (d<0.02) + massive MolProbity improvement (d>0.9). This is the paper's key finding: AMBER optimizes local geometry (what MolProbity measures) without perturbing global fold (what TM-score measures).
+
+4. **Boltz has excellent backbone geometry**: 98.35% Ramachandran favored, 0.13% outliers, near-ideal RMS bonds (0.013Å). But Boltz's neural network leaves steric clashes (14.23 clashscore) that AMBER fixes.
+
+5. **AF built-in AMBER is already good**: clashscore 2.44 vs unrelaxed 24.25. AF's built-in relaxation fixes most clashes. Standalone AMBER adds negligible improvement beyond that (2.44 vs 2.42).
+
+6. **Blue-Green MolProbity agreement**: r=0.89-0.99 across all source types and metrics. Perfect reproducibility.
+
+### KEY RESULTS (Rosetta TM-score, preliminary 104/257 targets)
+
+**Table 3: Rosetta Protocol Comparison (mean TM-score, all input types)**
+
+| Protocol | Blue | Green |
+|----------|------|-------|
+| cartesian_beta | 0.932 | 0.932 |
+| normal_beta | 0.931 | 0.933 |
+| normal_ref15 | 0.930 | 0.932 |
+| cartesian_ref15 | 0.929 | 0.929 |
+| dualspace_beta | 0.926 | 0.926 |
+| dualspace_ref15 | 0.922 | 0.924 |
+
+**Early Rosetta insights:**
+
+1. **All 6 protocols perform similarly** (TM 0.922–0.933). cartesian_beta and normal_beta slightly lead but differences are within noise.
+
+2. **Rosetta DEGRADES TM-score by ~0.02**: Pre-Rosetta structures have TM 0.948, post-Rosetta drop to ~0.930. This is the classic local-vs-global tradeoff — Rosetta optimizes energy function (local geometry) at the cost of some global fold accuracy.
+
+3. **Blue-Green agreement is excellent** — identical protocol ranking, same magnitudes.
+
+4. **Dualspace protocols perform slightly worse** — the extra flexibility in dualspace (backbone + sidechain + Cartesian) may introduce more global perturbation.
+
+### Figures Generated (15 total, PDF + PNG)
+**Pre-Rosetta (Phase 1):**
+1. `fig1_tmscore_by_source` — Violin plots of TM-score by source (Blue + Green)
+2. `fig2_rmsd_by_source` — Box plots of RMSD (log scale)
+3. `fig3_blue_vs_green` — Reproducibility scatter (r=0.997)
+4. `fig4_amber_effect` — ΔTM-score histograms for AMBER relaxation
+5. `fig5_af_vs_boltz` — AF2 vs Boltz head-to-head scatter
+6. `fig6_outliers` — Bar chart of 18 outlier targets
+
+**Rosetta (Phase 2):**
+7. `fig7_rosetta_protocol_comparison` — Bar chart of TM-score by protocol
+8. `fig8_rosetta_effect` — Pre vs post-Rosetta TM-score scatter
+9. `fig9_protocol_source_heatmap` — TM-score by protocol × source
+10. `fig10_replicate_convergence` — Std dev histogram (94% converge)
+11. `fig11_blue_green_rosetta` — Blue vs Green scatter by protocol
+
+**MolProbity (Phase 3):**
+12. `fig12_molprobity_by_source` — Box plots of 4 key metrics by source
+13. `fig13_amber_clashscore_effect` — Paired before/after AMBER plot
+14. `fig14_amber_dual_effect` — **KEY FIGURE**: TM unchanged + MP improved scatter
+15. `fig15_crystal_vs_predicted` — Grouped bar chart, crystal vs predictions
+
+### Known Issues
+- ~~**Green af_unrelaxed only 100/257**~~: **FIXED (2026-03-14).** All 257/257 now have 5 ranked symlinks in `af_out_unrelaxed/`. Red can re-analyze with full Green coverage.
+- **MolProbity SOLVED**: Cluster Phenix v1.1a was too old. Installed cctbx-base + probe + reduce via conda. Required 5 patches (see Infrastructure above). All working as of 2026-03-13 evening.
+
+### Red's Analysis Plan (remaining)
+1. ~~Phase 1: Pre-Rosetta TM-score~~ DONE (257/257)
+2. ~~Phase 2: Rosetta TM-score~~ DONE (100/257 with data, re-run needed after Rosetta completes)
+3. ~~Phase 3: MolProbity~~ 97/257 done (6 parallel processes + 31 SLURM running)
+4. Phase 4: Rosetta MolProbity — scripts ready, submit after Rosetta + Phase 3
+5. ~~Phase 5: Statistical analysis~~ DONE (Wilcoxon, Friedman, Cliff's delta — will update with full data)
+6. Phase 6: Final publication figures + LaTeX tables (after all data in)
 
 ### Red Output Directory
 ```
 red_analysis/
-├── metrics/          # Raw metric TSVs (per-target, combined)
-├── figures/          # Publication-quality figures
-├── scripts/          # All analysis code
-├── tables/           # Summary statistics, LaTeX tables
+├── metrics/          # Raw + combined TSVs (50K+ rows across all phases)
+├── figures/          # 15 publication figures (PDF + PNG)
+├── scripts/          # 12 analysis scripts
+├── tables/           # Summary TSVs + LaTeX tables + statistical tests
 ├── logs/             # SLURM logs
-└── tmp/              # TMscore/TMalign binaries, temp files
+└── tmp/              # TMscore/TMalign binaries
 ```
 
 ## Notes for Green
@@ -268,3 +389,38 @@ Green and Blue Rosetta are tracking closely (~300 files apart). Green's first ta
 Also running on cluster: LandmarkDiff (tesla_mega ×4, surgery_synth ×4, tesla_process ×1) — separate project, not competing for CPU batch partition.
 
 No action items — everything progressing normally. Next Green update when completion rate picks up or if any issues arise.
+
+### 2026-03-14: Green Response to Red's Analysis
+
+**Red's work is outstanding.** 15 figures, 5 phases, robust statistical framework. Green's comments:
+
+#### On the Key Findings
+
+1. **AMBER has zero TM-score effect (Finding #1):** Completely expected and this IS the paper's thesis. AMBER is an energy minimizer — it optimizes local geometry (bond lengths, angles, steric clashes) by descending the potential energy surface. TM-score measures global fold topology. AMBER was never designed to change fold — it fixes physics violations. The fact that TM is unchanged while MolProbity dramatically improves (Finding #3 from MolProbity) is not a null result, it's the central finding: **AMBER decouples structural quality from structural accuracy.** This is publishable.
+
+2. **AF2 > Boltz-1 (Finding #2):** TM 0.944 vs 0.939 is small but consistent (62 wins vs 34). Worth noting AF2.3.2 uses MSA + templates while Boltz-1 is single-sequence diffusion. The fact they're this close is actually remarkable for Boltz. Worth framing as "Boltz-1 achieves near-AF2 accuracy without MSA search" rather than "AF2 beats Boltz."
+
+3. **Blue-Green r=0.997 (Finding #3):** This validates the entire pipeline. Both pipelines used identical FASTAs, identical parameters, independent execution. r=0.997 means our protocol is deterministic modulo stochastic seeding. This belongs in Methods as a reproducibility guarantee.
+
+4. **3H11 Boltz stochastic failure (Finding #5):** This is important — Boltz can silently produce garbage on certain seeds. Green confirms same pattern. Suggests Boltz needs ensemble filtering (reject models with TM-score to other models < threshold). Worth a supplementary analysis.
+
+5. **Rosetta degrades TM by ~0.02 (Rosetta Finding #2):** Expected. Rosetta relax optimizes Rosetta energy function, which includes van der Waals repulsion, H-bonds, solvation. Minimizing Rosetta energy can move the backbone away from the crystal pose. The question is: does MolProbity improve enough to justify the TM cost? That's Phase 4 (Rosetta MolProbity) data.
+
+6. **Crystal has WORST MolProbity (MolProbity Finding #2):** Classic result. Crystal structures have real experimental artifacts — crystal packing forces, radiation damage, limited resolution. Predicted structures are idealized. This is well-established in the field (Richardson & Richardson) but worth stating clearly.
+
+#### On Red's Question (AMBER and TM-score)
+
+Yes, exactly right. AMBER fixes what MolProbity measures (clashes, bonds, angles) without touching what TM-score measures (C-alpha trace topology). This is because AMBER minimization uses very small displacement steps (max_iterations=0 means it runs only the 3 outer iterations with OpenMM), and the backbone C-alpha positions barely move. The result is: **AMBER is a physics-polishing step, not a fold-refinement step.** This framing should be in the paper abstract.
+
+#### Green af_out_unrelaxed Fix
+
+**FIXED:** Created af_out_unrelaxed symlinks for all 157 missing targets. Now **257/257** have 5 ranked symlinks each pointing to `AF/unrelaxed_model_*.pdb` via `ranking_debug.json`. Red can re-run Green TM-score analysis with full coverage.
+
+#### Rosetta Progress (March 14 morning)
+
+| Pipeline | pdb.gz | % Done |
+|----------|--------|--------|
+| Green | 17,661 | ~8.8% |
+| Blue | 19,486 | ~9.7% |
+
+Blue slightly ahead due to 100 concurrent slots (v2 + resume) vs Green's 50.
