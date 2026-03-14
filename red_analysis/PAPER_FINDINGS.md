@@ -87,28 +87,43 @@ Friedman test: p < 1e-33 (highly significant protocol differences)
 **Top tier**: cartesian_beta ≈ normal_beta (statistically indistinguishable)
 **Bottom tier**: dualspace protocols (significantly worse)
 
-### Phase 4 Preliminary Answer (5 targets)
+### Phase 4 Robust Results (100 targets, 43K rows, both pipelines)
 
 **Rosetta DRAMATICALLY improves MolProbity — MORE than AMBER.**
 
 | Protocol | Clashscore | MP Score | Rota Outliers % | Rama Favored % |
 |----------|-----------|----------|-----------------|----------------|
-| cartesian_beta | **0.076** | **0.031** | 0.003 | 98.82 |
-| dualspace_beta | 0.117 | 0.047 | 0.000 | 98.88 |
-| normal_ref15 | 0.296 | 0.096 | 0.000 | 98.38 |
-| normal_beta | 0.357 | 0.114 | 0.000 | 98.73 |
-| dualspace_ref15 | 0.665 | 0.187 | 0.018 | 98.98 |
-| cartesian_ref15 | 0.811 | 0.229 | 0.018 | 98.81 |
+| dualspace_beta | **0.650** | **0.215** | 0.015 | 98.66 |
+| cartesian_beta | 0.673 | 0.223 | 0.017 | 98.61 |
+| normal_beta | 0.685 | 0.242 | 0.028 | 98.21 |
+| normal_ref15 | 1.046 | 0.335 | 0.026 | 98.04 |
+| dualspace_ref15 | 1.294 | 0.358 | 0.016 | 98.57 |
+| cartesian_ref15 | 1.416 | 0.383 | 0.020 | 98.48 |
 
-**Comparison (1GCQ pilot):**
-- AF unrelaxed → Rosetta: clashscore 20.15 → 0.54 (**97% reduction**)
-- AF relaxed → Rosetta: clashscore 1.42 → 0.34 (76% reduction)
-- AMBER(AF) clashscore: 1.42 → Rosetta achieves 0.34 (Rosetta beats AMBER!)
-- Rosetta eliminates ALL rotamer outliers (0.43% → 0.01%)
+**Key insight**: Beta energy function is the primary differentiator (0.65-0.69 vs 1.0-1.4).
+Sampling method (cartesian/dualspace/normal) matters less within same energy function.
 
-**The verdict (outcome A):** Rosetta improves MolProbity MORE than AMBER, but at a TM-score cost of ~0.02. For applications requiring perfect local geometry (docking, drug design), Rosetta post-processing adds value despite the small accuracy loss.
+**Pre vs Post Rosetta (Blue, 99 targets):**
+- AF unrelaxed → Rosetta: clashscore 22.9 → 1.03 (**96% reduction**, d=-1.00)
+- Boltz → Rosetta: clashscore 12.5 → 0.87 (**93% reduction**, d=-1.00)
+- Crystal → Rosetta: clashscore 16.2 → 0.95 (**94% reduction**, d=-1.00)
+- AF relaxed → Rosetta: clashscore 2.66 → 0.97 (**64% reduction**, d=-0.58)
+- Rosetta eliminates rotamer outliers: 0.80% → 0.02% (d=-0.96)
 
-**Critical finding: cartesian_beta wins BOTH metrics** — best TM retention AND best MolProbity. This is the recommended protocol.
+**Rosetta vs AMBER direct comparison (99 targets):**
+- AMBER(AF) clashscore: 2.66 → Rosetta(AF): 0.97 (Δ=-1.69, **Rosetta 64% better**)
+- AMBER(AF) MP score: 0.66 → Rosetta(AF): 0.29 (Δ=-0.37)
+- AMBER(AF) rota outliers: 0.83% → Rosetta(AF): 0.02% (Δ=-0.81)
+
+**Per-target best protocol (clashscore):**
+- normal_beta: 47% | dualspace_beta: 28% | cartesian_beta: 21%
+- Beta protocols collectively win 96% of targets
+
+**Blue-Green agreement**: Protocol rankings match perfectly between pipelines.
+
+**The verdict (Outcome A, confirmed at scale):** Rosetta improves MolProbity MORE than AMBER, but at a TM-score cost of ~0.02. The beta energy function is the critical factor. For applications requiring perfect local geometry (docking, drug design), Rosetta post-processing adds significant value.
+
+**Recommended protocol: cartesian_beta** — best TM retention (Phase 2) with near-best MolProbity (Phase 4). While normal_beta wins slightly more targets on MolProbity, cartesian_beta provides the best overall tradeoff.
 
 ---
 
@@ -120,7 +135,7 @@ Friedman test: p < 1e-33 (highly significant protocol differences)
 |--------|-----------|---|
 | Pre-Rosetta TM | 0.997 | 1128 |
 | Pre-Rosetta RMSD | 0.994 | 1128 |
-| Rosetta TM | 0.999 | 60 |
+| Rosetta TM | 0.988-0.992 | 96-105 |
 | Clashscore | 0.867-0.991 | 100-257 |
 | MP Score | 0.941-0.984 | 100-257 |
 
@@ -162,9 +177,9 @@ AF2 wins on global fold (TM), Boltz wins on backbone (Ramachandran), AMBER(Boltz
 |---------|------|---------|-----------|---------|
 | Pre-Rosetta TM | 12,065 | 257 | 2 | 5 |
 | MolProbity | 12,539 | 257 | 2 | 6 |
-| Rosetta TM | 28,814 | 60 | 2 | 6 |
-| Rosetta MolProbity | ~435+ | 5+ | 1 | 2+ |
-| **Total** | **~66K+** | **257** | **2** | **6** |
+| Rosetta TM | 42,033 | 105 | 2 | 6 |
+| Rosetta MolProbity | 43,022 | 104 | 2 | 6 |
+| **Total** | **~110K** | **257** | **2** | **6** |
 
 ---
 
@@ -192,8 +207,9 @@ S5: AF vs Boltz MolProbity scatter
 
 ## 8. Remaining Work
 
-1. **Phase 2 re-run**: Job 9473400 — 150/257 completed, 60 targets with data
-2. **Phase 4**: Job 9473680 submitted (257 tasks pending) + 4 login-node workers running
-3. **Rosetta relaxation**: 100/257 targets complete, 150 running, ~515 pending
-4. **Final analysis**: Re-run all scripts when Phases 2+4 have complete data
-5. **Write paper**: All findings documented, 20 main figures + 5 supplementary + 6 LaTeX tables ready
+1. **Phase 2**: 105 targets (42K rows) — matches Phase 4 coverage, essentially complete for current Rosetta
+2. **Phase 4**: 104 targets (43K rows, both pipelines) — robust results confirmed at scale
+3. **Rosetta relaxation**: 100/257 targets started, 4 workers still processing partial completions
+4. **Final analysis**: Re-run when Rosetta hits 150+ targets for increased power
+5. **Write paper**: All findings documented, 25 figures + 7 LaTeX tables + 11 TSVs ready
+6. **GitHub**: `data-analysis` branch pushed (commit ca087e6a)
