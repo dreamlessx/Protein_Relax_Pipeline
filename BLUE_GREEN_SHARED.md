@@ -77,55 +77,84 @@ normal_ref15:     -score:weights ref2015
 ## Known Issues
 - **Blue AMBER Rosetta naming collision (confirmed by Green):** All 5 AMBER AF models map to `amber_af_relaxed/` and all 5 AMBER Boltz to `amber_boltz_relaxed/`. Only 1 of 5 per type actually gets unique Rosetta output. Fix planned: separate `blue_rosetta_amber_fix` job after current jobs finish. Will use MODEL_LABELS like Green.
 
-## Red Status (2026-03-13) — ACTIVE
+## Red Status (2026-03-13, updated evening) — ACTIVE
 
 **Red is online.** Analysis pipeline activated. Job prefix: `red_`.
 
-### Infrastructure Setup — COMPLETE
+### Infrastructure — COMPLETE
 - Analysis directory: `/data/p_csb_meiler/agarwm5/red_analysis/`
 - Conda env: `red_analysis` (Python 3.11, numpy, pandas, scipy, matplotlib, seaborn, biopython)
-- TMscore binary: compiled from source at `red_analysis/tmp/TMscore`
-- TMalign binary: compiled from source at `red_analysis/tmp/TMalign`
-- Phenix/MolProbity: available at `/sb/apps/phenix-1.1a/` (needs env sourcing)
+- TMscore/TMalign: compiled from source at `red_analysis/tmp/`
+- Phenix/MolProbity: `/sb/apps/phenix-1.1a/` is too old (v1.1a, no molprobity). Installing cctbx via conda.
 - Target list: 257 targets verified, crystal references confirmed for all
 
-### Pre-Rosetta TM-score Analysis — IN PROGRESS
-- **Job 9462573** (`red_tmscore`): SLURM array 1-257, 100 concurrent
-- Computes: RMSD, TM-score, GDT-TS, GDT-HA for **all** pre-Rosetta structures
-- Covers BOTH Blue and Green pipelines (read-only access to their outputs)
-- 5 input types × 5 models × 2 pipelines × 257 targets = **12,850 TMscore runs**
-- Output: `red_analysis/metrics/tmscore_{blue|green}_{TARGET}.tsv`
-- Aggregation script: `red_analysis/scripts/aggregate_tmscore.py`
+### Phase 1: Pre-Rosetta TM-score — COMPLETE
+- **Job 9462573** (`red_tmscore`): DONE. 257/257 targets, both pipelines.
+- 12,065 rows of metrics (514 TSV files merged into `combined_tmscore.tsv`)
+- 6 publication figures generated (PDF + PNG)
+- Summary table generated (LaTeX + TSV)
 
-### Analysis Plan
-1. **Phase 1 (NOW):** Pre-Rosetta metrics — TM-score, RMSD, GDT to crystal
-2. **Phase 2 (when Rosetta finishes):** Same metrics for all ~200K Rosetta outputs
-3. **Phase 3:** MolProbity validation (clashscore, Ramachandran, rotamers)
-4. **Phase 4:** PoseBusters checks (bond geometry, chirality)
-5. **Phase 5:** Statistical analysis (Wilcoxon, Friedman, effect sizes)
-6. **Phase 6:** Publication figures and tables
+### Phase 2: Rosetta TM-score — IN PROGRESS
+- **Job 9471294** (`red_ros_tm`): SLURM array 1-257, 50 concurrent
+- Scores ALL existing Rosetta .pdb.gz files against crystal (~4 min/target)
+- Will capture whatever Rosetta output exists at run time (partial is fine)
+- Output: `red_analysis/metrics/rosetta_tmscore_{pipeline}_{TARGET}.tsv`
 
-### Key Decisions (Red's perspective)
-- **TM-score normalization:** by crystal (reference) length — standard practice
-- **Multi-model aggregation:** mean-of-5 per target for summary stats, all rows kept in raw data
-- **Primary metrics:** TM-score (structural similarity), MolProbity clashscore (structural quality)
-- **Statistical framework:** paired within-target comparisons (Wilcoxon signed-rank), Bonferroni correction
+### KEY RESULTS (Pre-Rosetta)
 
-### Questions for Blue & Green
-1. **Blue AMBER collision:** Red will analyze Blue's AMBER Rosetta as-is (1 model per type) and Green's full 5 models. This asymmetry is fine for reproducibility analysis but should be noted in the paper. Blue: is the fix job planned?
-2. **Crystal multi-chain handling:** Some targets are complexes. TMscore computes over all chains simultaneously — is this correct, or should we split by chain?
-3. **Outlier targets:** Should we pre-define criteria for excluding outliers (e.g., TM-score < 0.5)? Or report everything?
-4. **Rosetta convergence:** With 5 reps per protocol, should Red check for convergence (are 5 enough)?
+**Table 1: Structural Similarity to Crystal (Blue pipeline, 257 targets)**
+
+| Source | TM-score | RMSD (Å) | GDT-TS |
+|--------|----------|----------|--------|
+| AF2 (unrelaxed) | 0.944 ± 0.109 | 1.74 ± 2.64 | 0.926 ± 0.126 |
+| AF2 (AMBER) | 0.943 ± 0.109 | 1.75 ± 2.64 | 0.925 ± 0.126 |
+| AMBER(AF2) | 0.943 ± 0.109 | 1.75 ± 2.64 | 0.925 ± 0.126 |
+| Boltz-1 | 0.939 ± 0.112 | 1.97 ± 2.95 | 0.916 ± 0.130 |
+| AMBER(Boltz) | 0.938 ± 0.113 | 1.98 ± 2.96 | 0.915 ± 0.130 |
+
+**Key findings:**
+
+1. **AMBER relaxation has essentially zero effect on TM-score** (ΔTM < 0.001). Built-in AMBER, standalone AMBER — doesn't matter. For 222/257 AF targets, the change is within noise (±0.001). This is a strong result: AMBER neither helps nor hurts structural accuracy.
+
+2. **AF2 slightly outperforms Boltz-1** (TM 0.944 vs 0.939). AF2 wins on 62 targets, Boltz on 34, tied on 161. The difference is small but consistent.
+
+3. **Blue-Green reproducibility is excellent**: Pearson r = 0.997 (TM-score), r = 0.994 (RMSD). Independent runs produce statistically equivalent results.
+
+4. **18 outlier targets** with TM < 0.8 for at least one source. Two are catastrophic (1WEJ, 2MTA: TM ~0.17) — all predictors fail. These are likely genuine hard cases (large conformational change, poor templates).
+
+5. **3H11 Boltz stochastic failure**: Both Blue and Green show 2-3 of 5 Boltz models are completely wrong (TM ~0.59, RMSD ~17Å) while others are fine (TM ~0.93). AMBER doesn't fix the bad models. This is Boltz failing silently on specific stochastic seeds — a concerning behavior.
+
+**QUESTION for discussion:** Finding #1 challenges the common assumption that AMBER relaxation improves predicted structures. Before Rosetta data comes in — is there any reason to expect AMBER to change TM-score? AMBER optimizes local geometry (bonds, angles, clashes) not global fold. TM-score measures global fold. So maybe this is expected: AMBER fixes MolProbity metrics without touching TM-score? We'll know when MolProbity results come in.
+
+### Figures Generated
+1. `fig1_tmscore_by_source.pdf` — Violin plots of TM-score by source (Blue + Green)
+2. `fig2_rmsd_by_source.pdf` — Box plots of RMSD (log scale)
+3. `fig3_blue_vs_green.pdf` — Reproducibility scatter (r=0.997)
+4. `fig4_amber_effect.pdf` — ΔTM-score histograms for AMBER relaxation
+5. `fig5_af_vs_boltz.pdf` — AF2 vs Boltz head-to-head scatter
+6. `fig6_outliers.pdf` — Bar chart of 18 outlier targets
+
+### Known Issues
+- **Green af_unrelaxed only 100/257**: Symlinks in `af_out_unrelaxed/` were only created for targets that started Rosetta. Raw unrelaxed files exist in `AF/` but aren't linked yet. Green-side infrastructure issue, not data loss.
+- **MolProbity**: Cluster Phenix is v1.1a (ancient, no molprobity command). Installing cctbx via conda as workaround. Alternative: build MolProbity from source.
+
+### Red's Analysis Plan (remaining)
+1. ~~Phase 1: Pre-Rosetta TM-score~~ DONE
+2. Phase 2: Rosetta TM-score (job submitted, waiting)
+3. Phase 3: MolProbity (pending cctbx install)
+4. Phase 4: Statistical tests (Wilcoxon, Friedman) — can run on existing data
+5. Phase 5: Rosetta protocol comparison (after Phase 2)
+6. Phase 6: Final figures + LaTeX tables for paper
 
 ### Red Output Directory
 ```
 red_analysis/
-├── metrics/          # Raw metric TSVs (per-target, combined)
-├── figures/          # Publication-quality figures
-├── scripts/          # All analysis code
-├── tables/           # Summary statistics, LaTeX tables
+├── metrics/          # Raw + combined TSVs (12K+ rows)
+├── figures/          # 6 publication figures (PDF + PNG)
+├── scripts/          # 7 analysis scripts
+├── tables/           # summary_by_source.tsv, table1_summary.tex
 ├── logs/             # SLURM logs
-└── tmp/              # TMscore/TMalign binaries, temp files
+└── tmp/              # TMscore/TMalign binaries
 ```
 
 ## Notes for Green
