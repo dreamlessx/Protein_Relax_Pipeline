@@ -163,12 +163,6 @@ def main():
 
     outfile = os.path.join(OUTDIR, f"rosetta_molprobity_{pipeline}_{target}.tsv")
 
-    if not os.path.exists(outfile):
-        with open(outfile, 'w') as f:
-            f.write("target\tpipeline\tsrc_type\tprotocol\trep\tclashscore\t"
-                    "rama_outliers\trama_favored\trota_outliers\t"
-                    "molprobity_score\tcbeta_outliers\trms_bonds\trms_angles\n")
-
     if pipeline == 'blue':
         rosetta_dir = os.path.join(BLUE_BASE, target, 'rosetta_out')
     else:
@@ -177,6 +171,34 @@ def main():
     if not os.path.isdir(rosetta_dir):
         print(f"WARN: No rosetta_out for {target} ({pipeline})")
         return
+
+    # Skip-if-exists: count expected pdb.gz files vs existing rows
+    # This prevents duplicate data if the script is re-run
+    expected_count = 0
+    for src_dir in glob.glob(os.path.join(rosetta_dir, '*/')):
+        for protocol in PROTOCOLS:
+            protocol_dir = os.path.join(src_dir, protocol)
+            if os.path.isdir(protocol_dir):
+                expected_count += len(glob.glob(os.path.join(protocol_dir, '*_r[1-5].pdb.gz')))
+
+    if os.path.exists(outfile):
+        with open(outfile) as f:
+            existing_rows = sum(1 for _ in f) - 1  # subtract header
+        if existing_rows >= expected_count and expected_count > 0:
+            print(f"SKIP: {target} ({pipeline}) — {existing_rows} rows already exist "
+                  f"(expected {expected_count})")
+            return
+        elif existing_rows > 0:
+            # Partial file — delete and start fresh to avoid duplicates
+            print(f"PARTIAL: {target} ({pipeline}) — {existing_rows}/{expected_count} rows, "
+                  f"restarting fresh")
+            os.unlink(outfile)
+
+    # Write header for new/restarted file
+    with open(outfile, 'w') as f:
+        f.write("target\tpipeline\tsrc_type\tprotocol\trep\tclashscore\t"
+                "rama_outliers\trama_favored\trota_outliers\t"
+                "molprobity_score\tcbeta_outliers\trms_bonds\trms_angles\n")
 
     print(f"=== Red Rosetta MolProbity: {target} ({pipeline}) ===")
 

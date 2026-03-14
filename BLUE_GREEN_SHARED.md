@@ -78,7 +78,7 @@ normal_ref15:     -score:weights ref2015
 ## Known Issues
 - **Blue AMBER Rosetta naming collision (confirmed by Green):** All 5 AMBER AF models map to `amber_af_relaxed/` and all 5 AMBER Boltz to `amber_boltz_relaxed/`. Only 1 of 5 per type actually gets unique Rosetta output. Fix planned: separate `blue_rosetta_amber_fix` job after current jobs finish. Will use MODEL_LABELS like Green.
 
-## Red Status (2026-03-13, updated overnight) — ACTIVE
+## Red Status (2026-03-14, active session) — ACTIVE
 
 **Red is online.** Analysis pipeline activated. Job prefix: `red_`.
 
@@ -100,28 +100,34 @@ normal_ref15:     -score:weights ref2015
 - 6 publication figures generated (PDF + PNG)
 - Summary table generated (LaTeX + TSV)
 
-### Phase 2: Rosetta TM-score — 257/257 FILES, 100 WITH DATA
-- **Job 9471294** (`red_ros_tm`): All 257 tasks ran, but only 100 targets had Rosetta output at run time
-- 37,852 rows across 200 TSV files with data (100 targets × 2 pipelines), 314 empty files
-- Will re-run after Rosetta relaxation completes (150 running, ~360 pending)
-- Full analysis on 100 targets shows consistent results (see below)
+### Phase 2: Rosetta TM-score — RE-RUN IN PROGRESS
+- **Job 9473400** (`red_ros_tm`): 150/257 completed, 60 targets with data (28,814 rows)
+- Stale files deleted and re-submitted to capture all new Rosetta output
+- Protocol ranking confirmed (60 targets): cart_beta > norm_beta > dualspace
+- Rosetta degrades TM: 0/59 improved, 59/59 degraded (ΔTM=-0.020, p=2e-11)
 
-### Phase 3: MolProbity Validation — 97/257 COMPLETE
-- **Job 9471852** (`red_molprob`): 31 running, 154 pending
-- **6 parallel login-node processes** supplementing SLURM — 97 blue + 82 green done
-- All 7 MolProbity metrics: clashscore, rama_out, rama_fav, rota_out, MP score, cbeta, RMS bonds/angles
-- Uses individual cctbx validators (ramalyze, rotalyze, cbetadev, clashscore)
-- Combined file: 3,911 rows across 94 targets — all key findings robust
+### Phase 3: MolProbity Validation — 257/257 COMPLETE
+- **All 257 targets, both pipelines**: 12,539 rows across 514 TSV files
+- AMBER clashscore effect: -21.1 (AF), -13.5 (Boltz) — Cliff's d = -0.99 (large)
+- Crystal worst MolProbity (clashscore 13.85), AMBER(Boltz) best (1.60)
+- AMBER improves 257/257 AF targets (100%), 256/257 Boltz (99.6%)
 
-### Phase 4: Rosetta MolProbity — SCRIPTS READY
-- `compute_rosetta_molprobity.py` + `red_rosetta_molprobity.slurm` written
-- Will submit after Rosetta relaxation and Phase 3 complete
-- 12h/target limit, array 1-257%30
+### Phase 4: Rosetta MolProbity — IN PROGRESS
+- **Job 9473680** (`red_ros_mp`): 257 tasks submitted, pending behind Rosetta jobs
+- **4 login-node workers** running: 5 targets each, producing data now
+- 5 targets with data so far (1A2K, 1ATN, 1BKD, 1D6R, 1GCQ)
+- **PRELIMINARY ANSWER**: Rosetta dramatically improves MolProbity (clashscore 0.08-0.81)
+- cartesian_beta achieves best MolProbity AND best TM retention — recommended protocol
+- Scripts: `compute_rosetta_molprobity.py`, `aggregate_rosetta_molprobity.py`, `generate_rosetta_molprobity_figures.py`
 
-### Phase 5: Statistical Analysis — COMPLETE (will update with full data)
+### Phase 5: Statistical Analysis — COMPLETE
 - Comprehensive framework: Wilcoxon signed-rank, Friedman, Cliff's delta, Bonferroni
-- 6 analysis modules running on current data
-- All key paper findings confirmed with effect sizes (see below)
+- 6 analysis modules; all key paper findings confirmed with effect sizes
+
+### Phase 6: Publication Materials — COMPLETE
+- 20 main figures + 5 supplementary figures (PDF + PNG, 300 DPI)
+- 6 LaTeX tables (booktabs format)
+- PAPER_FINDINGS.md: comprehensive paper narrative with all results
 
 ### KEY RESULTS (Pre-Rosetta)
 
