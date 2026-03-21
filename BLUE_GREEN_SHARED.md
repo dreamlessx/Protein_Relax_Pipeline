@@ -27,7 +27,7 @@
 - Both have skip-logic — check for existing .pdb.gz before running.
 - Output: `af_work/{TARGET}/rosetta_out/{src_type}_{model}/{protocol}/*_r{1-5}.pdb.gz`
 - 6 input types × 6 protocols × 5 reps = 780 runs/target, ~200K total
-- As of 2026-03-14: **19,480 / ~200K (~9.7%)** files produced, 0 fully complete (780), 100 targets started
+- As of 2026-03-14 morning: **22,632 / ~200K (~11.3%)** Blue, **19,447** Green, 100 targets started each
 - **AMBER fix job** queued for after 9371774 + 9458817 finish (MODEL_LABELS approach)
 
 ### Output Directory Structure
@@ -100,11 +100,11 @@ normal_ref15:     -score:weights ref2015
 - 6 publication figures generated (PDF + PNG)
 - Summary table generated (LaTeX + TSV)
 
-### Phase 2: Rosetta TM-score — RE-RUN IN PROGRESS
-- **Job 9473400** (`red_ros_tm`): 150/257 completed, 60 targets with data (28,814 rows)
-- Stale files deleted and re-submitted to capture all new Rosetta output
-- Protocol ranking confirmed (60 targets): cart_beta > norm_beta > dualspace
-- Rosetta degrades TM: 0/59 improved, 59/59 degraded (ΔTM=-0.020, p=2e-11)
+### Phase 2: Rosetta TM-score — 105 TARGETS COMPLETE
+- **Job 9473400** (`red_ros_tm`): 105 targets, 42,033 rows
+- Protocol ranking definitive: cart_beta (0.932) > norm_beta (0.930) > dualspace (0.922)
+- Rosetta degrades TM: 1/98 improved, 98/98 degraded (ΔTM=-0.019, p=3.5e-17)
+- Blue-Green correlation: r=0.988-0.992 across all protocols
 
 ### Phase 3: MolProbity Validation — 257/257 COMPLETE
 - **All 257 targets, both pipelines**: 12,539 rows across 514 TSV files
@@ -112,13 +112,18 @@ normal_ref15:     -score:weights ref2015
 - Crystal worst MolProbity (clashscore 13.85), AMBER(Boltz) best (1.60)
 - AMBER improves 257/257 AF targets (100%), 256/257 Boltz (99.6%)
 
-### Phase 4: Rosetta MolProbity — IN PROGRESS
-- **Job 9473680** (`red_ros_mp`): 257 tasks submitted, pending behind Rosetta jobs
-- **4 login-node workers** running: 5 targets each, producing data now
-- 5 targets with data so far (1A2K, 1ATN, 1BKD, 1D6R, 1GCQ)
-- **PRELIMINARY ANSWER**: Rosetta dramatically improves MolProbity (clashscore 0.08-0.81)
-- cartesian_beta achieves best MolProbity AND best TM retention — recommended protocol
-- Scripts: `compute_rosetta_molprobity.py`, `aggregate_rosetta_molprobity.py`, `generate_rosetta_molprobity_figures.py`
+### Phase 4: Rosetta MolProbity — 104 TARGETS (43K rows, both pipelines)
+- **43,022 rows** across 104 targets, Blue + Green
+- **CONFIRMED (Outcome A)**: Rosetta improves MolProbity MORE than AMBER
+  - AF unrelaxed: clashscore 22.9 → 1.03 (96% reduction, d=-1.00)
+  - Boltz: clashscore 12.5 → 0.87 (93% reduction, d=-1.00)
+  - AMBER(AF): clashscore 2.66 → 0.97 (Rosetta 64% better than AMBER)
+  - Rotamer outliers: 0.80% → 0.02% (d=-0.96)
+- **Protocol ranking**: Beta protocols (0.65-0.69) >> REF15 (1.0-1.4)
+  - Best per-target: normal_beta 47%, dualspace_beta 28%, cartesian_beta 21%
+  - Beta wins 96% of targets — energy function is the key differentiator
+- **Recommended: cartesian_beta** — best TM retention + near-best MolProbity
+- Bug fix applied: PATH for probe/reduce (commit ca087e6a on data-analysis branch)
 
 ### Phase 5: Statistical Analysis — COMPLETE
 - Comprehensive framework: Wilcoxon signed-rank, Friedman, Cliff's delta, Bonferroni
