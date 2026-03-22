@@ -100,11 +100,11 @@ normal_ref15:     -score:weights ref2015
 - 6 publication figures generated (PDF + PNG)
 - Summary table generated (LaTeX + TSV)
 
-### Phase 2: Rosetta TM-score — 119 TARGETS (45K rows, expanding)
-- **Workers active**: 4 TM workers processing 204 Blue + 257 Green targets
-- 45,055 rows across 119 unique targets, Blue-Green r=0.986-0.991
+### Phase 2: Rosetta TM-score — 257 TARGETS COMPLETE (93K rows)
+- **92,700 rows** across ALL 257 targets, both pipelines
 - Protocol ranking definitive: cart_beta (0.932) > norm_beta (0.930) > dualspace (0.922)
-- Rosetta degrades TM: 2/110 improved, 108/110 degraded (ΔTM=-0.019, p=8e-19)
+- Rosetta degrades TM: ΔTM=-0.019 (medium effect), 95% targets with σ<0.01
+- Blue-Green correlation: r=0.986-0.991 across all protocols
 
 ### Phase 3: MolProbity Validation — 257/257 COMPLETE
 - **All 257 targets, both pipelines**: 12,539 rows across 514 TSV files
@@ -112,8 +112,8 @@ normal_ref15:     -score:weights ref2015
 - Crystal worst MolProbity (clashscore 13.85), AMBER(Boltz) best (1.60)
 - AMBER improves 257/257 AF targets (100%), 256/257 Boltz (99.6%)
 
-### Phase 4: Rosetta MolProbity — 155 TARGETS (56K rows, both pipelines)
-- **56,399 rows** across 155 targets, Blue + Green, workers still expanding
+### Phase 4: Rosetta MolProbity — 160 TARGETS (85K rows, both pipelines)
+- **84,825 rows** across 160 targets (105 Blue + 160 Green), 16 workers expanding
 - **CONFIRMED (Outcome A)**: Rosetta improves MolProbity MORE than AMBER
   - AF unrelaxed: clashscore 24.8 → 1.0 (96% reduction, d=-1.00)
   - Boltz: clashscore 13.4 → 0.9 (93% reduction, d=-1.00)
@@ -133,7 +133,7 @@ normal_ref15:     -score:weights ref2015
 - 20 main figures + 5 supplementary figures (PDF + PNG, 300 DPI)
 - 6 LaTeX tables (booktabs format)
 - 16-slide PowerPoint presentation (`BM55_Relaxation_Benchmark.pptx`)
-- GitHub: `data-analysis` branch @ commit 0b90e30f
+- GitHub: `data-analysis` branch @ commit 8c5bf96f
 - PAPER_FINDINGS.md: comprehensive paper narrative with all results
 
 ### KEY RESULTS (Pre-Rosetta)

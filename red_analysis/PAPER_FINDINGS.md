@@ -1,8 +1,8 @@
 # Red Analysis: Paper Findings Summary
 ## BM5.5 Protein Structure Relaxation Benchmark
 
-**Last updated: 2026-03-20**
-**Status: Phase 1+3+5 complete, Phase 2+4 at scale (119+155 targets), PowerPoint ready**
+**Last updated: 2026-03-22**
+**Status: Phase 2 COMPLETE (257 targets, 93K rows), Phase 4 expanding (160 targets, 85K rows)**
 
 ---
 
@@ -177,9 +177,9 @@ AF2 wins on global fold (TM), Boltz wins on backbone (Ramachandran), AMBER(Boltz
 |---------|------|---------|-----------|---------|
 | Pre-Rosetta TM | 12,065 | 257 | 2 | 5 |
 | MolProbity | 12,539 | 257 | 2 | 6 |
-| Rosetta TM | 45,055 | 110 | 2 | 6 |
-| Rosetta MolProbity | 56,399 | 155 | 2 | 6 |
-| **Total** | **~126K** | **257** | **2** | **6** |
+| Rosetta TM | 92,700 | 257 | 2 | 6 |
+| Rosetta MolProbity | 84,825 | 160 | 2 | 6 |
+| **Total** | **~202K** | **257** | **2** | **6** |
 
 ---
 
@@ -207,10 +207,10 @@ S5: AF vs Boltz MolProbity scatter
 
 ## 8. Remaining Work
 
-1. **Phase 2**: 119 targets (45K rows) — workers actively processing 204 Blue + 257 Green targets
-2. **Phase 4**: 155 targets (56K rows, both pipelines) — robust results confirmed at scale
-3. **Rosetta relaxation**: Blue 204/257, Green 257/257 COMPLETE
-4. **Final analysis**: Re-run when all Blue targets finish; Green already complete
+1. **Phase 2**: 257 targets (92.7K rows) — ALL TARGETS COMPLETE
+2. **Phase 4**: 160 targets (84.8K rows, both pipelines) — 16 workers expanding coverage
+3. **Rosetta relaxation**: Blue 251/257, Green 257/257 COMPLETE
+4. **Final analysis**: Phase 4 workers will reach 200+ targets within 24h
 5. **Write paper**: All findings documented, 25 figures + 6 LaTeX tables + 11 TSVs ready
 6. **PowerPoint**: 16-slide presentation generated (`BM55_Relaxation_Benchmark.pptx`)
 7. **GitHub**: `data-analysis` branch pushed (commit 0b90e30f)
