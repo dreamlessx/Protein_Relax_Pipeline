@@ -100,11 +100,11 @@ normal_ref15:     -score:weights ref2015
 - 6 publication figures generated (PDF + PNG)
 - Summary table generated (LaTeX + TSV)
 
-### Phase 2: Rosetta TM-score — 105 TARGETS COMPLETE
-- **Job 9473400** (`red_ros_tm`): 105 targets, 42,033 rows
+### Phase 2: Rosetta TM-score — 119 TARGETS (45K rows, expanding)
+- **Workers active**: 4 TM workers processing 204 Blue + 257 Green targets
+- 45,055 rows across 119 unique targets, Blue-Green r=0.986-0.991
 - Protocol ranking definitive: cart_beta (0.932) > norm_beta (0.930) > dualspace (0.922)
-- Rosetta degrades TM: 1/98 improved, 98/98 degraded (ΔTM=-0.019, p=3.5e-17)
-- Blue-Green correlation: r=0.988-0.992 across all protocols
+- Rosetta degrades TM: 2/110 improved, 108/110 degraded (ΔTM=-0.019, p=8e-19)
 
 ### Phase 3: MolProbity Validation — 257/257 COMPLETE
 - **All 257 targets, both pipelines**: 12,539 rows across 514 TSV files
@@ -112,15 +112,15 @@ normal_ref15:     -score:weights ref2015
 - Crystal worst MolProbity (clashscore 13.85), AMBER(Boltz) best (1.60)
 - AMBER improves 257/257 AF targets (100%), 256/257 Boltz (99.6%)
 
-### Phase 4: Rosetta MolProbity — 104 TARGETS (43K rows, both pipelines)
-- **43,022 rows** across 104 targets, Blue + Green
+### Phase 4: Rosetta MolProbity — 155 TARGETS (56K rows, both pipelines)
+- **56,399 rows** across 155 targets, Blue + Green, workers still expanding
 - **CONFIRMED (Outcome A)**: Rosetta improves MolProbity MORE than AMBER
-  - AF unrelaxed: clashscore 22.9 → 1.03 (96% reduction, d=-1.00)
-  - Boltz: clashscore 12.5 → 0.87 (93% reduction, d=-1.00)
-  - AMBER(AF): clashscore 2.66 → 0.97 (Rosetta 64% better than AMBER)
-  - Rotamer outliers: 0.80% → 0.02% (d=-0.96)
+  - AF unrelaxed: clashscore 24.8 → 1.0 (96% reduction, d=-1.00)
+  - Boltz: clashscore 13.4 → 0.9 (93% reduction, d=-1.00)
+  - AMBER(AF) vs Rosetta: 2.74 vs 0.98 (Rosetta 64% better, n=100)
+  - Rotamer outliers: 0.86% → 0.02% (d=-0.94)
 - **Protocol ranking**: Beta protocols (0.65-0.69) >> REF15 (1.0-1.4)
-  - Best per-target: normal_beta 47%, dualspace_beta 28%, cartesian_beta 21%
+  - Best per-target: normal_beta 43%, dualspace_beta 32%, cartesian_beta 21%
   - Beta wins 96% of targets — energy function is the key differentiator
 - **Recommended: cartesian_beta** — best TM retention + near-best MolProbity
 - Bug fix applied: PATH for probe/reduce (commit ca087e6a on data-analysis branch)
@@ -132,6 +132,8 @@ normal_ref15:     -score:weights ref2015
 ### Phase 6: Publication Materials — COMPLETE
 - 20 main figures + 5 supplementary figures (PDF + PNG, 300 DPI)
 - 6 LaTeX tables (booktabs format)
+- 16-slide PowerPoint presentation (`BM55_Relaxation_Benchmark.pptx`)
+- GitHub: `data-analysis` branch @ commit 0b90e30f
 - PAPER_FINDINGS.md: comprehensive paper narrative with all results
 
 ### KEY RESULTS (Pre-Rosetta)
