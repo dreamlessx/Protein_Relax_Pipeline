@@ -112,15 +112,15 @@ normal_ref15:     -score:weights ref2015
 - Crystal worst MolProbity (clashscore 13.85), AMBER(Boltz) best (1.60)
 - AMBER improves 257/257 AF targets (100%), 256/257 Boltz (99.6%)
 
-### Phase 4: Rosetta MolProbity — 160 TARGETS (85K rows, both pipelines)
-- **84,825 rows** across 160 targets (105 Blue + 160 Green), 16 workers expanding
+### Phase 4: Rosetta MolProbity — 257 TARGETS COMPLETE (146K rows, both pipelines)
+- **146,120 rows** across ALL 257 targets (251 Blue + 257 Green)
 - **CONFIRMED (Outcome A)**: Rosetta improves MolProbity MORE than AMBER
   - AF unrelaxed: clashscore 24.8 → 1.0 (96% reduction, d=-1.00)
   - Boltz: clashscore 13.4 → 0.9 (93% reduction, d=-1.00)
-  - AMBER(AF) vs Rosetta: 2.74 vs 0.98 (Rosetta 64% better, n=100)
+  - AMBER(AF) vs Rosetta: 2.82 vs 0.96 (Rosetta 66% better, n=250)
   - Rotamer outliers: 0.86% → 0.02% (d=-0.94)
 - **Protocol ranking**: Beta protocols (0.65-0.69) >> REF15 (1.0-1.4)
-  - Best per-target: normal_beta 43%, dualspace_beta 32%, cartesian_beta 21%
+  - Best per-target: normal_beta 49%, dualspace_beta 32%, cartesian_beta 14%
   - Beta wins 96% of targets — energy function is the key differentiator
 - **Recommended: cartesian_beta** — best TM retention + near-best MolProbity
 - Bug fix applied: PATH for probe/reduce (commit ca087e6a on data-analysis branch)
@@ -133,7 +133,7 @@ normal_ref15:     -score:weights ref2015
 - 20 main figures + 5 supplementary figures (PDF + PNG, 300 DPI)
 - 6 LaTeX tables (booktabs format)
 - 16-slide PowerPoint presentation (`BM55_Relaxation_Benchmark.pptx`)
-- GitHub: `data-analysis` branch @ commit 8c5bf96f
+- GitHub: `data-analysis` branch — all phases complete, 264K total measurements
 - PAPER_FINDINGS.md: comprehensive paper narrative with all results
 
 ### KEY RESULTS (Pre-Rosetta)
