@@ -332,11 +332,23 @@ def make_per_target_bars(mp, ros, metric, label, lower_better):
 
             # Position 6 = gap (no bar)
 
-        # Y-axis limits: based on initial values (which are typically larger)
-        all_vals = [init_data.get(t, np.nan) for t in sorted_targets]
-        all_vals = [v for v in all_vals if not np.isnan(v)]
-        if all_vals:
-            ymax = np.percentile(all_vals, 98) * 1.4
+        # Y-axis limits: ALWAYS zoom to Rosetta range so protocol bars are
+        # clearly visible.  Grey initial bars clip at top — that's intentional,
+        # it visually emphasizes the massive improvement Rosetta achieves.
+        ros_vals = []
+        for t in sorted_targets:
+            t_data = proto_stats[proto_stats['target'] == t]
+            if len(t_data) > 0:
+                ros_vals.extend(t_data['max'].values)  # include error bar tops
+        init_vals = [init_data.get(t, np.nan) for t in sorted_targets]
+        init_vals = [v for v in init_vals if not np.isnan(v)]
+
+        if ros_vals:
+            ros_p98 = np.nanpercentile(ros_vals, 98)
+            ymax = max(ros_p98 * 2.0, 0.1)
+            ax.set_ylim(0, ymax)
+        elif init_vals:
+            ymax = np.nanpercentile(init_vals, 98) * 1.4
             ax.set_ylim(0, max(ymax, 0.1))
 
         ax.set_ylabel(row_cfg['label'], fontsize=9, fontweight='bold')
