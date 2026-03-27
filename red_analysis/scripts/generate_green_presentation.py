@@ -696,15 +696,19 @@ def make_energy_before_after_scatter(init_energy, ros_energy):
                     transform=ax.transAxes, ha='center', va='center',
                     fontsize=10, color='gray')
 
-        # Fixed y-axis across all panels
+        # Fixed axes across all panels
+        ax.set_xlim(-5, 150)
         ax.set_ylim(-7.5, 2.5)
         ax.axhline(y=0, color='gray', linewidth=0.8, linestyle='--', alpha=0.5)
 
         # Diagonal (no-change line)
-        xlim = ax.get_xlim()
-        diag_lo = min(xlim[0], -7.5)
-        diag_hi = max(xlim[1], 2.5)
-        ax.plot([diag_lo, diag_hi], [diag_lo, diag_hi], 'k--', alpha=0.4, lw=1)
+        ax.plot([-5, 150], [-5, 150], 'k--', alpha=0.4, lw=1)
+
+        # Annotate Boltz outliers beyond x=150
+        if idx == 3:  # Boltz panel
+            ax.annotate('1F51 (11,290)\n1F6M (10,596)',
+                        xy=(148, -4.5), fontsize=6, color='gray',
+                        ha='right', va='top', style='italic')
 
         ax.set_title(panel['title'], fontsize=9, fontweight='bold')
         ax.legend(fontsize=6.5, loc='upper right', framealpha=0.9)
