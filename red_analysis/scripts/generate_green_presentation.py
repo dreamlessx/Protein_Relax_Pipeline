@@ -100,7 +100,7 @@ def make_scatter(mp, ros, metric, label, lower_better):
             'title': 'AlphaFold\n(standalone AMBER)',
             'sets': [
                 ('af_unrelaxed', 'af_unrelaxed', '#56B4E9', 'AF unrelaxed → Rosetta'),
-                ('af_unrelaxed', 'amber_af', '#E69F00', 'AMBER(AF) → Rosetta'),
+                ('amber_af', 'amber_af', '#E69F00', 'AMBER(AF) → Rosetta'),
             ],
         },
         {
@@ -114,29 +114,25 @@ def make_scatter(mp, ros, metric, label, lower_better):
             'title': 'Boltz-1\n(standalone AMBER)',
             'sets': [
                 ('boltz', 'boltz', '#009E73', 'Boltz → Rosetta'),
-                ('boltz', 'amber_boltz', '#D55E00', 'AMBER(Boltz) → Rosetta'),
+                ('amber_boltz', 'amber_boltz', '#D55E00', 'AMBER(Boltz) → Rosetta'),
             ],
         },
     ]
 
-    fig, axes = plt.subplots(1, 4, figsize=(18, 4.5), sharex=True, sharey=True)
-    fig.subplots_adjust(wspace=0.08)
+    fig, axes = plt.subplots(1, 4, figsize=(18, 5))
+    fig.subplots_adjust(wspace=0.3)
 
-    # Compute global axis limit
-    all_initial = mp.groupby(['source', 'target'])[metric].mean().dropna()
-    all_rosetta = ros.groupby(['source', 'target'])[metric].mean().dropna()
-    all_vals = np.concatenate([all_initial.values, all_rosetta.values])
-    all_vals = all_vals[np.isfinite(all_vals)]
-    if len(all_vals) == 0:
-        plt.close(fig)
-        return
-    fixed_max = np.nanpercentile(all_vals, 99) * 1.25
+    # Collect all x and y values to set sensible per-axis limits
+    all_x_vals = []
+    all_y_vals = []
 
     for idx, panel in enumerate(panels):
         ax = axes[idx]
+        panel_x = []
+        panel_y = []
 
         for initial_src, rosetta_src, color, set_label in panel['sets']:
-            # Initial values (pre-Rosetta)
+            # Initial values (pre-Rosetta) — from the source itself
             initial = mp[mp['source'] == initial_src].groupby('target')[metric].mean()
 
             # Rosetta stats (mean, min, max across protocols)
@@ -169,16 +165,24 @@ def make_scatter(mp, ros, metric, label, lower_better):
                         markersize=5, elinewidth=0.8, markeredgecolor='white',
                         markeredgewidth=0.3, label=set_label, zorder=3)
 
-        # Identity line
-        ax.plot([0, fixed_max], [0, fixed_max], 'k--', alpha=0.4, lw=1)
+            panel_x.extend(x)
+            panel_y.extend(y_max)  # use max for y-limit
+            all_x_vals.extend(x)
+            all_y_vals.extend(y_max)
 
+        # X = full initial range, Y = zoomed to Rosetta output range
+        if panel_x:
+            x_max = np.nanpercentile(panel_x, 99) * 1.15
+            y_max_lim = np.nanpercentile(panel_y, 99) * 1.3
+            ax.set_xlim(0, max(x_max, 0.1))
+            ax.set_ylim(0, max(y_max_lim, 0.1))
+            diag = max(x_max, y_max_lim)
+            ax.plot([0, diag], [0, diag], 'k--', alpha=0.4, lw=1)
         ax.set_title(panel['title'], fontsize=9, fontweight='bold')
-        ax.set_xlim(0, fixed_max)
-        ax.set_ylim(0, fixed_max)
-        ax.set_aspect('equal', adjustable='box')
         ax.legend(fontsize=6.5, loc='upper left', framealpha=0.9)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
+        ax.set_xlabel(f'Initial {label}', fontsize=9)
 
         if idx == 0:
             ax.set_ylabel(f'Final {label}\n(Rosetta avg across protocols)', fontsize=10)
