@@ -35,7 +35,7 @@ METRICS = [
 # Per-metric axis overrides for scatter plots.
 # Keys: metric name → dict with optional x_min, x_max, y_min, y_max.
 SCATTER_AXIS_OVERRIDES = {
-    'rota_outliers': {'x_min': 0.0, 'x_max': 15.0, 'y_min': 0.0, 'y_max': 0.5},
+    'rota_outliers': {'x_min': 0.0, 'x_max': 30.0, 'y_min': 0.0, 'y_max': 0.5},
 }
 
 # Scatter axis bounds are computed from data in make_scatter().
