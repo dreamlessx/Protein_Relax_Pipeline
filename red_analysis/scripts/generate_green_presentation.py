@@ -32,20 +32,11 @@ METRICS = [
     ('cbeta_outliers', 'C-beta Outliers', True),
 ]
 
-# Per-metric scatter axis bounds: (x_min, x_max, y_min, y_max)
-# Tight bounds — x captures initial range, y zoomed to Rosetta range
-# INCLUDING error bars (min-max range across 6 protocols).
-# Based on data: p99/max analysis of Green pipeline (257 targets).
-SCATTER_BOUNDS = {
-    'clashscore':       (0,     60,     0,     8),     # x p99=50; errbar top max=7.6
-    'molprobity_score': (0,     3.5,    0,     1.2),   # x p99=3.15; errbar top max=1.17
-    'rama_outliers':    (-0.3,  6,      -0.3,  3.5),   # x p99=5.0; errbar top max=2.96; pad below 0
-    'rama_favored':     (82,    100,    90,    100),   # zoom into top range; errbar bot=90.6
-    'rota_outliers':    (-0.5,  18,     -0.05,  0.5),   # x p99=16.7; errbar top max=0.47; pad below 0
-    'rms_bonds':        (0.005, 0.04,   0.008, 0.04),  # x p99=0.031; errbar top max=0.074 (clipped)
-    'rms_angles':       (0.8,   3.0,    1.0,   3.0),  # x p99=2.6; errbar top p99=2.51
-    'cbeta_outliers':   (0,     12,     0,     9),     # x p99=10.6; errbar top max=8.2
-}
+# Scatter axis bounds are computed from data in make_scatter().
+# x captures full initial range (p1–p99 with 5% pad).
+# y captures full Rosetta range including error-bar extremes
+# (global min of y_min to p99 of y_max, with 5% pad on each side).
+# All 4 panels share the same y-axis bounds.
 
 
 def save_fig(fig, name):
@@ -137,60 +128,82 @@ def make_scatter(mp, ros, metric, label, lower_better):
     fig, axes = plt.subplots(1, 4, figsize=(18, 5))
     fig.subplots_adjust(wspace=0.3)
 
-    # Collect all x and y values to set sensible per-axis limits
+    # First pass: collect data per panel for data-driven axis bounds
+    panel_data = []  # list of list of (x, y_mean, y_min, y_max, yerr_lo, yerr_hi, color, label)
     all_x_vals = []
-    all_y_vals = []
+    all_y_min_vals = []
+    all_y_max_vals = []
 
     for idx, panel in enumerate(panels):
-        ax = axes[idx]
-        panel_x = []
-        panel_y = []
-
+        sets_data = []
         for initial_src, rosetta_src, color, set_label in panel['sets']:
-            # Initial values (pre-Rosetta) — from the source itself
             initial = mp[mp['source'] == initial_src].groupby('target')[metric].mean()
-
-            # Rosetta stats (mean, min, max across protocols)
             ros_stats = compute_rosetta_stats(ros, rosetta_src, metric)
             if len(ros_stats) == 0:
+                sets_data.append(None)
                 continue
             ros_stats = ros_stats.set_index('target')
-
             common = initial.index.intersection(ros_stats.index)
             if len(common) < 3:
+                sets_data.append(None)
                 continue
 
             x = initial.loc[common].values
             y_mean = ros_stats.loc[common, 'mean'].values
-            y_min = ros_stats.loc[common, 'min'].values
-            y_max = ros_stats.loc[common, 'max'].values
+            y_min_v = ros_stats.loc[common, 'min'].values
+            y_max_v = ros_stats.loc[common, 'max'].values
 
             mask = np.isfinite(x) & np.isfinite(y_mean)
-            x = x[mask]
-            y_mean = y_mean[mask]
-            y_min = y_min[mask]
-            y_max = y_max[mask]
+            x, y_mean = x[mask], y_mean[mask]
+            y_min_v, y_max_v = y_min_v[mask], y_max_v[mask]
 
-            # Error bars: range (min to max), clamp negatives from float precision
-            yerr_lo = np.maximum(y_mean - y_min, 0)
-            yerr_hi = np.maximum(y_max - y_mean, 0)
+            yerr_lo = np.maximum(y_mean - y_min_v, 0)
+            yerr_hi = np.maximum(y_max_v - y_mean, 0)
 
+            sets_data.append((x, y_mean, y_min_v, y_max_v, yerr_lo, yerr_hi, color, set_label))
+            all_x_vals.extend(x)
+            all_y_min_vals.extend(y_min_v)
+            all_y_max_vals.extend(y_max_v)
+        panel_data.append(sets_data)
+
+    # Compute data-driven bounds
+    # x: p1–p99 of initial values with 5% padding
+    if all_x_vals:
+        x_lo = np.nanpercentile(all_x_vals, 1)
+        x_hi = np.nanpercentile(all_x_vals, 99)
+        x_pad = max((x_hi - x_lo) * 0.05, abs(x_hi) * 0.01)
+        x_min = x_lo - x_pad
+        x_max = x_hi + x_pad
+    else:
+        x_min, x_max = 0, 1
+
+    # y: global min of y_min (error bar bottoms) to p99 of y_max, with 5% padding
+    if all_y_min_vals:
+        y_lo = np.nanmin(all_y_min_vals)
+        y_hi = np.nanpercentile(all_y_max_vals, 99)
+        y_pad = max((y_hi - y_lo) * 0.05, abs(y_hi) * 0.01)
+        y_min = y_lo - y_pad
+        y_max = y_hi + y_pad
+    else:
+        y_min, y_max = 0, 1
+
+    # Second pass: plot with computed bounds
+    for idx, panel in enumerate(panels):
+        ax = axes[idx]
+        for sd in panel_data[idx]:
+            if sd is None:
+                continue
+            x, y_mean, y_min_v, y_max_v, yerr_lo, yerr_hi, color, set_label = sd
             ax.errorbar(x, y_mean, yerr=[yerr_lo, yerr_hi],
                         fmt='o', color=color, alpha=0.6, capsize=2,
                         markersize=5, elinewidth=0.8, markeredgecolor='white',
                         markeredgewidth=0.3, label=set_label, zorder=3)
 
-            panel_x.extend(x)
-            panel_y.extend(y_max)  # use max for y-limit
-            all_x_vals.extend(x)
-            all_y_vals.extend(y_max)
-
-        x_min, x_max, y_min, y_max = SCATTER_BOUNDS.get(metric, (0, 90, 0, 10))
         ax.set_xlim(x_min, x_max)
         ax.set_ylim(y_min, y_max)
-        diag_min = min(x_min, y_min)
-        diag_max = max(x_max, y_max)
-        ax.plot([diag_min, diag_max], [diag_min, diag_max], 'k--', alpha=0.4, lw=1)
+        diag_lo = min(x_min, y_min)
+        diag_hi = max(x_max, y_max)
+        ax.plot([diag_lo, diag_hi], [diag_lo, diag_hi], 'k--', alpha=0.4, lw=1)
         ax.set_title(panel['title'], fontsize=9, fontweight='bold')
         ax.legend(fontsize=6.5, loc='upper left', framealpha=0.9)
         ax.spines['top'].set_visible(False)
