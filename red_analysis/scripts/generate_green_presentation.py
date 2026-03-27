@@ -32,6 +32,12 @@ METRICS = [
     ('cbeta_outliers', 'C-beta Outliers', True),
 ]
 
+# Per-metric axis overrides for scatter plots.
+# Keys: metric name → dict with optional x_min, x_max, y_min, y_max.
+SCATTER_AXIS_OVERRIDES = {
+    'rota_outliers': {'x_min': 0.0, 'x_max': 15.0, 'y_min': 0.0, 'y_max': 0.5},
+}
+
 # Scatter axis bounds are computed from data in make_scatter().
 # x captures full initial range (p1–p99 with 5% pad).
 # y captures full Rosetta range including error-bar extremes
@@ -166,9 +172,12 @@ def make_scatter(mp, ros, metric, label, lower_better):
             all_y_max_vals.extend(y_max_v)
         panel_data.append(sets_data)
 
-    # Compute data-driven bounds
-    # x: p1–p99 of initial values with 5% padding
-    if all_x_vals:
+    # Compute data-driven bounds (may be overridden per metric)
+    overrides = SCATTER_AXIS_OVERRIDES.get(metric, {})
+
+    if 'x_min' in overrides and 'x_max' in overrides:
+        x_min, x_max = overrides['x_min'], overrides['x_max']
+    elif all_x_vals:
         x_lo = np.nanpercentile(all_x_vals, 1)
         x_hi = np.nanpercentile(all_x_vals, 99)
         x_pad = max((x_hi - x_lo) * 0.05, abs(x_hi) * 0.01)
@@ -177,15 +186,20 @@ def make_scatter(mp, ros, metric, label, lower_better):
     else:
         x_min, x_max = 0, 1
 
-    # y: global min of y_min (error bar bottoms) to p99 of y_max, with 5% padding
-    if all_y_min_vals:
+    if 'y_min' in overrides and 'y_max' in overrides:
+        y_min, y_max = overrides['y_min'], overrides['y_max']
+    elif all_y_min_vals:
         y_lo = np.nanmin(all_y_min_vals)
         y_hi = np.nanpercentile(all_y_max_vals, 99)
-        y_pad = max((y_hi - y_lo) * 0.05, abs(y_hi) * 0.01)
-        y_min = y_lo - y_pad
-        y_max = y_hi + y_pad
+        y_range = y_hi - y_lo
+        top_pad = max(y_range * 0.05, abs(y_hi) * 0.02)
+        bot_pad = y_range * 0.08  # 8% of range below the minimum
+        y_min = y_lo - bot_pad
+        if y_min >= 0:
+            y_min = -bot_pad  # force negative axis
+        y_max = y_hi + top_pad
     else:
-        y_min, y_max = 0, 1
+        y_min, y_max = -0.1, 1
 
     # Second pass: plot with computed bounds
     for idx, panel in enumerate(panels):
@@ -201,11 +215,13 @@ def make_scatter(mp, ros, metric, label, lower_better):
 
         ax.set_xlim(x_min, x_max)
         ax.set_ylim(y_min, y_max)
+        if idx == 0:
+            print(f"    DEBUG {metric}: y_min={y_min:.4f} y_max={y_max:.4f} actual={ax.get_ylim()}")
         diag_lo = min(x_min, y_min)
         diag_hi = max(x_max, y_max)
         ax.plot([diag_lo, diag_hi], [diag_lo, diag_hi], 'k--', alpha=0.4, lw=1)
         ax.set_title(panel['title'], fontsize=9, fontweight='bold')
-        ax.legend(fontsize=6.5, loc='upper left', framealpha=0.9)
+        ax.legend(fontsize=6.5, loc='upper right', framealpha=0.9)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         ax.set_xlabel(f'Initial {label}', fontsize=9)
