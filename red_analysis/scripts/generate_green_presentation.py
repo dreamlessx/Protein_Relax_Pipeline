@@ -47,8 +47,16 @@ SCATTER_AXIS_OVERRIDES = {
 
 
 def save_fig(fig, name):
+    # Route to scatter/ or bars/ subdirectory based on prefix
+    if name.startswith('scatter_'):
+        subdir = os.path.join(OUTDIR, 'scatter')
+    elif name.startswith('bars_'):
+        subdir = os.path.join(OUTDIR, 'bars')
+    else:
+        subdir = OUTDIR
+    os.makedirs(subdir, exist_ok=True)
     for fmt in ['pdf', 'png']:
-        fig.savefig(os.path.join(OUTDIR, f"{name}.{fmt}"),
+        fig.savefig(os.path.join(subdir, f"{name}.{fmt}"),
                     dpi=300 if fmt == 'png' else None, bbox_inches='tight')
     plt.close(fig)
     print(f"  Saved {name}")
@@ -288,18 +296,19 @@ def make_per_target_bars(mp, ros, metric, label, lower_better):
     """
     Per-target bar chart for one metric.
 
-    6 rows (one per source type — AMBER and non-AMBER separate):
-      1. Crystal, 2. AF unrelaxed, 3. AF relaxed (built-in AMBER),
-      4. AMBER(AF) (standalone), 5. Boltz, 6. AMBER(Boltz) (standalone)
+    6 rows (one per source type), shared y-axis across all rows.
+    Grey = initial (pre-Rosetta), colored = 6 Rosetta protocols.
+    Error bars = min–max across reps within each protocol.
+    Targets sorted by initial af_unrelaxed value.
 
-    Per protein in each row:
-      - Wide transparent grey bar spanning the 6 protocol positions = initial value
-      - 6 colored bars on top: one per Rosetta protocol (mean across reps)
-      - Min–max error bars on each Rosetta bar
-      - 1 bar gap between proteins
-
-    Targets sorted by initial value (af_unrelaxed).
+    Fixes applied:
+      - Shared y-axis across all 6 rows for cross-source comparison
+      - Smart y-limits: show both initial and Rosetta ranges meaningfully
+      - rama_favored: floor at 85% since data clusters at 95–100%
+      - Every 5th x-label shown (readable at 300 DPI)
+      - Legend outside plot area (top of figure)
     """
+    from matplotlib.patches import Patch
     n_rows = len(BAR_ROWS)
 
     # Sorted target order (by af_unrelaxed initial)
@@ -313,35 +322,58 @@ def make_per_target_bars(mp, ros, metric, label, lower_better):
             sorted_targets.append(t)
 
     n_targets = len(sorted_targets)
-
-    # Group layout: 6 protocol bars + 1 gap = 7 positions per protein
     GROUP_W = 7
 
     fig_width = max(30, n_targets * GROUP_W * 0.06)
-    fig, axes = plt.subplots(n_rows, 1, figsize=(fig_width, n_rows * 2.5), sharex=True)
-    fig.subplots_adjust(hspace=0.12)
+    fig, axes = plt.subplots(n_rows, 1, figsize=(fig_width, n_rows * 2.8),
+                             sharex=True, sharey=True)
+    fig.subplots_adjust(hspace=0.15, top=0.90)
+
+    # Pre-compute global y-range across ALL rows for shared axis
+    all_ros_max = []
+    all_init_vals = []
+    for row_cfg in BAR_ROWS:
+        source = row_cfg['source']
+        proto_stats = compute_per_protocol_stats(ros, source, metric)
+        init_data = mp[mp['source'] == source].groupby('target')[metric].mean()
+        if len(proto_stats) > 0:
+            all_ros_max.extend(proto_stats['max'].dropna().values)
+        all_init_vals.extend(init_data.dropna().values)
+
+    # Compute shared y-limits
+    if metric == 'rama_favored':
+        # Higher is better — zoom to 85–100%
+        y_lo = 85.0
+        y_hi = 100.5
+    elif all_ros_max and all_init_vals:
+        # Show full range: initial + Rosetta
+        combined = list(all_ros_max) + list(all_init_vals)
+        y_lo = 0
+        y_hi = np.nanpercentile(combined, 99) * 1.1
+        y_hi = max(y_hi, 0.1)
+    elif all_ros_max:
+        y_lo = 0
+        y_hi = np.nanpercentile(all_ros_max, 99) * 1.3
+    else:
+        y_lo, y_hi = 0, 1
 
     for row_idx, row_cfg in enumerate(BAR_ROWS):
         ax = axes[row_idx]
         source = row_cfg['source']
 
-        # Pre-compute Rosetta stats for this source
         proto_stats = compute_per_protocol_stats(ros, source, metric)
-
-        # Pre-compute initial values (pre-Rosetta)
         init_data = mp[mp['source'] == source].groupby('target')[metric].mean()
 
         for t_idx, target in enumerate(sorted_targets):
             base_x = t_idx * GROUP_W
 
-            # Wide transparent grey bar = initial (pre-Rosetta) value
-            # Spans the 6 protocol positions (center at base_x + 2.5, width = 6)
+            # Grey initial bar
             init_val = init_data.get(target, np.nan)
             if not np.isnan(init_val):
                 ax.bar(base_x + 2.5, init_val, width=5.6, color='#888888',
                        alpha=0.25, edgecolor='none', zorder=1)
 
-            # 6 Rosetta protocol bars (positions 0–5)
+            # 6 Rosetta protocol bars
             target_proto = proto_stats[proto_stats['target'] == target]
             for p_idx, proto in enumerate(PROTOCOLS):
                 p_row = target_proto[target_proto['protocol'] == proto]
@@ -360,52 +392,33 @@ def make_per_target_bars(mp, ros, metric, label, lower_better):
                                 fmt='none', ecolor='black', capsize=1.5,
                                 elinewidth=0.5, zorder=3)
 
-            # Position 6 = gap (no bar)
-
-        # Y-axis limits: ALWAYS zoom to Rosetta range so protocol bars are
-        # clearly visible.  Grey initial bars clip at top — that's intentional,
-        # it visually emphasizes the massive improvement Rosetta achieves.
-        ros_vals = []
-        for t in sorted_targets:
-            t_data = proto_stats[proto_stats['target'] == t]
-            if len(t_data) > 0:
-                ros_vals.extend(t_data['max'].values)  # include error bar tops
-        init_vals = [init_data.get(t, np.nan) for t in sorted_targets]
-        init_vals = [v for v in init_vals if not np.isnan(v)]
-
-        if ros_vals:
-            ros_p98 = np.nanpercentile(ros_vals, 98)
-            ymax = max(ros_p98 * 2.0, 0.1)
-            ax.set_ylim(0, ymax)
-        elif init_vals:
-            ymax = np.nanpercentile(init_vals, 98) * 1.4
-            ax.set_ylim(0, max(ymax, 0.1))
-
+        ax.set_ylim(y_lo, y_hi)
         ax.set_ylabel(row_cfg['label'], fontsize=9, fontweight='bold')
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
 
-        # Legend on first row
-        if row_idx == 0:
-            from matplotlib.patches import Patch
-            handles = [Patch(facecolor='#888888', alpha=0.25, label='Initial (pre-Rosetta)')]
-            for proto in PROTOCOLS:
-                handles.append(Patch(facecolor=PROTO_COLORS[proto],
-                                     label=PROTO_LABELS[proto]))
-            ax.legend(handles=handles, loc='upper right', fontsize=6,
-                      framealpha=0.9, ncol=4)
+    # Legend above the figure
+    handles = [Patch(facecolor='#888888', alpha=0.25, label='Initial (pre-Rosetta)')]
+    for proto in PROTOCOLS:
+        handles.append(Patch(facecolor=PROTO_COLORS[proto],
+                             label=PROTO_LABELS[proto]))
+    fig.legend(handles=handles, loc='upper center', fontsize=7,
+               framealpha=0.9, ncol=7, bbox_to_anchor=(0.5, 0.98))
 
-    # X-axis labels: every protein labeled
+    # X-axis labels: every 5th target for readability
     tick_positions = [i * GROUP_W + 2.5 for i in range(n_targets)]
+    label_every = 5
+    shown_labels = [sorted_targets[i] if i % label_every == 0 else ''
+                    for i in range(n_targets)]
     axes[-1].set_xticks(tick_positions)
-    axes[-1].set_xticklabels(sorted_targets, rotation=90, ha='center', fontsize=4)
+    axes[-1].set_xticklabels(shown_labels, rotation=90, ha='center', fontsize=5)
     axes[-1].set_xlim(-1, n_targets * GROUP_W)
 
     direction = '(lower = better)' if lower_better else '(higher = better)'
     fig.suptitle(f'{label} Per Target {direction}\n'
                  f'Green pipeline — {n_targets} targets — '
                  f'grey = initial, colors = 6 Rosetta protocols (error bars = rep range)',
-                 fontsize=12, fontweight='bold')
+                 fontsize=12, fontweight='bold', y=1.0)
 
     save_fig(fig, f'bars_{metric}')
 
@@ -414,10 +427,11 @@ def make_energy_bars(energy_df):
     """
     Per-target bar chart for Rosetta per-residue energy (REU/residue).
 
-    Same 6-row layout as MolProbity bars:
-      1 row per source, 6 protocol bars per target, sorted by mean energy.
-    No grey initial bar (energy is only post-Rosetta).
+    Same 6-row layout as MolProbity bars, shared y-axis.
+    Energy is negative (more negative = better), so bars hang downward.
+    Zero line drawn for reference.
     """
+    from matplotlib.patches import Patch
     metric = 'per_residue_energy'
     n_rows = len(BAR_ROWS)
 
@@ -431,16 +445,22 @@ def make_energy_bars(energy_df):
     n_targets = len(sorted_targets)
     GROUP_W = 7
 
+    # Pre-compute global y-range for shared axis
+    all_vals = energy_df.groupby(['source', 'target'])[metric].mean().values
+    y_lo = np.nanpercentile(all_vals, 1) * 1.1  # more negative (expand)
+    y_hi = np.nanpercentile(all_vals, 99) * 0.9  # less negative (expand toward 0)
+    y_hi = max(y_hi, 0.5)  # always show zero line
+
     fig_width = max(30, n_targets * GROUP_W * 0.06)
-    fig, axes = plt.subplots(n_rows, 1, figsize=(fig_width, n_rows * 2.5), sharex=True)
-    fig.subplots_adjust(hspace=0.12)
+    fig, axes = plt.subplots(n_rows, 1, figsize=(fig_width, n_rows * 2.8),
+                             sharex=True, sharey=True)
+    fig.subplots_adjust(hspace=0.15, top=0.90)
 
     for row_idx, row_cfg in enumerate(BAR_ROWS):
         ax = axes[row_idx]
         source = row_cfg['source']
         src_data = energy_df[energy_df['source'] == source]
 
-        # Per target × protocol stats
         proto_stats = src_data.groupby(['target', 'protocol'])[metric].agg(
             ['mean', 'min', 'max']).reset_index()
 
@@ -465,35 +485,31 @@ def make_energy_bars(energy_df):
                                 fmt='none', ecolor='black', capsize=1.5,
                                 elinewidth=0.5, zorder=3)
 
-        # Y limits
-        all_vals = src_data.groupby('target')[metric].mean().values
-        if len(all_vals) > 0:
-            ymin = np.nanpercentile(all_vals, 2) * 1.15
-            ymax = np.nanpercentile(all_vals, 98) * 0.85
-            ax.set_ylim(ymin, ymax)
-
+        ax.set_ylim(y_lo, y_hi)
+        ax.axhline(y=0, color='black', linewidth=0.5, linestyle='-', alpha=0.3)
         ax.set_ylabel(row_cfg['label'], fontsize=9, fontweight='bold')
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
 
-        if row_idx == 0:
-            from matplotlib.patches import Patch
-            handles = []
-            for proto in PROTOCOLS:
-                handles.append(Patch(facecolor=PROTO_COLORS[proto],
-                                     label=PROTO_LABELS[proto]))
-            ax.legend(handles=handles, loc='lower right', fontsize=6,
-                      framealpha=0.9, ncol=3)
+    # Legend above figure
+    handles = [Patch(facecolor=PROTO_COLORS[p], label=PROTO_LABELS[p])
+               for p in PROTOCOLS]
+    fig.legend(handles=handles, loc='upper center', fontsize=7,
+               framealpha=0.9, ncol=6, bbox_to_anchor=(0.5, 0.98))
 
+    # X-axis labels: every 5th
     tick_positions = [i * GROUP_W + 2.5 for i in range(n_targets)]
+    label_every = 5
+    shown_labels = [sorted_targets[i] if i % label_every == 0 else ''
+                    for i in range(n_targets)]
     axes[-1].set_xticks(tick_positions)
-    axes[-1].set_xticklabels(sorted_targets, rotation=90, ha='center', fontsize=4)
+    axes[-1].set_xticklabels(shown_labels, rotation=90, ha='center', fontsize=5)
     axes[-1].set_xlim(-1, n_targets * GROUP_W)
 
     fig.suptitle('Per-Residue Rosetta Energy (REU/residue) Per Target\n'
                  f'Green pipeline — {n_targets} targets — '
                  f'6 Rosetta protocols (error bars = rep range)',
-                 fontsize=12, fontweight='bold')
+                 fontsize=12, fontweight='bold', y=1.0)
 
     save_fig(fig, 'bars_energy')
 
