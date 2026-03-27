@@ -642,8 +642,8 @@ def make_energy_before_after_scatter(init_energy, ros_energy):
         {
             'title': 'Boltz-1\n(standalone AMBER)',
             'sets': [
-                (None, 'boltz', '#009E73', 'Boltz → Rosetta'),
-                (None, 'amber_boltz', '#D55E00', 'AMBER(Boltz) → Rosetta'),
+                ('boltz', 'boltz', '#009E73', 'Boltz → Rosetta'),
+                ('amber_boltz', 'amber_boltz', '#D55E00', 'AMBER(Boltz) → Rosetta'),
             ],
         },
     ]
