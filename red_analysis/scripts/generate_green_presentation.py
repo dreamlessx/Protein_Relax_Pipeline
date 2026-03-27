@@ -32,6 +32,21 @@ METRICS = [
     ('cbeta_outliers', 'C-beta Outliers', True),
 ]
 
+# Per-metric scatter axis bounds: (x_min, x_max, y_min, y_max)
+# Tight bounds — x captures initial range, y zoomed to Rosetta range
+# INCLUDING error bars (min-max range across 6 protocols).
+# Based on data: p99/max analysis of Green pipeline (257 targets).
+SCATTER_BOUNDS = {
+    'clashscore':       (0,     60,     0,     8),     # x p99=50; errbar top max=7.6
+    'molprobity_score': (0,     3.5,    0,     1.2),   # x p99=3.15; errbar top max=1.17
+    'rama_outliers':    (0,     6,      0,     3.5),   # x p99=5.0; errbar top max=2.96
+    'rama_favored':     (82,    100,    90,    100),   # zoom into top range; errbar bot=90.6
+    'rota_outliers':    (0,     18,     0,     0.5),   # x p99=16.7; errbar top max=0.47
+    'rms_bonds':        (0.005, 0.04,   0.008, 0.04),  # x p99=0.031; errbar top max=0.074 (clipped)
+    'rms_angles':       (0.8,   3.0,    1.0,   3.0),  # x p99=2.6; errbar top p99=2.51
+    'cbeta_outliers':   (0,     12,     0,     9),     # x p99=10.6; errbar top max=8.2
+}
+
 
 def save_fig(fig, name):
     for fmt in ['pdf', 'png']:
@@ -170,10 +185,12 @@ def make_scatter(mp, ros, metric, label, lower_better):
             all_x_vals.extend(x)
             all_y_vals.extend(y_max)
 
-        # X fixed at 90, Y fixed at 10
-        ax.set_xlim(0, 90)
-        ax.set_ylim(0, 10)
-        ax.plot([0, 90], [0, 90], 'k--', alpha=0.4, lw=1)
+        x_min, x_max, y_min, y_max = SCATTER_BOUNDS.get(metric, (0, 90, 0, 10))
+        ax.set_xlim(x_min, x_max)
+        ax.set_ylim(y_min, y_max)
+        diag_min = min(x_min, y_min)
+        diag_max = max(x_max, y_max)
+        ax.plot([diag_min, diag_max], [diag_min, diag_max], 'k--', alpha=0.4, lw=1)
         ax.set_title(panel['title'], fontsize=9, fontweight='bold')
         ax.legend(fontsize=6.5, loc='upper left', framealpha=0.9)
         ax.spines['top'].set_visible(False)
@@ -336,12 +353,10 @@ def make_per_target_bars(mp, ros, metric, label, lower_better):
             ax.legend(handles=handles, loc='upper right', fontsize=6,
                       framealpha=0.9, ncol=4)
 
-    # X-axis labels: protein names at center of each group
-    tick_step = max(1, n_targets // 50)
-    tick_positions = [i * GROUP_W + 2.5 for i in range(0, n_targets, tick_step)]
-    tick_labels = [sorted_targets[i] for i in range(0, n_targets, tick_step)]
+    # X-axis labels: every protein labeled
+    tick_positions = [i * GROUP_W + 2.5 for i in range(n_targets)]
     axes[-1].set_xticks(tick_positions)
-    axes[-1].set_xticklabels(tick_labels, rotation=45, ha='right', fontsize=6)
+    axes[-1].set_xticklabels(sorted_targets, rotation=90, ha='center', fontsize=4)
     axes[-1].set_xlim(-1, n_targets * GROUP_W)
 
     direction = '(lower = better)' if lower_better else '(higher = better)'
@@ -353,6 +368,159 @@ def make_per_target_bars(mp, ros, metric, label, lower_better):
     save_fig(fig, f'bars_{metric}')
 
 
+def make_energy_bars(energy_df):
+    """
+    Per-target bar chart for Rosetta per-residue energy (REU/residue).
+
+    Same 6-row layout as MolProbity bars:
+      1 row per source, 6 protocol bars per target, sorted by mean energy.
+    No grey initial bar (energy is only post-Rosetta).
+    """
+    metric = 'per_residue_energy'
+    n_rows = len(BAR_ROWS)
+
+    # Sort targets by af_relaxed mean energy (most negative = best)
+    af_energy = energy_df[energy_df['source'] == 'af_relaxed'].groupby('target')[metric].mean()
+    sorted_targets = af_energy.sort_values(ascending=True).index.tolist()
+    for t in energy_df['target'].unique():
+        if t not in sorted_targets:
+            sorted_targets.append(t)
+
+    n_targets = len(sorted_targets)
+    GROUP_W = 7
+
+    fig_width = max(30, n_targets * GROUP_W * 0.06)
+    fig, axes = plt.subplots(n_rows, 1, figsize=(fig_width, n_rows * 2.5), sharex=True)
+    fig.subplots_adjust(hspace=0.12)
+
+    for row_idx, row_cfg in enumerate(BAR_ROWS):
+        ax = axes[row_idx]
+        source = row_cfg['source']
+        src_data = energy_df[energy_df['source'] == source]
+
+        # Per target × protocol stats
+        proto_stats = src_data.groupby(['target', 'protocol'])[metric].agg(
+            ['mean', 'min', 'max']).reset_index()
+
+        for t_idx, target in enumerate(sorted_targets):
+            base_x = t_idx * GROUP_W
+            target_proto = proto_stats[proto_stats['target'] == target]
+
+            for p_idx, proto in enumerate(PROTOCOLS):
+                p_row = target_proto[target_proto['protocol'] == proto]
+                if len(p_row) == 1:
+                    y_mean = p_row['mean'].values[0]
+                    y_min = p_row['min'].values[0]
+                    y_max = p_row['max'].values[0]
+                    yerr_lo = max(y_mean - y_min, 0)
+                    yerr_hi = max(y_max - y_mean, 0)
+
+                    ax.bar(base_x + p_idx, y_mean, width=0.8,
+                           color=PROTO_COLORS[proto],
+                           edgecolor='white', linewidth=0.2, zorder=2)
+                    ax.errorbar(base_x + p_idx, y_mean,
+                                yerr=[[yerr_lo], [yerr_hi]],
+                                fmt='none', ecolor='black', capsize=1.5,
+                                elinewidth=0.5, zorder=3)
+
+        # Y limits
+        all_vals = src_data.groupby('target')[metric].mean().values
+        if len(all_vals) > 0:
+            ymin = np.nanpercentile(all_vals, 2) * 1.15
+            ymax = np.nanpercentile(all_vals, 98) * 0.85
+            ax.set_ylim(ymin, ymax)
+
+        ax.set_ylabel(row_cfg['label'], fontsize=9, fontweight='bold')
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+
+        if row_idx == 0:
+            from matplotlib.patches import Patch
+            handles = []
+            for proto in PROTOCOLS:
+                handles.append(Patch(facecolor=PROTO_COLORS[proto],
+                                     label=PROTO_LABELS[proto]))
+            ax.legend(handles=handles, loc='lower right', fontsize=6,
+                      framealpha=0.9, ncol=3)
+
+    tick_positions = [i * GROUP_W + 2.5 for i in range(n_targets)]
+    axes[-1].set_xticks(tick_positions)
+    axes[-1].set_xticklabels(sorted_targets, rotation=90, ha='center', fontsize=4)
+    axes[-1].set_xlim(-1, n_targets * GROUP_W)
+
+    fig.suptitle('Per-Residue Rosetta Energy (REU/residue) Per Target\n'
+                 f'Green pipeline — {n_targets} targets — '
+                 f'6 Rosetta protocols (error bars = rep range)',
+                 fontsize=12, fontweight='bold')
+
+    save_fig(fig, 'bars_energy')
+
+
+def make_energy_scatter(energy_df, mp):
+    """
+    Energy scatter: per-residue energy vs clashscore/MolProbity score.
+
+    Shows whether lower Rosetta energy correlates with better structure quality.
+    4-panel: one per source type (crystal, af_relaxed, boltz, amber_boltz).
+    """
+    # Merge energy and MolProbity (both post-Rosetta, per target × source)
+    energy_per_target = energy_df.groupby(['source', 'target'])['per_residue_energy'].mean().reset_index()
+    mp_per_target = mp.groupby(['source', 'target'])['clashscore'].mean().reset_index()
+
+    sources = [
+        ('af_relaxed', 'AF relaxed → Rosetta', '#0072B2'),
+        ('af_unrelaxed', 'AF unrelaxed → Rosetta', '#56B4E9'),
+        ('boltz', 'Boltz → Rosetta', '#009E73'),
+        ('amber_boltz', 'AMBER(Boltz) → Rosetta', '#D55E00'),
+    ]
+
+    fig, axes = plt.subplots(1, 4, figsize=(18, 5))
+    fig.subplots_adjust(wspace=0.3)
+
+    for idx, (src, label, color) in enumerate(sources):
+        ax = axes[idx]
+
+        e_data = energy_per_target[energy_per_target['source'] == src].set_index('target')
+        q_data = mp_per_target[mp_per_target['source'] == src].set_index('target')
+        common = e_data.index.intersection(q_data.index)
+
+        if len(common) < 5:
+            ax.set_title(label, fontsize=9, fontweight='bold')
+            ax.text(0.5, 0.5, 'Insufficient data', transform=ax.transAxes,
+                    ha='center', fontsize=10)
+            continue
+
+        x = e_data.loc[common, 'per_residue_energy'].values
+        y = q_data.loc[common, 'clashscore'].values
+        mask = np.isfinite(x) & np.isfinite(y)
+        x, y = x[mask], y[mask]
+
+        ax.scatter(x, y, color=color, alpha=0.6, s=25, edgecolors='white',
+                   linewidths=0.3, zorder=3)
+
+        # Correlation annotation
+        if len(x) > 5:
+            from scipy import stats as sp_stats
+            r, p = sp_stats.pearsonr(x, y)
+            ax.text(0.05, 0.95, f'r = {r:.3f}\nn = {len(x)}',
+                    transform=ax.transAxes, fontsize=8, va='top',
+                    bbox=dict(boxstyle='round,pad=0.3', facecolor='white',
+                              alpha=0.8, edgecolor='gray', linewidth=0.5))
+
+        ax.set_title(label, fontsize=9, fontweight='bold')
+        ax.set_xlabel('Per-Residue Energy (REU/res)', fontsize=9)
+        if idx == 0:
+            ax.set_ylabel('Clashscore (post-Rosetta)', fontsize=10)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+
+    fig.suptitle('Rosetta Energy vs Structure Quality (Clashscore)\n'
+                 'Green pipeline — per-target averages',
+                 fontsize=13, fontweight='bold', y=1.06)
+
+    save_fig(fig, 'scatter_energy_vs_clashscore')
+
+
 def main():
     os.makedirs(OUTDIR, exist_ok=True)
 
@@ -361,6 +529,16 @@ def main():
     print(f"  MolProbity: {len(mp)} rows, {mp['target'].nunique()} targets")
     print(f"  Rosetta MP: {len(ros)} rows, {ros['target'].nunique()} targets")
     print(f"  Rosetta protocols: {sorted(ros['protocol'].unique())}")
+
+    # Load energy data
+    energy_path = os.path.join(METRICS_DIR, "combined_rosetta_energy.tsv")
+    energy = None
+    if os.path.exists(energy_path):
+        energy = pd.read_csv(energy_path, sep='\t')
+        energy['per_residue_energy'] = pd.to_numeric(energy['per_residue_energy'], errors='coerce')
+        energy['total_score'] = pd.to_numeric(energy['total_score'], errors='coerce')
+        energy = energy[energy['pipeline'] == 'green']
+        print(f"  Energy: {len(energy)} rows, {energy['target'].nunique()} targets")
 
     for metric, label, lower_better in METRICS:
         n_valid_mp = mp[metric].notna().sum()
@@ -372,6 +550,12 @@ def main():
         print(f"\n--- {label} ({metric}) ---")
         make_scatter(mp, ros, metric, label, lower_better)
         make_per_target_bars(mp, ros, metric, label, lower_better)
+
+    # Energy figures
+    if energy is not None and len(energy) > 0:
+        print(f"\n--- Energy Analysis ---")
+        make_energy_bars(energy)
+        make_energy_scatter(energy, ros)
 
     print(f"\n{'='*50}")
     n_figs = len([f for f in os.listdir(OUTDIR) if f.endswith('.png')])
