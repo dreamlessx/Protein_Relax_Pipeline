@@ -236,54 +236,52 @@ def fig4_amber_effect(df):
     AF unrelaxed → standalone AMBER(AF)
     Boltz → AMBER(Boltz)
 
-    COMMENT: This is the core hypothesis test. If AMBER improves structures,
-    the distribution of (after - before) should be positive. If it hurts,
-    negative. If neutral, centered on zero.
+    Generates separate figures for each pipeline (Blue + Green).
     """
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+    for pipeline in ['blue', 'green']:
+        pipe_label = pipeline.capitalize()
+        fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
-    pairs = [
-        ('af_unrelaxed', 'af_relaxed', 'AF2: Built-in AMBER'),
-        ('af_unrelaxed', 'amber_af', 'AF2: Standalone AMBER'),
-        ('boltz', 'amber_boltz', 'Boltz: Standalone AMBER'),
-    ]
+        pairs = [
+            ('af_unrelaxed', 'af_relaxed', 'AF2: Built-in AMBER'),
+            ('af_unrelaxed', 'amber_af', 'AF2: Standalone AMBER'),
+            ('boltz', 'amber_boltz', 'Boltz: Standalone AMBER'),
+        ]
 
-    for ax, (before_src, after_src, title) in zip(axes, pairs):
-        # Use Blue pipeline (more complete data)
-        sub = df[df['pipeline'] == 'blue'].copy()
+        for ax, (before_src, after_src, title) in zip(axes, pairs):
+            sub = df[df['pipeline'] == pipeline].copy()
 
-        before = sub[sub['source'] == before_src].groupby('target')['tmscore'].mean()
-        after = sub[sub['source'] == after_src].groupby('target')['tmscore'].mean()
+            before = sub[sub['source'] == before_src].groupby('target')['tmscore'].mean()
+            after = sub[sub['source'] == after_src].groupby('target')['tmscore'].mean()
 
-        # Match targets
-        common = before.index.intersection(after.index)
-        diff = after.loc[common] - before.loc[common]
+            common = before.index.intersection(after.index)
+            diff = after.loc[common] - before.loc[common]
 
-        ax.hist(diff, bins=50, color='steelblue', edgecolor='black', linewidth=0.5, alpha=0.7)
-        ax.axvline(x=0, color='red', linestyle='--', linewidth=2)
-        ax.axvline(x=diff.mean(), color='orange', linestyle='-', linewidth=2, label=f'Mean: {diff.mean():.4f}')
-        ax.axvline(x=diff.median(), color='green', linestyle='-', linewidth=2, label=f'Median: {diff.median():.4f}')
+            ax.hist(diff, bins=50, color='steelblue', edgecolor='black', linewidth=0.5, alpha=0.7)
+            ax.axvline(x=0, color='red', linestyle='--', linewidth=2)
+            ax.axvline(x=diff.mean(), color='orange', linestyle='-', linewidth=2, label=f'Mean: {diff.mean():.4f}')
+            ax.axvline(x=diff.median(), color='green', linestyle='-', linewidth=2, label=f'Median: {diff.median():.4f}')
 
-        ax.set_xlabel('ΔTM-score (after - before)')
-        ax.set_ylabel('Number of targets')
-        ax.set_title(title)
-        ax.legend(fontsize=8)
+            ax.set_xlabel('ΔTM-score (after - before)')
+            ax.set_ylabel('Number of targets')
+            ax.set_title(title)
+            ax.legend(fontsize=8)
 
-        # Add counts
-        n_better = (diff > 0.001).sum()
-        n_worse = (diff < -0.001).sum()
-        n_same = len(diff) - n_better - n_worse
-        ax.text(0.05, 0.85, f'Better: {n_better}\nWorse: {n_worse}\nSame: {n_same}',
-                transform=ax.transAxes, fontsize=9, verticalalignment='top',
-                bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8))
+            n_better = (diff > 0.001).sum()
+            n_worse = (diff < -0.001).sum()
+            n_same = len(diff) - n_better - n_worse
+            ax.text(0.05, 0.85, f'Better: {n_better}\nWorse: {n_worse}\nSame: {n_same}',
+                    transform=ax.transAxes, fontsize=9, verticalalignment='top',
+                    bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8))
 
-    plt.suptitle('Effect of AMBER Relaxation on TM-score', fontsize=14, fontweight='bold')
-    plt.tight_layout()
-    outf = os.path.join(FIGURES_DIR, "fig4_amber_effect.pdf")
-    plt.savefig(outf, dpi=300, bbox_inches='tight')
-    plt.savefig(outf.replace('.pdf', '.png'), dpi=150, bbox_inches='tight')
-    plt.close()
-    print(f"Figure 4 -> {outf}")
+        plt.suptitle(f'Effect of AMBER Relaxation on TM-score ({pipe_label} pipeline)',
+                     fontsize=14, fontweight='bold')
+        plt.tight_layout()
+        outf = os.path.join(FIGURES_DIR, f"fig4_amber_effect_{pipeline}.pdf")
+        plt.savefig(outf, dpi=300, bbox_inches='tight')
+        plt.savefig(outf.replace('.pdf', '.png'), dpi=150, bbox_inches='tight')
+        plt.close()
+        print(f"Figure 4 ({pipe_label}) -> {outf}")
 
 
 def fig5_af_vs_boltz(df):
@@ -293,46 +291,46 @@ def fig5_af_vs_boltz(df):
     Scatter plot: each target is a point. x = AF2 TM-score, y = Boltz TM-score.
     Points above diagonal = Boltz better. Below = AF2 better.
 
-    COMMENT: This directly answers "which predictor is better?" for the
-    BM5.5 benchmark set. Important: this is pre-relaxation comparison
-    (unrelaxed AF2 vs raw Boltz).
+    Generates separate figures for each pipeline (Blue + Green).
     """
-    fig, ax = plt.subplots(figsize=(8, 8))
+    for pipeline in ['blue', 'green']:
+        pipe_label = pipeline.capitalize()
+        fig, ax = plt.subplots(figsize=(8, 8))
 
-    sub = df[df['pipeline'] == 'blue'].copy()
+        sub = df[df['pipeline'] == pipeline].copy()
 
-    af = sub[sub['source'] == 'af_unrelaxed'].groupby('target')['tmscore'].mean()
-    boltz = sub[sub['source'] == 'boltz'].groupby('target')['tmscore'].mean()
+        af = sub[sub['source'] == 'af_unrelaxed'].groupby('target')['tmscore'].mean()
+        boltz = sub[sub['source'] == 'boltz'].groupby('target')['tmscore'].mean()
 
-    common = af.index.intersection(boltz.index)
+        common = af.index.intersection(boltz.index)
 
-    ax.scatter(af.loc[common], boltz.loc[common], c='steelblue', alpha=0.5, s=20, edgecolors='none')
-    ax.plot([0, 1], [0, 1], 'k--', alpha=0.5)
+        ax.scatter(af.loc[common], boltz.loc[common], c='steelblue', alpha=0.5, s=20, edgecolors='none')
+        ax.plot([0, 1], [0, 1], 'k--', alpha=0.5)
 
-    ax.set_xlabel('AF2 TM-score to Crystal', fontsize=12)
-    ax.set_ylabel('Boltz-1 TM-score to Crystal', fontsize=12)
-    ax.set_title('AF2 vs Boltz-1: Per-Target Comparison', fontsize=14, fontweight='bold')
-    ax.set_xlim(0.3, 1.02)
-    ax.set_ylim(0.3, 1.02)
-    ax.set_aspect('equal')
+        ax.set_xlabel('AF2 TM-score to Crystal', fontsize=12)
+        ax.set_ylabel('Boltz-1 TM-score to Crystal', fontsize=12)
+        ax.set_title(f'AF2 vs Boltz-1: Per-Target Comparison ({pipe_label})',
+                     fontsize=14, fontweight='bold')
+        ax.set_xlim(0.3, 1.02)
+        ax.set_ylim(0.3, 1.02)
+        ax.set_aspect('equal')
 
-    # Count wins
-    n_af_wins = (af.loc[common] > boltz.loc[common] + 0.01).sum()
-    n_boltz_wins = (boltz.loc[common] > af.loc[common] + 0.01).sum()
-    n_ties = len(common) - n_af_wins - n_boltz_wins
+        n_af_wins = (af.loc[common] > boltz.loc[common] + 0.01).sum()
+        n_boltz_wins = (boltz.loc[common] > af.loc[common] + 0.01).sum()
+        n_ties = len(common) - n_af_wins - n_boltz_wins
 
-    ax.text(0.05, 0.95,
-            f'AF2 better: {n_af_wins}\nBoltz better: {n_boltz_wins}\nTied: {n_ties}\n'
-            f'AF2 mean: {af.loc[common].mean():.4f}\nBoltz mean: {boltz.loc[common].mean():.4f}',
-            transform=ax.transAxes, fontsize=10, verticalalignment='top',
-            bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8))
+        ax.text(0.05, 0.95,
+                f'AF2 better: {n_af_wins}\nBoltz better: {n_boltz_wins}\nTied: {n_ties}\n'
+                f'AF2 mean: {af.loc[common].mean():.4f}\nBoltz mean: {boltz.loc[common].mean():.4f}',
+                transform=ax.transAxes, fontsize=10, verticalalignment='top',
+                bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8))
 
-    plt.tight_layout()
-    outf = os.path.join(FIGURES_DIR, "fig5_af_vs_boltz.pdf")
-    plt.savefig(outf, dpi=300, bbox_inches='tight')
-    plt.savefig(outf.replace('.pdf', '.png'), dpi=150, bbox_inches='tight')
-    plt.close()
-    print(f"Figure 5 -> {outf}")
+        plt.tight_layout()
+        outf = os.path.join(FIGURES_DIR, f"fig5_af_vs_boltz_{pipeline}.pdf")
+        plt.savefig(outf, dpi=300, bbox_inches='tight')
+        plt.savefig(outf.replace('.pdf', '.png'), dpi=150, bbox_inches='tight')
+        plt.close()
+        print(f"Figure 5 ({pipe_label}) -> {outf}")
 
 
 def fig6_outlier_analysis(df):
@@ -340,85 +338,87 @@ def fig6_outlier_analysis(df):
     Figure 6: Outlier targets with low TM-score.
 
     Bar chart showing the worst-performing targets and their TM-scores
-    across different source types. Helps identify which targets are
-    universally hard vs which are only hard for specific predictors.
+    across different source types.
 
-    COMMENT: Targets with TM < 0.8 for ALL sources are likely genuinely
-    hard (disordered regions, large conformational changes). Targets with
-    TM < 0.8 for only one source indicate predictor-specific failures.
+    Generates separate figures for each pipeline (Blue + Green).
     """
-    sub = df[df['pipeline'] == 'blue'].copy()
+    for pipeline in ['blue', 'green']:
+        pipe_label = pipeline.capitalize()
+        sub = df[df['pipeline'] == pipeline].copy()
 
-    # Mean TM per target per source
-    means = sub.groupby(['target', 'source'])['tmscore'].mean().reset_index()
-    pivot = means.pivot(index='target', columns='source', values='tmscore')
+        means = sub.groupby(['target', 'source'])['tmscore'].mean().reset_index()
+        pivot = means.pivot(index='target', columns='source', values='tmscore')
 
-    # Find targets where ANY source has mean TM < 0.8
-    outliers = pivot[pivot.min(axis=1) < 0.8].copy()
-    outliers = outliers[SOURCE_ORDER].sort_values(SOURCE_ORDER[0])
+        outliers = pivot[pivot.min(axis=1) < 0.8].copy()
+        available_srcs = [s for s in SOURCE_ORDER if s in outliers.columns]
+        outliers = outliers[available_srcs].sort_values(available_srcs[0] if available_srcs else outliers.columns[0])
 
-    if len(outliers) == 0:
-        print("No outlier targets with TM < 0.8")
-        return
+        if len(outliers) == 0:
+            print(f"No outlier targets with TM < 0.8 ({pipe_label})")
+            continue
 
-    fig, ax = plt.subplots(figsize=(max(12, len(outliers) * 0.5), 6))
+        fig, ax = plt.subplots(figsize=(max(12, len(outliers) * 0.5), 6))
 
-    x = np.arange(len(outliers))
-    width = 0.15
+        x = np.arange(len(outliers))
+        width = 0.15
 
-    for i, src in enumerate(SOURCE_ORDER):
-        if src in outliers.columns:
-            ax.bar(x + i * width, outliers[src], width, label=LABELS[src],
-                   color=COLORS[src], edgecolor='black', linewidth=0.5)
+        for i, src in enumerate(SOURCE_ORDER):
+            if src in outliers.columns:
+                ax.bar(x + i * width, outliers[src], width, label=LABELS[src],
+                       color=COLORS[src], edgecolor='black', linewidth=0.5)
 
-    ax.set_xticks(x + width * 2)
-    ax.set_xticklabels(outliers.index, rotation=45, ha='right', fontsize=8)
-    ax.set_ylabel('TM-score to Crystal')
-    ax.set_title(f'Outlier Targets (TM-score < 0.8 for any source, n={len(outliers)})',
-                 fontsize=14, fontweight='bold')
-    ax.legend(fontsize=9)
-    ax.axhline(y=0.5, color='gray', linestyle='--', alpha=0.5)
-    ax.axhline(y=0.8, color='red', linestyle='--', alpha=0.3)
+        ax.set_xticks(x + width * 2)
+        ax.set_xticklabels(outliers.index, rotation=45, ha='right', fontsize=8)
+        ax.set_ylabel('TM-score to Crystal')
+        ax.set_title(f'Outlier Targets ({pipe_label}, TM < 0.8 for any source, n={len(outliers)})',
+                     fontsize=14, fontweight='bold')
+        ax.legend(fontsize=9)
+        ax.axhline(y=0.5, color='gray', linestyle='--', alpha=0.5)
+        ax.axhline(y=0.8, color='red', linestyle='--', alpha=0.3)
 
-    plt.tight_layout()
-    outf = os.path.join(FIGURES_DIR, "fig6_outliers.pdf")
-    plt.savefig(outf, dpi=300, bbox_inches='tight')
-    plt.savefig(outf.replace('.pdf', '.png'), dpi=150, bbox_inches='tight')
-    plt.close()
-    print(f"Figure 6 -> {outf} ({len(outliers)} outlier targets)")
+        plt.tight_layout()
+        outf = os.path.join(FIGURES_DIR, f"fig6_outliers_{pipeline}.pdf")
+        plt.savefig(outf, dpi=300, bbox_inches='tight')
+        plt.savefig(outf.replace('.pdf', '.png'), dpi=150, bbox_inches='tight')
+        plt.close()
+        print(f"Figure 6 ({pipe_label}) -> {outf} ({len(outliers)} outlier targets)")
 
 
 def write_latex_table(df):
     """
-    Generate a LaTeX-formatted summary table for the paper.
+    Generate LaTeX-formatted summary tables for both pipelines.
     """
-    sub = df[df['pipeline'] == 'blue'].copy()
+    for pipeline in ['blue', 'green']:
+        pipe_label = pipeline.capitalize()
+        sub = df[df['pipeline'] == pipeline].copy()
 
-    results = []
-    for src in SOURCE_ORDER:
-        s = sub[sub['source'] == src]
-        means = s.groupby('target')['tmscore'].mean()
-        rmsd_means = s.groupby('target')['rmsd'].mean()
-        gdtts_means = s.groupby('target')['gdtts'].mean()
+        results = []
+        for src in SOURCE_ORDER:
+            s = sub[sub['source'] == src]
+            means = s.groupby('target')['tmscore'].mean()
+            rmsd_means = s.groupby('target')['rmsd'].mean()
+            gdtts_means = s.groupby('target')['gdtts'].mean()
 
-        results.append({
-            'Source': LABELS[src],
-            'TM-score': f'{means.mean():.3f} ± {means.std():.3f}',
-            'RMSD (Å)': f'{rmsd_means.mean():.2f} ± {rmsd_means.std():.2f}',
-            'GDT-TS': f'{gdtts_means.mean():.3f} ± {gdtts_means.std():.3f}',
-            'N targets': len(means),
-        })
+            if len(means) == 0:
+                continue
 
-    result_df = pd.DataFrame(results)
-    latex = result_df.to_latex(index=False, escape=False)
+            results.append({
+                'Source': LABELS[src],
+                'TM-score': f'{means.mean():.3f} ± {means.std():.3f}',
+                'RMSD (Å)': f'{rmsd_means.mean():.2f} ± {rmsd_means.std():.2f}',
+                'GDT-TS': f'{gdtts_means.mean():.3f} ± {gdtts_means.std():.3f}',
+                'N targets': len(means),
+            })
 
-    outf = os.path.join(TABLES_DIR, "table1_summary.tex")
-    with open(outf, 'w') as f:
-        f.write(latex)
-    print(f"Table 1 (LaTeX) -> {outf}")
+        result_df = pd.DataFrame(results)
+        latex = result_df.to_latex(index=False, escape=False)
 
-    # Also save as TSV
-    result_df.to_csv(os.path.join(TABLES_DIR, "table1_summary.tsv"), sep='\t', index=False)
+        outf = os.path.join(TABLES_DIR, f"table1_summary_{pipeline}.tex")
+        with open(outf, 'w') as f:
+            f.write(latex)
+        print(f"Table 1 ({pipe_label} LaTeX) -> {outf}")
+
+        result_df.to_csv(os.path.join(TABLES_DIR, f"table1_summary_{pipeline}.tsv"), sep='\t', index=False)
 
 
 if __name__ == '__main__':

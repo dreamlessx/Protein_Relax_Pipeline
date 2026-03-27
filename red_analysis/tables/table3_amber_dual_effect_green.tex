@@ -1,0 +1,18 @@
+\begin{table}[htbp]
+\centering
+\caption{AMBER relaxation effect (Green pipeline): structural accuracy (TM-score) vs.\ local geometry (MolProbity). $\Delta$ = after $-$ before; $d$ = Cliff's delta effect size.}
+\label{tab:amber-dual-green}
+\begin{tabular}{llrrrr}
+\toprule
+Comparison & Metric & $\Delta$ & $p$-value & $d$ & Effect \\
+\midrule
+  AF $\to$ AMBER(AF) & TM-score & -0.0008 & 9.2e-11 & -0.017 & negligible \\
+  & Clashscore & -21.81 & 3.9e-18 & -0.982 & large \\
+  & MP Score & -0.86 & 3.9e-18 & -0.897 & large \\
+  \midrule
+  Boltz $\to$ AMBER(Boltz) & TM-score & -0.0003 & 2.4e-33 & -0.009 & negligible \\
+  & Clashscore & -13.42 & 6.6e-44 & -0.983 & large \\
+  & MP Score & -0.71 & 7.1e-44 & -0.956 & large \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -228,11 +228,11 @@ def load_data():
 
 # ── Figure generators ──
 
-def make_tmscore_violin(data):
+def make_tmscore_violin(data, pipeline='blue'):
     """TM-score distribution by source (violin plot)."""
     fig, ax = plt.subplots(figsize=(8, 4.5))
     tm = data['tm']
-    blue = tm[tm['pipeline'] == 'blue']
+    blue = tm[tm['pipeline'] == pipeline]
     sources = ['af_relaxed', 'af_unrelaxed', 'boltz', 'amber_af', 'amber_boltz', 'crystal']
     plot_data = []
     labels = []
@@ -253,7 +253,7 @@ def make_tmscore_violin(data):
     ax.set_xticks(range(len(labels)))
     ax.set_xticklabels(labels, rotation=25, ha='right', fontsize=10)
     ax.set_ylabel('TM-score', fontsize=12)
-    ax.set_title('Global Fold Accuracy by Prediction Source', fontsize=13, fontweight='bold')
+    ax.set_title(f'Global Fold Accuracy by Prediction Source ({pipeline.capitalize()})', fontsize=13, fontweight='bold')
     ax.axhline(y=0.5, color='red', linestyle='--', alpha=0.4, label='Fold threshold')
     ax.set_ylim(0.3, 1.0)
     ax.grid(axis='y', alpha=0.3)
@@ -261,14 +261,14 @@ def make_tmscore_violin(data):
     return fig
 
 
-def make_amber_dual_effect(data):
+def make_amber_dual_effect(data, pipeline='blue'):
     """AMBER dual effect: TM unchanged, MolProbity dramatically improved."""
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9, 4))
 
     tm = data['tm']
     mp = data['mp']
-    blue_tm = tm[tm['pipeline'] == 'blue']
-    blue_mp = mp[mp['pipeline'] == 'blue']
+    blue_tm = tm[tm['pipeline'] == pipeline]
+    blue_mp = mp[mp['pipeline'] == pipeline]
 
     # Panel 1: TM-score (AF unrelaxed vs AMBER(AF))
     af_tm = blue_tm[blue_tm['source'] == 'af_unrelaxed'].groupby('target')['tmscore'].mean()
@@ -296,16 +296,16 @@ def make_amber_dual_effect(data):
         ax2.set_ylabel('AMBER(AF) Clashscore', fontsize=10)
         ax2.set_title('Clashscore: Massive Drop\n(d = -0.99, large)', fontsize=11, fontweight='bold')
 
-    fig.suptitle('AMBER Relaxation: The Dual Effect', fontsize=13, fontweight='bold', y=1.02)
+    fig.suptitle(f'AMBER Relaxation: The Dual Effect ({pipeline.capitalize()})', fontsize=13, fontweight='bold', y=1.02)
     fig.tight_layout()
     return fig
 
 
-def make_molprobity_comparison(data):
+def make_molprobity_comparison(data, pipeline='blue'):
     """MolProbity clashscore by source — crystal vs predicted."""
     fig, ax = plt.subplots(figsize=(7, 4.5))
     mp = data['mp']
-    blue = mp[mp['pipeline'] == 'blue']
+    blue = mp[mp['pipeline'] == pipeline]
 
     sources = ['crystal', 'af_relaxed', 'af_unrelaxed', 'boltz', 'amber_af', 'amber_boltz']
     means = []
@@ -323,7 +323,8 @@ def make_molprobity_comparison(data):
     ax.set_xticks(range(len(labels_list)))
     ax.set_xticklabels(labels_list, rotation=25, ha='right', fontsize=10)
     ax.set_ylabel('Mean Clashscore', fontsize=12)
-    ax.set_title('Clashscore by Structure Source (257 targets)', fontsize=13, fontweight='bold')
+    n_tgt = blue.groupby('target').ngroups
+    ax.set_title(f'Clashscore by Structure Source ({n_tgt} targets, {pipeline.capitalize()})', fontsize=13, fontweight='bold')
 
     for bar, val in zip(bars, means):
         ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3,
@@ -334,13 +335,13 @@ def make_molprobity_comparison(data):
     return fig
 
 
-def make_rosetta_protocol_tm(data):
+def make_rosetta_protocol_tm(data, pipeline='blue'):
     """Rosetta protocol comparison — TM-score."""
     if 'ros_tm' not in data:
         return None
     fig, ax = plt.subplots(figsize=(7, 4.5))
     ros = data['ros_tm']
-    blue = ros[ros['pipeline'] == 'blue']
+    blue = ros[ros['pipeline'] == pipeline]
 
     protocols = sorted(blue['protocol'].unique())
     means = []
@@ -360,7 +361,7 @@ def make_rosetta_protocol_tm(data):
     ax.set_xticks(range(len(labels_list)))
     ax.set_xticklabels(labels_list, rotation=25, ha='right', fontsize=10)
     ax.set_ylabel('Mean TM-score', fontsize=12)
-    ax.set_title(f'Rosetta Protocol TM-score ({blue["target"].nunique()} targets)',
+    ax.set_title(f'Rosetta Protocol TM-score ({blue["target"].nunique()} targets, {pipeline.capitalize()})',
                  fontsize=13, fontweight='bold')
 
     # Show values on bars
@@ -374,13 +375,13 @@ def make_rosetta_protocol_tm(data):
     return fig
 
 
-def make_rosetta_mp_protocol(data):
+def make_rosetta_mp_protocol(data, pipeline='blue'):
     """Rosetta MolProbity by protocol — the Phase 4 key result."""
     if 'ros_mp' not in data:
         return None
     fig, ax = plt.subplots(figsize=(7, 4.5))
     ros = data['ros_mp']
-    blue = ros[ros['pipeline'] == 'blue']
+    blue = ros[ros['pipeline'] == pipeline]
 
     protocols = sorted(blue['protocol'].unique())
     means = []
@@ -398,7 +399,7 @@ def make_rosetta_mp_protocol(data):
     ax.set_xticks(range(len(labels_list)))
     ax.set_xticklabels(labels_list, rotation=25, ha='right', fontsize=10)
     ax.set_ylabel('Mean Clashscore', fontsize=12)
-    ax.set_title(f'Rosetta Protocol Clashscore ({blue["target"].nunique()} targets)',
+    ax.set_title(f'Rosetta Protocol Clashscore ({blue["target"].nunique()} targets, {pipeline.capitalize()})',
                  fontsize=13, fontweight='bold')
 
     for bar, val in zip(bars, means):
@@ -410,7 +411,7 @@ def make_rosetta_mp_protocol(data):
     return fig
 
 
-def make_amber_vs_rosetta(data):
+def make_amber_vs_rosetta(data, pipeline='blue'):
     """AMBER vs Rosetta MolProbity direct comparison bar chart."""
     if 'ros_mp' not in data or 'mp' not in data:
         return None
@@ -418,8 +419,8 @@ def make_amber_vs_rosetta(data):
     fig, ax = plt.subplots(figsize=(7, 4.5))
     ros = data['ros_mp']
     mp = data['mp']
-    blue_ros = ros[ros['pipeline'] == 'blue']
-    blue_mp = mp[mp['pipeline'] == 'blue']
+    blue_ros = ros[ros['pipeline'] == pipeline]
+    blue_mp = mp[mp['pipeline'] == pipeline]
 
     # Get per-target means for each method
     methods = {}
@@ -468,13 +469,13 @@ def make_amber_vs_rosetta(data):
     ax.set_xticks(range(len(names)))
     ax.set_xticklabels(names, fontsize=9)
     ax.set_ylabel('Mean Clashscore', fontsize=12)
-    ax.set_title('Clashscore: Input → AMBER → Rosetta', fontsize=13, fontweight='bold')
+    ax.set_title(f'Clashscore: Input → AMBER → Rosetta ({pipeline.capitalize()})', fontsize=13, fontweight='bold')
     ax.grid(axis='y', alpha=0.3)
     fig.tight_layout()
     return fig
 
 
-def make_tradeoff_plot(data):
+def make_tradeoff_plot(data, pipeline='blue'):
     """The tradeoff: ΔTM-score vs ΔClashscore for Rosetta vs AMBER."""
     if 'ros_tm' not in data or 'ros_mp' not in data or 'tm' not in data or 'mp' not in data:
         return None
@@ -486,10 +487,10 @@ def make_tradeoff_plot(data):
     ros_tm = data['ros_tm']
     ros_mp = data['ros_mp']
 
-    blue_tm = tm[tm['pipeline'] == 'blue']
-    blue_mp = mp[mp['pipeline'] == 'blue']
-    blue_ros_tm = ros_tm[ros_tm['pipeline'] == 'blue']
-    blue_ros_mp = ros_mp[ros_mp['pipeline'] == 'blue']
+    blue_tm = tm[tm['pipeline'] == pipeline]
+    blue_mp = mp[mp['pipeline'] == pipeline]
+    blue_ros_tm = ros_tm[ros_tm['pipeline'] == pipeline]
+    blue_ros_mp = ros_mp[ros_mp['pipeline'] == pipeline]
 
     # For AF relaxed source: compute per-target ΔTM and ΔClashscore
     pre_tm = blue_tm[blue_tm['source'] == 'af_relaxed'].groupby('target')['tmscore'].mean()
@@ -530,7 +531,7 @@ def make_tradeoff_plot(data):
     ax.axvline(0, color='gray', linestyle='--', alpha=0.4)
     ax.set_xlabel('ΔTM-score (post - pre)', fontsize=12)
     ax.set_ylabel('ΔClashscore (post - pre)', fontsize=12)
-    ax.set_title('The Tradeoff: Accuracy vs Local Geometry', fontsize=13, fontweight='bold')
+    ax.set_title(f'The Tradeoff: Accuracy vs Local Geometry ({pipeline.capitalize()})', fontsize=13, fontweight='bold')
     ax.legend(fontsize=10, loc='upper right')
 
     # Annotate quadrants
@@ -578,7 +579,7 @@ def make_blue_green_agreement(data):
     return fig
 
 
-def make_rosetta_pre_post_scatter(data):
+def make_rosetta_pre_post_scatter(data, pipeline='blue'):
     """Pre vs Post Rosetta clashscore scatter."""
     if 'ros_mp' not in data or 'mp' not in data:
         return None
@@ -587,8 +588,8 @@ def make_rosetta_pre_post_scatter(data):
     ros = data['ros_mp']
     mp = data['mp']
 
-    blue_ros = ros[ros['pipeline'] == 'blue']
-    blue_mp = mp[mp['pipeline'] == 'blue']
+    blue_ros = ros[ros['pipeline'] == pipeline]
+    blue_mp = mp[mp['pipeline'] == pipeline]
 
     for src, color, label in [
         ('af_unrelaxed', '#67A9CF', 'AF2 unrelaxed'),
@@ -727,16 +728,16 @@ def build_pipeline_slide(prs, data):
         font_size=15)
 
 
-def build_tmscore_slide(prs, data):
+def build_tmscore_slide(prs, data, pipeline='blue'):
     """Slide 5: TM-score by source."""
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     set_slide_bg(slide, WHITE)
     add_accent_bar(slide, Inches(0), Inches(0), Inches(10), Inches(0.06), DARK_BLUE)
 
-    add_title_textbox(slide, 'Global Fold Accuracy', Inches(0.5), Inches(0.2),
+    add_title_textbox(slide, f'Global Fold Accuracy ({pipeline.capitalize()})', Inches(0.5), Inches(0.2),
                       Inches(9), Inches(0.6), font_size=26)
 
-    fig = make_tmscore_violin(data)
+    fig = make_tmscore_violin(data, pipeline)
     add_figure(slide, fig, Inches(0.5), Inches(0.9), Inches(6), Inches(3.5))
 
     add_body_textbox(slide,
@@ -775,16 +776,16 @@ def build_af_boltz_slide(prs, data):
         font_size=13)
 
 
-def build_amber_dual_slide(prs, data):
+def build_amber_dual_slide(prs, data, pipeline='blue'):
     """Slide 7-8: AMBER Dual Effect."""
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     set_slide_bg(slide, WHITE)
     add_accent_bar(slide, Inches(0), Inches(0), Inches(10), Inches(0.06), GOLD)
 
-    add_title_textbox(slide, 'AMBER: The Dual Effect', Inches(0.5), Inches(0.2),
+    add_title_textbox(slide, f'AMBER: The Dual Effect ({pipeline.capitalize()})', Inches(0.5), Inches(0.2),
                       Inches(9), Inches(0.6), font_size=26)
 
-    fig = make_amber_dual_effect(data)
+    fig = make_amber_dual_effect(data, pipeline)
     add_figure(slide, fig, Inches(0.3), Inches(0.9), Inches(6.5), Inches(3.5))
 
     add_body_textbox(slide,
@@ -800,16 +801,16 @@ def build_amber_dual_slide(prs, data):
         font_size=12)
 
 
-def build_molprobity_crystal_slide(prs, data):
+def build_molprobity_crystal_slide(prs, data, pipeline='blue'):
     """Slide 9: Crystal vs Predicted MolProbity."""
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     set_slide_bg(slide, WHITE)
     add_accent_bar(slide, Inches(0), Inches(0), Inches(10), Inches(0.06), GOLD)
 
-    add_title_textbox(slide, 'Crystal Structures Have the Worst MolProbity',
+    add_title_textbox(slide, f'Crystal Structures Have the Worst MolProbity ({pipeline.capitalize()})',
                       Inches(0.5), Inches(0.2), Inches(9), Inches(0.6), font_size=24)
 
-    fig = make_molprobity_comparison(data)
+    fig = make_molprobity_comparison(data, pipeline)
     add_figure(slide, fig, Inches(0.3), Inches(0.9), Inches(5.5), Inches(3.5))
 
     add_body_textbox(slide,
@@ -827,16 +828,16 @@ def build_molprobity_crystal_slide(prs, data):
         font_size=12)
 
 
-def build_rosetta_tm_slide(prs, data):
+def build_rosetta_tm_slide(prs, data, pipeline='blue'):
     """Slide 10-11: Rosetta Protocol TM-score."""
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     set_slide_bg(slide, WHITE)
     add_accent_bar(slide, Inches(0), Inches(0), Inches(10), Inches(0.06), RED)
 
-    add_title_textbox(slide, 'Rosetta Relaxation: TM-score Impact',
+    add_title_textbox(slide, f'Rosetta Relaxation: TM-score Impact ({pipeline.capitalize()})',
                       Inches(0.5), Inches(0.2), Inches(9), Inches(0.6), font_size=26)
 
-    fig = make_rosetta_protocol_tm(data)
+    fig = make_rosetta_protocol_tm(data, pipeline)
     if fig:
         add_figure(slide, fig, Inches(0.3), Inches(0.9), Inches(5.5), Inches(3.5))
 
@@ -854,17 +855,17 @@ def build_rosetta_tm_slide(prs, data):
         font_size=12)
 
 
-def build_rosetta_mp_slide(prs, data):
+def build_rosetta_mp_slide(prs, data, pipeline='blue'):
     """Slide 12-13: Rosetta MolProbity (THE KEY FINDING)."""
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     set_slide_bg(slide, WHITE)
     add_accent_bar(slide, Inches(0), Inches(0), Inches(10), Inches(0.06), GREEN)
 
-    add_title_textbox(slide, 'Rosetta MolProbity: The Key Finding',
+    add_title_textbox(slide, f'Rosetta MolProbity: The Key Finding ({pipeline.capitalize()})',
                       Inches(0.5), Inches(0.2), Inches(9), Inches(0.6), font_size=26,
                       color=RGBColor(0x00, 0x66, 0x00))
 
-    fig = make_rosetta_mp_protocol(data)
+    fig = make_rosetta_mp_protocol(data, pipeline)
     if fig:
         add_figure(slide, fig, Inches(0.3), Inches(0.9), Inches(5.5), Inches(3.5))
 
@@ -883,17 +884,17 @@ def build_rosetta_mp_slide(prs, data):
         font_size=12)
 
 
-def build_amber_vs_rosetta_slide(prs, data):
+def build_amber_vs_rosetta_slide(prs, data, pipeline='blue'):
     """Slide 14-15: AMBER vs Rosetta direct comparison."""
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     set_slide_bg(slide, WHITE)
     add_accent_bar(slide, Inches(0), Inches(0), Inches(10), Inches(0.06), GREEN)
 
-    add_title_textbox(slide, 'AMBER vs Rosetta: Direct Comparison',
+    add_title_textbox(slide, f'AMBER vs Rosetta: Direct Comparison ({pipeline.capitalize()})',
                       Inches(0.5), Inches(0.2), Inches(9), Inches(0.6), font_size=26,
                       color=RGBColor(0x00, 0x66, 0x00))
 
-    fig = make_amber_vs_rosetta(data)
+    fig = make_amber_vs_rosetta(data, pipeline)
     if fig:
         add_figure(slide, fig, Inches(0.3), Inches(0.9), Inches(5.5), Inches(3.5))
 
@@ -912,16 +913,16 @@ def build_amber_vs_rosetta_slide(prs, data):
         font_size=12)
 
 
-def build_pre_post_scatter_slide(prs, data):
+def build_pre_post_scatter_slide(prs, data, pipeline='blue'):
     """Slide 16: Pre vs Post Rosetta scatter."""
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     set_slide_bg(slide, WHITE)
     add_accent_bar(slide, Inches(0), Inches(0), Inches(10), Inches(0.06), GREEN)
 
-    add_title_textbox(slide, 'Rosetta Eliminates Steric Clashes',
+    add_title_textbox(slide, f'Rosetta Eliminates Steric Clashes ({pipeline.capitalize()})',
                       Inches(0.5), Inches(0.2), Inches(9), Inches(0.6), font_size=26)
 
-    fig = make_rosetta_pre_post_scatter(data)
+    fig = make_rosetta_pre_post_scatter(data, pipeline)
     if fig:
         add_figure(slide, fig, Inches(0.5), Inches(0.9), Inches(4.5), Inches(4.5))
 
@@ -969,16 +970,16 @@ def build_reproducibility_slide(prs, data):
         font_size=12)
 
 
-def build_tradeoff_slide(prs, data):
+def build_tradeoff_slide(prs, data, pipeline='blue'):
     """Slide 18: The Tradeoff Plot."""
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     set_slide_bg(slide, WHITE)
     add_accent_bar(slide, Inches(0), Inches(0), Inches(10), Inches(0.06), NAVY)
 
-    add_title_textbox(slide, 'The Tradeoff: Accuracy vs Geometry',
+    add_title_textbox(slide, f'The Tradeoff: Accuracy vs Geometry ({pipeline.capitalize()})',
                       Inches(0.5), Inches(0.2), Inches(9), Inches(0.6), font_size=26)
 
-    fig = make_tradeoff_plot(data)
+    fig = make_tradeoff_plot(data, pipeline)
     if fig:
         add_figure(slide, fig, Inches(0.3), Inches(0.9), Inches(5.5), Inches(4))
 
@@ -1054,6 +1055,70 @@ def build_future_slide(prs, data):
                      font_size=24, color=NAVY, bold=True)
 
 
+def build_pptx(data, pipeline='blue'):
+    """Build a complete PPTX for a given pipeline."""
+    pipe_label = pipeline.capitalize()
+    prs = Presentation()
+    prs.slide_width = Inches(10)
+    prs.slide_height = Inches(7.5)
+
+    # Shared slides (pipeline-independent)
+    shared_builders = [
+        ("Title", build_title_slide),
+        ("Overview", build_overview_slide),
+        ("Dataset", build_dataset_slide),
+        ("Pipeline", build_pipeline_slide),
+        ("AF vs Boltz", build_af_boltz_slide),
+    ]
+
+    # Pipeline-specific slides
+    pipe_builders = [
+        ("TM-score", build_tmscore_slide),
+        ("AMBER Dual Effect", build_amber_dual_slide),
+        ("Crystal MolProbity", build_molprobity_crystal_slide),
+        ("Rosetta TM", build_rosetta_tm_slide),
+        ("Rosetta MP", build_rosetta_mp_slide),
+        ("AMBER vs Rosetta", build_amber_vs_rosetta_slide),
+        ("Pre/Post Scatter", build_pre_post_scatter_slide),
+    ]
+
+    # Shared analysis slides
+    shared_builders_2 = [
+        ("Reproducibility", build_reproducibility_slide),
+    ]
+
+    pipe_builders_2 = [
+        ("Tradeoff", build_tradeoff_slide),
+    ]
+
+    shared_builders_3 = [
+        ("Conclusions", build_conclusions_slide),
+        ("Future", build_future_slide),
+    ]
+
+    for name, builder in shared_builders:
+        print(f"  [{pipe_label}] Building: {name}")
+        builder(prs, data)
+
+    for name, builder in pipe_builders:
+        print(f"  [{pipe_label}] Building: {name}")
+        builder(prs, data, pipeline)
+
+    for name, builder in shared_builders_2:
+        print(f"  [{pipe_label}] Building: {name}")
+        builder(prs, data)
+
+    for name, builder in pipe_builders_2:
+        print(f"  [{pipe_label}] Building: {name}")
+        builder(prs, data, pipeline)
+
+    for name, builder in shared_builders_3:
+        print(f"  [{pipe_label}] Building: {name}")
+        builder(prs, data)
+
+    return prs
+
+
 def main():
     print("Loading data...")
     data = load_data()
@@ -1061,46 +1126,21 @@ def main():
     for key, df in data.items():
         print(f"  {key}: {len(df)} rows, {df['target'].nunique()} targets")
 
-    print("\nBuilding PowerPoint...")
-    prs = Presentation()
-    prs.slide_width = Inches(10)
-    prs.slide_height = Inches(7.5)
+    for pipeline in ['blue', 'green']:
+        pipe_label = pipeline.capitalize()
+        print(f"\nBuilding {pipe_label} PowerPoint...")
+        prs = build_pptx(data, pipeline)
 
-    # Build all slides
-    builders = [
-        ("Title", build_title_slide),
-        ("Overview", build_overview_slide),
-        ("Dataset", build_dataset_slide),
-        ("Pipeline", build_pipeline_slide),
-        ("TM-score", build_tmscore_slide),
-        ("AF vs Boltz", build_af_boltz_slide),
-        ("AMBER Dual Effect", build_amber_dual_slide),
-        ("Crystal MolProbity", build_molprobity_crystal_slide),
-        ("Rosetta TM", build_rosetta_tm_slide),
-        ("Rosetta MP", build_rosetta_mp_slide),
-        ("AMBER vs Rosetta", build_amber_vs_rosetta_slide),
-        ("Pre/Post Scatter", build_pre_post_scatter_slide),
-        ("Reproducibility", build_reproducibility_slide),
-        ("Tradeoff", build_tradeoff_slide),
-        ("Conclusions", build_conclusions_slide),
-        ("Future", build_future_slide),
-    ]
+        # Save
+        outpath = os.path.join(OUTDIR, f"BM55_Relaxation_Benchmark_{pipeline}.pptx")
+        prs.save(outpath)
+        print(f"  Saved: {outpath} ({len(prs.slides)} slides)")
 
-    for name, builder in builders:
-        print(f"  Building: {name}")
-        builder(prs, data)
-
-    # Save
-    outpath = os.path.join(OUTDIR, "BM55_Relaxation_Benchmark.pptx")
-    prs.save(outpath)
-    print(f"\nSaved: {outpath}")
-    print(f"Slides: {len(prs.slides)}")
-
-    # Also save to GitHub repo location
-    repo_path = "/tmp/Protein_Relax_Pipeline/red_analysis/BM55_Relaxation_Benchmark.pptx"
-    os.makedirs(os.path.dirname(repo_path), exist_ok=True)
-    prs.save(repo_path)
-    print(f"Also saved to: {repo_path}")
+        # Also save to GitHub repo location
+        repo_path = f"/tmp/Protein_Relax_Pipeline/red_analysis/BM55_Relaxation_Benchmark_{pipeline}.pptx"
+        os.makedirs(os.path.dirname(repo_path), exist_ok=True)
+        prs.save(repo_path)
+        print(f"  Also saved to: {repo_path}")
 
 
 if __name__ == '__main__':

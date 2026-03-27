@@ -88,319 +88,309 @@ def save_fig(fig, name):
 
 
 def fig16_pre_post_rosetta_clash(ros_data, pre_data):
-    """Paired scatter: pre vs post Rosetta clashscore by source."""
-    pipe = 'blue'
+    """Paired scatter: pre vs post Rosetta clashscore by source. Both pipelines."""
     sources = ['af_relaxed', 'af_unrelaxed', 'boltz']
 
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+    for pipe in ['blue', 'green']:
+        pipe_label = pipe.capitalize()
+        fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
-    for ax, src in zip(axes, sources):
-        # Pre-Rosetta
-        pre_src = pre_data[(pre_data['pipeline'] == pipe) & (pre_data['source'] == src)]
-        pre_by_target = pre_src.groupby('target')['clashscore'].mean()
+        for ax, src in zip(axes, sources):
+            pre_src = pre_data[(pre_data['pipeline'] == pipe) & (pre_data['source'] == src)]
+            pre_by_target = pre_src.groupby('target')['clashscore'].mean()
 
-        # Post-Rosetta (mean across all protocols)
-        post_src = ros_data[(ros_data['pipeline'] == pipe) & (ros_data['source'] == src)]
-        if len(post_src) == 0:
-            ax.text(0.5, 0.5, 'No data', transform=ax.transAxes, ha='center')
+            post_src = ros_data[(ros_data['pipeline'] == pipe) & (ros_data['source'] == src)]
+            if len(post_src) == 0:
+                ax.text(0.5, 0.5, 'No data', transform=ax.transAxes, ha='center')
+                ax.set_title(SOURCE_LABELS.get(src, src))
+                continue
+            post_by_target = post_src.groupby('target')['clashscore'].mean()
+
+            common = pre_by_target.index.intersection(post_by_target.index)
+            if len(common) < 3:
+                ax.text(0.5, 0.5, f'n={len(common)}', transform=ax.transAxes, ha='center')
+                ax.set_title(SOURCE_LABELS.get(src, src))
+                continue
+
+            x = pre_by_target.loc[common].values
+            y = post_by_target.loc[common].values
+            mask = np.isfinite(x) & np.isfinite(y)
+
+            ax.scatter(x[mask], y[mask], alpha=0.6, s=30, color=SRC_COLORS.get(src, '#888'),
+                      edgecolors='black', linewidths=0.3)
+
+            max_val = max(x[mask].max(), y[mask].max()) * 1.1
+            ax.plot([0, max_val], [0, max_val], 'k--', linewidth=0.5, alpha=0.3, label='No change')
+
+            improved = (y[mask] < x[mask]).sum()
+            n_total = mask.sum()
+            ax.text(0.95, 0.95, f'{improved}/{n_total} improved\n'
+                    f'Pre: {np.mean(x[mask]):.1f}\nPost: {np.mean(y[mask]):.1f}',
+                   transform=ax.transAxes, fontsize=8, ha='right', va='top',
+                   bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+
+            ax.set_xlabel('Pre-Rosetta Clashscore')
+            ax.set_ylabel('Post-Rosetta Clashscore')
             ax.set_title(SOURCE_LABELS.get(src, src))
-            continue
-        post_by_target = post_src.groupby('target')['clashscore'].mean()
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
 
-        common = pre_by_target.index.intersection(post_by_target.index)
-        if len(common) < 3:
-            ax.text(0.5, 0.5, f'n={len(common)}', transform=ax.transAxes, ha='center')
-            ax.set_title(SOURCE_LABELS.get(src, src))
-            continue
-
-        x = pre_by_target.loc[common].values
-        y = post_by_target.loc[common].values
-        mask = np.isfinite(x) & np.isfinite(y)
-
-        ax.scatter(x[mask], y[mask], alpha=0.6, s=30, color=SRC_COLORS.get(src, '#888'),
-                  edgecolors='black', linewidths=0.3)
-
-        max_val = max(x[mask].max(), y[mask].max()) * 1.1
-        ax.plot([0, max_val], [0, max_val], 'k--', linewidth=0.5, alpha=0.3, label='No change')
-
-        # Stats
-        improved = (y[mask] < x[mask]).sum()
-        n_total = mask.sum()
-        ax.text(0.95, 0.95, f'{improved}/{n_total} improved\n'
-                f'Pre: {np.mean(x[mask]):.1f}\nPost: {np.mean(y[mask]):.1f}',
-               transform=ax.transAxes, fontsize=8, ha='right', va='top',
-               bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
-
-        ax.set_xlabel('Pre-Rosetta Clashscore')
-        ax.set_ylabel('Post-Rosetta Clashscore')
-        ax.set_title(SOURCE_LABELS.get(src, src))
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-
-    fig.suptitle('Rosetta Effect on Clashscore\n(points below diagonal = improvement)',
-                fontsize=13, fontweight='bold')
-    plt.tight_layout()
-    save_fig(fig, 'fig16_pre_post_rosetta_clash')
+        fig.suptitle(f'Rosetta Effect on Clashscore ({pipe_label})\n(points below diagonal = improvement)',
+                    fontsize=13, fontweight='bold')
+        plt.tight_layout()
+        save_fig(fig, f'fig16_pre_post_rosetta_clash_{pipe}')
 
 
 def fig17_rosetta_protocol_mp(ros_data):
-    """Box plots of MolProbity metrics by Rosetta protocol."""
-    pipe = 'blue'
-    pipe_data = ros_data[ros_data['pipeline'] == pipe]
-    if len(pipe_data) == 0:
-        print("  SKIP fig17: no blue data")
-        return
-
+    """Box plots of MolProbity metrics by Rosetta protocol. Both pipelines."""
     metrics = [('clashscore', 'Clashscore'), ('molprobity_score', 'MP Score'),
                ('rota_outliers', 'Rota Outliers %'), ('rama_favored', 'Rama Favored %')]
 
-    per_target = pipe_data.groupby(['target', 'protocol'])[
-        [m[0] for m in metrics]].mean().reset_index()
+    for pipe in ['blue', 'green']:
+        pipe_label = pipe.capitalize()
+        pipe_data = ros_data[ros_data['pipeline'] == pipe]
+        if len(pipe_data) == 0:
+            print(f"  SKIP fig17: no {pipe} data")
+            continue
 
-    fig, axes = plt.subplots(1, 4, figsize=(20, 5))
+        per_target = pipe_data.groupby(['target', 'protocol'])[
+            [m[0] for m in metrics]].mean().reset_index()
 
-    for ax, (metric, label) in zip(axes, metrics):
-        plot_data = []
-        labels = []
-        colors = []
-        for proto in PROTOCOL_ORDER:
-            vals = per_target[per_target['protocol'] == proto][metric].dropna().values
-            if len(vals) > 0:
-                plot_data.append(vals)
-                labels.append(PROTO_LABELS.get(proto, proto))
-                colors.append(PROTO_COLORS.get(proto, '#888'))
+        fig, axes = plt.subplots(1, 4, figsize=(20, 5))
 
-        if plot_data:
-            bp = ax.boxplot(plot_data, tick_labels=labels, patch_artist=True, widths=0.6,
-                           medianprops={'color': 'black', 'linewidth': 1.5})
-            for patch, color in zip(bp['boxes'], colors):
-                patch.set_facecolor(color)
-                patch.set_alpha(0.7)
+        for ax, (metric, label) in zip(axes, metrics):
+            plot_data = []
+            labels = []
+            colors = []
+            for proto in PROTOCOL_ORDER:
+                vals = per_target[per_target['protocol'] == proto][metric].dropna().values
+                if len(vals) > 0:
+                    plot_data.append(vals)
+                    labels.append(PROTO_LABELS.get(proto, proto))
+                    colors.append(PROTO_COLORS.get(proto, '#888'))
 
-        ax.set_ylabel(label)
-        ax.tick_params(axis='x', labelsize=7, rotation=30)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
+            if plot_data:
+                bp = ax.boxplot(plot_data, tick_labels=labels, patch_artist=True, widths=0.6,
+                               medianprops={'color': 'black', 'linewidth': 1.5})
+                for patch, color in zip(bp['boxes'], colors):
+                    patch.set_facecolor(color)
+                    patch.set_alpha(0.7)
 
-    fig.suptitle('Rosetta Protocol MolProbity Comparison\n(Blue pipeline, per-target averages)',
-                fontsize=13, fontweight='bold')
-    plt.tight_layout()
-    save_fig(fig, 'fig17_rosetta_protocol_mp')
+            ax.set_ylabel(label)
+            ax.tick_params(axis='x', labelsize=7, rotation=30)
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+
+        fig.suptitle(f'Rosetta Protocol MolProbity Comparison\n({pipe_label} pipeline, per-target averages)',
+                    fontsize=13, fontweight='bold')
+        plt.tight_layout()
+        save_fig(fig, f'fig17_rosetta_protocol_mp_{pipe}')
 
 
 def fig18_amber_vs_rosetta(ros_data, pre_data):
-    """AMBER vs Rosetta MolProbity comparison — the key figure."""
-    pipe = 'blue'
+    """AMBER vs Rosetta MolProbity comparison — the key figure. Both pipelines."""
     metrics = [('clashscore', 'Clashscore'), ('molprobity_score', 'MP Score')]
 
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+    for pipe in ['blue', 'green']:
+        pipe_label = pipe.capitalize()
+        fig, axes = plt.subplots(1, 2, figsize=(12, 5))
 
-    for ax, (metric, label) in zip(axes, metrics):
-        # Collect method means per target
-        methods = {}
+        for ax, (metric, label) in zip(axes, metrics):
+            methods = {}
 
-        # Pre-Rosetta sources
-        for src in ['af_relaxed', 'af_unrelaxed', 'boltz', 'amber_af', 'amber_boltz', 'crystal']:
-            pre_src = pre_data[(pre_data['pipeline'] == pipe) & (pre_data['source'] == src)]
-            by_t = pre_src.groupby('target')[metric].mean()
-            methods[f'pre_{src}'] = by_t
+            for src in ['af_relaxed', 'af_unrelaxed', 'boltz', 'amber_af', 'amber_boltz', 'crystal']:
+                pre_src = pre_data[(pre_data['pipeline'] == pipe) & (pre_data['source'] == src)]
+                by_t = pre_src.groupby('target')[metric].mean()
+                methods[f'pre_{src}'] = by_t
 
-        # Post-Rosetta (mean across all protocols, AF relaxed input)
-        for src in ['af_relaxed', 'af_unrelaxed', 'boltz']:
-            post_src = ros_data[(ros_data['pipeline'] == pipe) & (ros_data['source'] == src)]
-            if len(post_src) > 0:
-                by_t = post_src.groupby('target')[metric].mean()
-                methods[f'ros_{src}'] = by_t
+            for src in ['af_relaxed', 'af_unrelaxed', 'boltz']:
+                post_src = ros_data[(ros_data['pipeline'] == pipe) & (ros_data['source'] == src)]
+                if len(post_src) > 0:
+                    by_t = post_src.groupby('target')[metric].mean()
+                    methods[f'ros_{src}'] = by_t
 
-        # Build comparison: ordered bars
-        bar_data = []
-        bar_labels = []
-        bar_colors = []
+            bar_data = []
+            bar_labels = []
+            bar_colors = []
 
-        display_order = [
-            ('pre_crystal', 'Crystal', '#999999'),
-            ('pre_af_unrelaxed', 'AF2 unrlx', '#56B4E9'),
-            ('pre_boltz', 'Boltz', '#009E73'),
-            ('pre_af_relaxed', 'AF2 rlx', '#0072B2'),
-            ('pre_amber_af', 'AMBER(AF)', '#E69F00'),
-            ('pre_amber_boltz', 'AMBER(Boltz)', '#D55E00'),
-            ('ros_af_relaxed', 'Ros(AF)', '#0072B2'),
-            ('ros_af_unrelaxed', 'Ros(AF unrlx)', '#56B4E9'),
-            ('ros_boltz', 'Ros(Boltz)', '#009E73'),
-        ]
+            display_order = [
+                ('pre_crystal', 'Crystal', '#999999'),
+                ('pre_af_unrelaxed', 'AF2 unrlx', '#56B4E9'),
+                ('pre_boltz', 'Boltz', '#009E73'),
+                ('pre_af_relaxed', 'AF2 rlx', '#0072B2'),
+                ('pre_amber_af', 'AMBER(AF)', '#E69F00'),
+                ('pre_amber_boltz', 'AMBER(Boltz)', '#D55E00'),
+                ('ros_af_relaxed', 'Ros(AF)', '#0072B2'),
+                ('ros_af_unrelaxed', 'Ros(AF unrlx)', '#56B4E9'),
+                ('ros_boltz', 'Ros(Boltz)', '#009E73'),
+            ]
 
-        for key, lbl, color in display_order:
-            if key in methods and len(methods[key]) > 0:
-                bar_data.append(methods[key].mean())
-                bar_labels.append(lbl)
-                bar_colors.append(color)
-                # Hatch Rosetta bars to distinguish
-                if key.startswith('ros_'):
-                    bar_colors[-1] = color  # Will add hatch separately
+            for key, lbl, color in display_order:
+                if key in methods and len(methods[key]) > 0:
+                    bar_data.append(methods[key].mean())
+                    bar_labels.append(lbl)
+                    bar_colors.append(color)
 
-        x = np.arange(len(bar_data))
-        bars = ax.bar(x, bar_data, color=bar_colors, edgecolor='black', linewidth=0.5,
-                     alpha=0.8)
+            if not bar_data:
+                continue
 
-        # Add hatch to Rosetta bars
-        for i, (key, _, _) in enumerate(display_order):
-            if i < len(bars) and key.startswith('ros_'):
-                bars[i].set_hatch('//')
+            x = np.arange(len(bar_data))
+            bars = ax.bar(x, bar_data, color=bar_colors, edgecolor='black', linewidth=0.5,
+                         alpha=0.8)
 
-        ax.set_xticks(x)
-        ax.set_xticklabels(bar_labels, fontsize=7, rotation=45, ha='right')
-        ax.set_ylabel(label)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
+            for i, (key, _, _) in enumerate(display_order):
+                if i < len(bars) and key.startswith('ros_'):
+                    bars[i].set_hatch('//')
 
-        # Add value labels
-        for i, v in enumerate(bar_data):
-            ax.text(i, v + 0.02*max(bar_data), f'{v:.2f}', ha='center', fontsize=7)
+            ax.set_xticks(x)
+            ax.set_xticklabels(bar_labels, fontsize=7, rotation=45, ha='right')
+            ax.set_ylabel(label)
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
 
-    fig.suptitle('MolProbity: Pre-Rosetta vs AMBER vs Rosetta\n(hatched = Rosetta output)',
-                fontsize=13, fontweight='bold')
-    plt.tight_layout()
-    save_fig(fig, 'fig18_amber_vs_rosetta_mp')
+            for i, v in enumerate(bar_data):
+                ax.text(i, v + 0.02*max(bar_data), f'{v:.2f}', ha='center', fontsize=7)
+
+        fig.suptitle(f'MolProbity: Pre-Rosetta vs AMBER vs Rosetta ({pipe_label})\n(hatched = Rosetta output)',
+                    fontsize=13, fontweight='bold')
+        plt.tight_layout()
+        save_fig(fig, f'fig18_amber_vs_rosetta_mp_{pipe}')
 
 
 def fig19_protocol_source_mp_heatmap(ros_data):
-    """Protocol × Source heatmap for MolProbity clashscore."""
-    pipe = 'blue'
-    pipe_data = ros_data[ros_data['pipeline'] == pipe]
-    if len(pipe_data) == 0:
-        print("  SKIP fig19: no blue data")
-        return
-
-    per_target = pipe_data.groupby(['source', 'target', 'protocol'])['clashscore'].mean().reset_index()
-
+    """Protocol × Source heatmap for MolProbity clashscore. Both pipelines."""
     sources = ['af_relaxed', 'af_unrelaxed', 'boltz', 'amber_af', 'amber_boltz', 'crystal']
     protocols = PROTOCOL_ORDER
 
-    matrix = pd.DataFrame(index=sources, columns=protocols, dtype=float)
-    for src in sources:
-        for proto in protocols:
-            subset = per_target[(per_target['source'] == src) & (per_target['protocol'] == proto)]
-            if len(subset) > 0:
-                matrix.loc[src, proto] = subset['clashscore'].mean()
+    for pipe in ['blue', 'green']:
+        pipe_label = pipe.capitalize()
+        pipe_data = ros_data[ros_data['pipeline'] == pipe]
+        if len(pipe_data) == 0:
+            print(f"  SKIP fig19: no {pipe} data")
+            continue
 
-    matrix = matrix.dropna(how='all')
-    if matrix.empty:
-        print("  SKIP fig19: no data for heatmap")
-        return
+        per_target = pipe_data.groupby(['source', 'target', 'protocol'])['clashscore'].mean().reset_index()
 
-    fig, ax = plt.subplots(figsize=(10, 6))
-    matrix_float = matrix.astype(float)
-    sns.heatmap(matrix_float, annot=True, fmt='.2f', cmap='RdYlGn_r',
-               ax=ax, linewidths=0.5, cbar_kws={'label': 'Clashscore'},
-               xticklabels=[PROTO_LABELS.get(p, p) for p in matrix.columns],
-               yticklabels=[SOURCE_LABELS.get(s, s) for s in matrix.index])
-    ax.set_title('Rosetta Clashscore by Protocol × Source\n(Blue pipeline)',
-                fontsize=13, fontweight='bold')
-    plt.tight_layout()
-    save_fig(fig, 'fig19_rosetta_mp_heatmap')
+        matrix = pd.DataFrame(index=sources, columns=protocols, dtype=float)
+        for src in sources:
+            for proto in protocols:
+                subset = per_target[(per_target['source'] == src) & (per_target['protocol'] == proto)]
+                if len(subset) > 0:
+                    matrix.loc[src, proto] = subset['clashscore'].mean()
+
+        matrix = matrix.dropna(how='all')
+        if matrix.empty:
+            print(f"  SKIP fig19: no data for heatmap ({pipe})")
+            continue
+
+        fig, ax = plt.subplots(figsize=(10, 6))
+        matrix_float = matrix.astype(float)
+        sns.heatmap(matrix_float, annot=True, fmt='.2f', cmap='RdYlGn_r',
+                   ax=ax, linewidths=0.5, cbar_kws={'label': 'Clashscore'},
+                   xticklabels=[PROTO_LABELS.get(p, p) for p in matrix.columns],
+                   yticklabels=[SOURCE_LABELS.get(s, s) for s in matrix.index])
+        ax.set_title(f'Rosetta Clashscore by Protocol × Source\n({pipe_label} pipeline)',
+                    fontsize=13, fontweight='bold')
+        plt.tight_layout()
+        save_fig(fig, f'fig19_rosetta_mp_heatmap_{pipe}')
 
 
 def fig20_tradeoff(ros_mp, ros_tm, pre_mp, pre_tm):
-    """THE FIGURE: TM-score cost vs MolProbity gain per target.
+    """THE FIGURE: TM-score cost vs MolProbity gain per target. Both pipelines."""
+    for pipe in ['blue', 'green']:
+        pipe_label = pipe.capitalize()
+        fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
-    Each point = one target. Shows the fundamental tradeoff:
-    Rosetta improves MolProbity (Y goes down) but costs TM-score (X goes left).
-    AMBER shown as reference: improves MolProbity with no TM cost.
-    """
-    pipe = 'blue'
+        for ax, src in zip(axes, ['af_relaxed', 'af_unrelaxed']):
+            # Pre-Rosetta TM and MP per target
+            pre_tm_src = pre_tm[(pre_tm['pipeline'] == pipe) & (pre_tm['source'] == src)]
+            pre_tm_by_t = pre_tm_src.groupby('target')['tmscore'].mean()
 
-    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+            pre_mp_src = pre_mp[(pre_mp['pipeline'] == pipe) & (pre_mp['source'] == src)]
+            pre_mp_by_t = pre_mp_src.groupby('target')['clashscore'].mean()
 
-    for ax, src in zip(axes, ['af_relaxed', 'af_unrelaxed']):
-        # Pre-Rosetta TM and MP per target
-        pre_tm_src = pre_tm[(pre_tm['pipeline'] == pipe) & (pre_tm['source'] == src)]
-        pre_tm_by_t = pre_tm_src.groupby('target')['tmscore'].mean()
+            # Post-Rosetta (mean across protocols)
+            post_tm_src = ros_tm[(ros_tm['pipeline'] == pipe) & (ros_tm['source'] == src)]
+            if len(post_tm_src) == 0:
+                ax.text(0.5, 0.5, 'No Rosetta TM data', transform=ax.transAxes, ha='center')
+                ax.set_title(SOURCE_LABELS.get(src, src))
+                continue
+            post_tm_by_t = post_tm_src.groupby('target')['tmscore'].mean()
 
-        pre_mp_src = pre_mp[(pre_mp['pipeline'] == pipe) & (pre_mp['source'] == src)]
-        pre_mp_by_t = pre_mp_src.groupby('target')['clashscore'].mean()
+            post_mp_src = ros_mp[(ros_mp['pipeline'] == pipe) & (ros_mp['source'] == src)]
+            if len(post_mp_src) == 0:
+                ax.text(0.5, 0.5, 'No Rosetta MP data', transform=ax.transAxes, ha='center')
+                ax.set_title(SOURCE_LABELS.get(src, src))
+                continue
+            post_mp_by_t = post_mp_src.groupby('target')['clashscore'].mean()
 
-        # Post-Rosetta (mean across protocols)
-        post_tm_src = ros_tm[(ros_tm['pipeline'] == pipe) & (ros_tm['source'] == src)]
-        if len(post_tm_src) == 0:
-            ax.text(0.5, 0.5, 'No Rosetta TM data', transform=ax.transAxes, ha='center')
-            ax.set_title(SOURCE_LABELS.get(src, src))
-            continue
-        post_tm_by_t = post_tm_src.groupby('target')['tmscore'].mean()
+            # Find targets with all 4 values
+            common = (pre_tm_by_t.index
+                      .intersection(pre_mp_by_t.index)
+                      .intersection(post_tm_by_t.index)
+                      .intersection(post_mp_by_t.index))
 
-        post_mp_src = ros_mp[(ros_mp['pipeline'] == pipe) & (ros_mp['source'] == src)]
-        if len(post_mp_src) == 0:
-            ax.text(0.5, 0.5, 'No Rosetta MP data', transform=ax.transAxes, ha='center')
-            ax.set_title(SOURCE_LABELS.get(src, src))
-            continue
-        post_mp_by_t = post_mp_src.groupby('target')['clashscore'].mean()
+            if len(common) < 3:
+                ax.text(0.5, 0.5, f'n={len(common)} targets', transform=ax.transAxes, ha='center')
+                ax.set_title(SOURCE_LABELS.get(src, src))
+                continue
 
-        # Find targets with all 4 values
-        common = (pre_tm_by_t.index
-                  .intersection(pre_mp_by_t.index)
-                  .intersection(post_tm_by_t.index)
-                  .intersection(post_mp_by_t.index))
+            delta_tm = post_tm_by_t.loc[common] - pre_tm_by_t.loc[common]
+            delta_mp = post_mp_by_t.loc[common] - pre_mp_by_t.loc[common]
 
-        if len(common) < 3:
-            ax.text(0.5, 0.5, f'n={len(common)} targets', transform=ax.transAxes, ha='center')
-            ax.set_title(SOURCE_LABELS.get(src, src))
-            continue
+            mask = np.isfinite(delta_tm.values) & np.isfinite(delta_mp.values)
 
-        delta_tm = post_tm_by_t.loc[common] - pre_tm_by_t.loc[common]
-        delta_mp = post_mp_by_t.loc[common] - pre_mp_by_t.loc[common]
+            ax.scatter(delta_tm.values[mask], delta_mp.values[mask],
+                      alpha=0.6, s=40, color=SRC_COLORS.get(src, '#888'),
+                      edgecolors='black', linewidths=0.3, label='Rosetta')
 
-        mask = np.isfinite(delta_tm.values) & np.isfinite(delta_mp.values)
+            # Reference lines
+            ax.axhline(y=0, color='gray', linewidth=0.5, linestyle='-', alpha=0.5)
+            ax.axvline(x=0, color='gray', linewidth=0.5, linestyle='-', alpha=0.5)
 
-        ax.scatter(delta_tm.values[mask], delta_mp.values[mask],
-                  alpha=0.6, s=40, color=SRC_COLORS.get(src, '#888'),
-                  edgecolors='black', linewidths=0.3, label='Rosetta')
+            # AMBER reference: add a star showing AMBER's effect (ΔTM≈0, ΔMP<0)
+            amber_src = 'amber_af' if src == 'af_unrelaxed' else 'amber_af'
+            pre_src_for_amber = 'af_unrelaxed' if src == 'af_unrelaxed' else 'af_relaxed'
+            amber_tm = pre_tm[(pre_tm['pipeline'] == pipe) & (pre_tm['source'] == amber_src)]
+            amber_tm_by_t = amber_tm.groupby('target')['tmscore'].mean()
+            amber_mp = pre_mp[(pre_mp['pipeline'] == pipe) & (pre_mp['source'] == amber_src)]
+            amber_mp_by_t = amber_mp.groupby('target')['clashscore'].mean()
 
-        # Reference lines
-        ax.axhline(y=0, color='gray', linewidth=0.5, linestyle='-', alpha=0.5)
-        ax.axvline(x=0, color='gray', linewidth=0.5, linestyle='-', alpha=0.5)
+            pre_for_amber_tm = pre_tm[(pre_tm['pipeline'] == pipe) & (pre_tm['source'] == pre_src_for_amber)]
+            pre_for_amber_tm_by_t = pre_for_amber_tm.groupby('target')['tmscore'].mean()
+            pre_for_amber_mp = pre_mp[(pre_mp['pipeline'] == pipe) & (pre_mp['source'] == pre_src_for_amber)]
+            pre_for_amber_mp_by_t = pre_for_amber_mp.groupby('target')['clashscore'].mean()
 
-        # AMBER reference: add a star showing AMBER's effect (ΔTM≈0, ΔMP<0)
-        amber_src = 'amber_af' if src == 'af_unrelaxed' else 'amber_af'
-        pre_src_for_amber = 'af_unrelaxed' if src == 'af_unrelaxed' else 'af_relaxed'
-        amber_tm = pre_tm[(pre_tm['pipeline'] == pipe) & (pre_tm['source'] == amber_src)]
-        amber_tm_by_t = amber_tm.groupby('target')['tmscore'].mean()
-        amber_mp = pre_mp[(pre_mp['pipeline'] == pipe) & (pre_mp['source'] == amber_src)]
-        amber_mp_by_t = amber_mp.groupby('target')['clashscore'].mean()
+            amber_common = (amber_tm_by_t.index
+                           .intersection(amber_mp_by_t.index)
+                           .intersection(pre_for_amber_tm_by_t.index)
+                           .intersection(pre_for_amber_mp_by_t.index))
 
-        pre_for_amber_tm = pre_tm[(pre_tm['pipeline'] == pipe) & (pre_tm['source'] == pre_src_for_amber)]
-        pre_for_amber_tm_by_t = pre_for_amber_tm.groupby('target')['tmscore'].mean()
-        pre_for_amber_mp = pre_mp[(pre_mp['pipeline'] == pipe) & (pre_mp['source'] == pre_src_for_amber)]
-        pre_for_amber_mp_by_t = pre_for_amber_mp.groupby('target')['clashscore'].mean()
+            if len(amber_common) >= 3:
+                amber_dtm = amber_tm_by_t.loc[amber_common] - pre_for_amber_tm_by_t.loc[amber_common]
+                amber_dmp = amber_mp_by_t.loc[amber_common] - pre_for_amber_mp_by_t.loc[amber_common]
+                ax.scatter(amber_dtm.mean(), amber_dmp.mean(), marker='*', s=200,
+                          color='#E69F00', edgecolors='black', linewidths=1, zorder=5,
+                          label=f'AMBER mean')
 
-        amber_common = (amber_tm_by_t.index
-                       .intersection(amber_mp_by_t.index)
-                       .intersection(pre_for_amber_tm_by_t.index)
-                       .intersection(pre_for_amber_mp_by_t.index))
+            # Quadrant labels
+            ax.text(0.02, 0.02, 'Better both\n(ideal)', transform=ax.transAxes,
+                   fontsize=7, color='green', alpha=0.5, va='bottom')
+            ax.text(0.98, 0.02, 'Better MP,\nworse TM', transform=ax.transAxes,
+                   fontsize=7, color='blue', alpha=0.5, ha='right', va='bottom')
 
-        if len(amber_common) >= 3:
-            amber_dtm = amber_tm_by_t.loc[amber_common] - pre_for_amber_tm_by_t.loc[amber_common]
-            amber_dmp = amber_mp_by_t.loc[amber_common] - pre_for_amber_mp_by_t.loc[amber_common]
-            ax.scatter(amber_dtm.mean(), amber_dmp.mean(), marker='*', s=200,
-                      color='#E69F00', edgecolors='black', linewidths=1, zorder=5,
-                      label=f'AMBER mean')
+            ax.set_xlabel('ΔTM-score (post - pre)')
+            ax.set_ylabel('ΔClashscore (post - pre)')
+            ax.set_title(f'{SOURCE_LABELS.get(src, src)} → Rosetta\n(n={mask.sum()} targets)')
+            ax.legend(fontsize=8, loc='upper right')
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
 
-        # Quadrant labels
-        ax.text(0.02, 0.02, 'Better both\n(ideal)', transform=ax.transAxes,
-               fontsize=7, color='green', alpha=0.5, va='bottom')
-        ax.text(0.98, 0.02, 'Better MP,\nworse TM', transform=ax.transAxes,
-               fontsize=7, color='blue', alpha=0.5, ha='right', va='bottom')
-
-        ax.set_xlabel('ΔTM-score (post - pre)')
-        ax.set_ylabel('ΔClashscore (post - pre)')
-        ax.set_title(f'{SOURCE_LABELS.get(src, src)} → Rosetta\n(n={mask.sum()} targets)')
-        ax.legend(fontsize=8, loc='upper right')
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-
-    fig.suptitle('Rosetta Tradeoff: TM-score Cost vs Clashscore Improvement\n'
-                '(bottom-left = ideal: better TM AND better clashscore)',
-                fontsize=13, fontweight='bold')
-    plt.tight_layout()
-    save_fig(fig, 'fig20_rosetta_tradeoff')
+        fig.suptitle(f'Rosetta Tradeoff: TM-score Cost vs Clashscore Improvement ({pipe_label})\n'
+                    '(bottom-left = ideal: better TM AND better clashscore)',
+                    fontsize=13, fontweight='bold')
+        plt.tight_layout()
+        save_fig(fig, f'fig20_rosetta_tradeoff_{pipe}')
 
 
 def main():
