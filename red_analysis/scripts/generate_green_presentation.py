@@ -696,11 +696,14 @@ def make_energy_before_after_scatter(init_energy, ros_energy):
                     transform=ax.transAxes, ha='center', va='center',
                     fontsize=10, color='gray')
 
+        # Fixed y-axis across all panels
+        ax.set_ylim(-7.5, 2.5)
+        ax.axhline(y=0, color='gray', linewidth=0.8, linestyle='--', alpha=0.5)
+
         # Diagonal (no-change line)
         xlim = ax.get_xlim()
-        ylim = ax.get_ylim()
-        diag_lo = min(xlim[0], ylim[0])
-        diag_hi = max(xlim[1], ylim[1])
+        diag_lo = min(xlim[0], -7.5)
+        diag_hi = max(xlim[1], 2.5)
         ax.plot([diag_lo, diag_hi], [diag_lo, diag_hi], 'k--', alpha=0.4, lw=1)
 
         ax.set_title(panel['title'], fontsize=9, fontweight='bold')
