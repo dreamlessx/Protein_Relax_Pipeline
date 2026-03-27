@@ -170,13 +170,12 @@ def make_scatter(mp, ros, metric, label, lower_better):
             all_x_vals.extend(x)
             all_y_vals.extend(y_max)
 
-        # X = full initial range, Y = zoomed to Rosetta output range
+        # X = full initial range, Y = fixed at 20 for spread
         if panel_x:
             x_max = np.nanpercentile(panel_x, 99) * 1.15
-            y_max_lim = np.nanpercentile(panel_y, 99) * 1.3
             ax.set_xlim(0, max(x_max, 0.1))
-            ax.set_ylim(0, max(y_max_lim, 0.1))
-            diag = max(x_max, y_max_lim)
+            ax.set_ylim(0, 20)
+            diag = max(x_max, 20)
             ax.plot([0, diag], [0, diag], 'k--', alpha=0.4, lw=1)
         ax.set_title(panel['title'], fontsize=9, fontweight='bold')
         ax.legend(fontsize=6.5, loc='upper left', framealpha=0.9)
