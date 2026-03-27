@@ -36,7 +36,7 @@ METRICS = [
 # Keys: metric name → dict with optional x_min, x_max, y_min, y_max.
 SCATTER_AXIS_OVERRIDES = {
     'rota_outliers': {'x_min': 0.0, 'x_max': 30.0, 'y_min': 0.0, 'y_max': 0.5},
-    'rama_outliers': {'x_min': 0.0, 'x_max': 20.0, 'y_min': 0.0, 'y_max': 2.0},
+    'rama_outliers': {'x_min': 0.0, 'x_max': 20.0, 'y_min': 0.0, 'y_max': 3.0},
 }
 
 # Scatter axis bounds are computed from data in make_scatter().
