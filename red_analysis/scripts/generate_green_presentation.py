@@ -563,6 +563,157 @@ def make_energy_scatter(energy_df, mp):
     save_fig(fig, 'scatter_energy_vs_clashscore')
 
 
+def load_initial_energy():
+    """Load pre-Rosetta energy scores (Rosetta score-only on input structures)."""
+    import glob as gl
+    files = sorted(gl.glob(os.path.join(METRICS_DIR, "initial_energy", "initial_energy_*.tsv")))
+    if not files:
+        return None
+    dfs = [pd.read_csv(f, sep='\t') for f in files]
+    init = pd.concat(dfs, ignore_index=True)
+    for col in ['total_score', 'per_residue_energy']:
+        init[col] = pd.to_numeric(init[col], errors='coerce')
+    return init
+
+
+def make_energy_before_after_scatter(init_energy, ros_energy):
+    """
+    4-panel scatter: initial (pre-Rosetta) vs final (Rosetta-averaged) per-residue energy.
+
+    Same layout as MolProbity scatters:
+      Panel 1: Crystal
+      Panel 2: AF (standalone AMBER) — af_unrelaxed & amber_af
+      Panel 3: AF (built-in AMBER) — af_unrelaxed & af_relaxed
+      Panel 4: Boltz (standalone AMBER) — boltz & amber_boltz
+
+    Initial energy only available for crystal and af_unrelaxed.
+    For Rosetta sources whose input isn't scored (af_relaxed, amber_af, etc.),
+    we use the corresponding un-relaxed initial energy where logical:
+      - amber_af, af_relaxed: initial af_unrelaxed energy (same base structure)
+      - amber_boltz, boltz: no initial energy available
+    """
+    metric = 'per_residue_energy'
+
+    # Map: rosetta source → initial source for pairing
+    initial_source_map = {
+        'crystal': 'crystal',
+        'af_unrelaxed': 'af_unrelaxed',
+        'af_relaxed': 'af_unrelaxed',
+        'amber_af': 'af_unrelaxed',
+    }
+
+    panels = [
+        {
+            'title': 'Crystal\n(single reference)',
+            'sets': [
+                ('crystal', 'crystal', '#e74c3c', 'Crystal'),
+            ],
+        },
+        {
+            'title': 'AlphaFold\n(standalone AMBER)',
+            'sets': [
+                ('af_unrelaxed', 'af_unrelaxed', '#56B4E9', 'AF unrelaxed → Rosetta'),
+                ('af_unrelaxed', 'amber_af', '#E69F00', 'AMBER(AF) → Rosetta'),
+            ],
+        },
+        {
+            'title': 'AlphaFold\n(built-in AMBER)',
+            'sets': [
+                ('af_unrelaxed', 'af_unrelaxed', '#56B4E9', 'AF unrelaxed → Rosetta'),
+                ('af_unrelaxed', 'af_relaxed', '#0072B2', 'AF relaxed → Rosetta'),
+            ],
+        },
+        {
+            'title': 'Boltz-1\n(standalone AMBER)',
+            'sets': [
+                (None, 'boltz', '#009E73', 'Boltz → Rosetta'),
+                (None, 'amber_boltz', '#D55E00', 'AMBER(Boltz) → Rosetta'),
+            ],
+        },
+    ]
+
+    fig, axes = plt.subplots(1, 4, figsize=(18, 5))
+    fig.subplots_adjust(wspace=0.3)
+
+    for idx, panel in enumerate(panels):
+        ax = axes[idx]
+        has_data = False
+
+        for init_src, ros_src, color, set_label in panel['sets']:
+            if init_src is None:
+                continue
+
+            # Initial: per-target mean energy
+            init_data = init_energy[init_energy['source'] == init_src]
+            init_by_t = init_data.groupby('target')[metric].mean()
+
+            # Rosetta: per-target mean/min/max across protocols
+            ros_stats = compute_rosetta_energy_stats(ros_energy, ros_src, metric)
+            if len(ros_stats) == 0:
+                continue
+            ros_stats = ros_stats.set_index('target')
+
+            common = init_by_t.index.intersection(ros_stats.index)
+            if len(common) < 3:
+                continue
+
+            x = init_by_t.loc[common].values
+            y_mean = ros_stats.loc[common, 'mean'].values
+            y_min_v = ros_stats.loc[common, 'min'].values
+            y_max_v = ros_stats.loc[common, 'max'].values
+
+            mask = np.isfinite(x) & np.isfinite(y_mean)
+            x, y_mean = x[mask], y_mean[mask]
+            y_min_v, y_max_v = y_min_v[mask], y_max_v[mask]
+
+            yerr_lo = np.maximum(y_mean - y_min_v, 0)
+            yerr_hi = np.maximum(y_max_v - y_mean, 0)
+
+            ax.errorbar(x, y_mean, yerr=[yerr_lo, yerr_hi],
+                        fmt='o', color=color, alpha=0.6, capsize=2,
+                        markersize=5, elinewidth=0.8, markeredgecolor='white',
+                        markeredgewidth=0.3, label=set_label, zorder=3)
+            has_data = True
+
+        if not has_data:
+            ax.text(0.5, 0.5, 'No initial energy data',
+                    transform=ax.transAxes, ha='center', va='center',
+                    fontsize=10, color='gray')
+
+        # Diagonal (no-change line)
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+        diag_lo = min(xlim[0], ylim[0])
+        diag_hi = max(xlim[1], ylim[1])
+        ax.plot([diag_lo, diag_hi], [diag_lo, diag_hi], 'k--', alpha=0.4, lw=1)
+
+        ax.set_title(panel['title'], fontsize=9, fontweight='bold')
+        ax.legend(fontsize=6.5, loc='upper right', framealpha=0.9)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.set_xlabel('Initial Energy (REU/res)', fontsize=9)
+
+        if idx == 0:
+            ax.set_ylabel('Final Energy (REU/res)\n(Rosetta avg across protocols)', fontsize=10)
+
+    fig.text(0.5, -0.02, 'Initial Per-Residue Energy (pre-Rosetta)', ha='center', fontsize=11)
+    fig.suptitle('Per-Residue Energy (lower = better): Initial vs Rosetta-Averaged Final\n'
+                 'Green pipeline — error bars = range across 6 Rosetta protocols',
+                 fontsize=13, fontweight='bold', y=1.06)
+
+    save_fig(fig, 'scatter_energy_before_after')
+
+
+def compute_rosetta_energy_stats(ros_energy, source, metric):
+    """Per-target mean/min/max of energy across protocols (averaging reps first)."""
+    src_data = ros_energy[ros_energy['source'] == source]
+    if len(src_data) == 0:
+        return pd.DataFrame(columns=['target', 'mean', 'min', 'max'])
+    per_proto = src_data.groupby(['target', 'protocol'])[metric].mean().reset_index()
+    stats = per_proto.groupby('target')[metric].agg(['mean', 'min', 'max']).reset_index()
+    return stats
+
+
 def main():
     os.makedirs(OUTDIR, exist_ok=True)
 
@@ -582,6 +733,11 @@ def main():
         energy = energy[energy['pipeline'] == 'green']
         print(f"  Energy: {len(energy)} rows, {energy['target'].nunique()} targets")
 
+    # Load initial energy
+    init_energy = load_initial_energy()
+    if init_energy is not None:
+        print(f"  Initial energy: {len(init_energy)} rows, {init_energy['target'].nunique()} targets")
+
     for metric, label, lower_better in METRICS:
         n_valid_mp = mp[metric].notna().sum()
         n_valid_ros = ros[metric].notna().sum() if metric in ros.columns else 0
@@ -598,6 +754,11 @@ def main():
         print(f"\n--- Energy Analysis ---")
         make_energy_bars(energy)
         make_energy_scatter(energy, ros)
+
+    # Energy before/after scatter
+    if energy is not None and init_energy is not None:
+        print(f"\n--- Energy Before/After Scatter ---")
+        make_energy_before_after_scatter(init_energy, energy)
 
     print(f"\n{'='*50}")
     n_figs = len([f for f in os.listdir(OUTDIR) if f.endswith('.png')])
