@@ -39,7 +39,7 @@ METRICS = [
 SCATTER_BOUNDS = {
     'clashscore':       (0,     60,     0,     8),     # x p99=50; errbar top max=7.6
     'molprobity_score': (0,     3.5,    0,     1.2),   # x p99=3.15; errbar top max=1.17
-    'rama_outliers':    (0,     6,      0,     3.5),   # x p99=5.0; errbar top max=2.96
+    'rama_outliers':    (-0.3,  6,      -0.3,  3.5),   # x p99=5.0; errbar top max=2.96; pad below 0
     'rama_favored':     (82,    100,    90,    100),   # zoom into top range; errbar bot=90.6
     'rota_outliers':    (-0.5,  18,     -0.05,  0.5),   # x p99=16.7; errbar top max=0.47; pad below 0
     'rms_bonds':        (0.005, 0.04,   0.008, 0.04),  # x p99=0.031; errbar top max=0.074 (clipped)
