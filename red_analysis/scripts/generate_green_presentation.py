@@ -192,113 +192,245 @@ def make_scatter(mp, ros, metric, label, lower_better):
     save_fig(fig, f'scatter_{metric}')
 
 
+PROTOCOLS = ['cartesian_beta', 'cartesian_ref15', 'dualspace_beta',
+             'dualspace_ref15', 'normal_beta', 'normal_ref15']
+
+PROTO_COLORS = {
+    'cartesian_beta':    '#e74c3c',   # Red
+    'cartesian_ref15':   '#f39c12',   # Orange
+    'dualspace_beta':    '#2ecc71',   # Green
+    'dualspace_ref15':   '#1abc9c',   # Teal
+    'normal_beta':       '#3498db',   # Blue
+    'normal_ref15':      '#9b59b6',   # Purple
+}
+
+PROTO_LABELS = {
+    'cartesian_beta':    'Cart β',
+    'cartesian_ref15':   'Cart REF15',
+    'dualspace_beta':    'Dual β',
+    'dualspace_ref15':   'Dual REF15',
+    'normal_beta':       'Norm β',
+    'normal_ref15':      'Norm REF15',
+}
+
+# Row configs: one row per source type
+BAR_ROWS = [
+    {
+        'label': 'Crystal',
+        'rosetta_src': 'crystal',       # Rosetta input source
+        'initial_src': 'crystal',       # Pre-Rosetta initial (grey bar)
+        'ref_src': None,                # No AMBER reference
+        'amber_color': None,
+    },
+    {
+        'label': 'AF unrelaxed',
+        'rosetta_src': 'af_unrelaxed',
+        'initial_src': 'af_unrelaxed',
+        'ref_src': None,
+        'amber_color': None,
+    },
+    {
+        'label': 'AF relaxed\n(built-in AMBER)',
+        'rosetta_src': 'af_relaxed',
+        'initial_src': 'af_relaxed',
+        'ref_src': 'af_unrelaxed',      # Grey reference = before built-in AMBER
+        'amber_color': '#0072B2',       # Blue for built-in AMBER
+    },
+    {
+        'label': 'AMBER(AF)\n(standalone)',
+        'rosetta_src': 'amber_af',
+        'initial_src': 'amber_af',
+        'ref_src': 'af_unrelaxed',
+        'amber_color': '#E69F00',       # Amber/gold
+    },
+    {
+        'label': 'Boltz',
+        'rosetta_src': 'boltz',
+        'initial_src': 'boltz',
+        'ref_src': None,
+        'amber_color': None,
+    },
+    {
+        'label': 'AMBER(Boltz)\n(standalone)',
+        'rosetta_src': 'amber_boltz',
+        'initial_src': 'amber_boltz',
+        'ref_src': 'boltz',
+        'amber_color': '#D55E00',       # Red-orange
+    },
+]
+
+
+def compute_per_protocol_stats(ros, source, metric):
+    """
+    For each target × protocol, compute mean/min/max across reps.
+    Returns DataFrame with columns: target, protocol, mean, min, max.
+    """
+    src_data = ros[ros['source'] == source]
+    if len(src_data) == 0:
+        return pd.DataFrame(columns=['target', 'protocol', 'mean', 'min', 'max'])
+    stats = src_data.groupby(['target', 'protocol'])[metric].agg(
+        ['mean', 'min', 'max']).reset_index()
+    return stats
+
+
 def make_per_target_bars(mp, ros, metric, label, lower_better):
     """
     Per-target bar chart for one metric.
 
-    3 rows:
-      1. Crystal (reference, single bar per target)
-      2. AF: initial (af_unrelaxed) as black bars, AF relaxed + AMBER(AF) as colored bars
-      3. Boltz: initial (boltz) as black bars, AMBER(Boltz) as colored bars
+    6 rows (one per source type — AMBER and non-AMBER kept separate):
+      1. Crystal
+      2. AF unrelaxed
+      3. AF relaxed (built-in AMBER)
+      4. AMBER(AF) (standalone)
+      5. Boltz
+      6. AMBER(Boltz) (standalone)
 
-    Targets sorted by initial value.
+    Per protein in each row:
+      - Grey bar: initial value (for AMBER rows: the pre-AMBER reference)
+      - Colored bar (AMBER rows only): post-AMBER initial value
+      - 6 colored bars: one per Rosetta protocol (mean across reps)
+      - Min–max error bars on each Rosetta bar
+      - 1 bar gap between proteins
+
+    Targets sorted by initial value (af_unrelaxed).
     """
-    rows = [
-        {
-            'label': 'Crystal',
-            'initial_src': 'crystal',
-            'after_sources': [],
-            'after_colors': [],
-            'after_labels': [],
-        },
-        {
-            'label': 'AlphaFold',
-            'initial_src': 'af_unrelaxed',
-            'after_sources': ['af_relaxed', 'amber_af'],
-            'after_colors': ['#0072B2', '#E69F00'],
-            'after_labels': ['AF relaxed (built-in)', 'AMBER(AF) (standalone)'],
-        },
-        {
-            'label': 'Boltz-1',
-            'initial_src': 'boltz',
-            'after_sources': ['amber_boltz'],
-            'after_colors': ['#D55E00'],
-            'after_labels': ['AMBER(Boltz)'],
-        },
-    ]
+    n_rows = len(BAR_ROWS)
 
-    # Sorted target order
+    # Sorted target order (by af_unrelaxed initial)
     af_init = mp[mp['source'] == 'af_unrelaxed'].groupby('target')[metric].mean()
     if lower_better:
         sorted_targets = af_init.sort_values(ascending=False).index.tolist()
     else:
         sorted_targets = af_init.sort_values(ascending=True).index.tolist()
-    all_targets = mp['target'].unique()
-    for t in all_targets:
+    for t in mp['target'].unique():
         if t not in sorted_targets:
             sorted_targets.append(t)
 
     n_targets = len(sorted_targets)
-    x = np.arange(n_targets)
 
-    fig, axes = plt.subplots(3, 1, figsize=(max(20, n_targets * 0.1), 12), sharex=True)
-    fig.subplots_adjust(hspace=0.08)
+    # Group layout: bars per protein group
+    # Non-AMBER: 1 (grey initial) + 6 (protocols) = 7 bars + 1 gap = 8 positions
+    # AMBER:     1 (grey ref) + 1 (AMBER initial) + 6 (protocols) = 8 bars + 1 gap = 9 positions
+    # Use 9 for all to keep protein positions aligned across rows
+    GROUP_W = 9
 
-    for row_idx, row_cfg in enumerate(rows):
+    fig_width = max(30, n_targets * GROUP_W * 0.07)
+    fig, axes = plt.subplots(n_rows, 1, figsize=(fig_width, n_rows * 2.8), sharex=True)
+    fig.subplots_adjust(hspace=0.12)
+
+    for row_idx, row_cfg in enumerate(BAR_ROWS):
         ax = axes[row_idx]
+        has_amber = row_cfg['ref_src'] is not None
 
+        # Pre-compute Rosetta stats for this source
+        proto_stats = compute_per_protocol_stats(ros, row_cfg['rosetta_src'], metric)
+
+        # Pre-compute initial values
         init_data = mp[mp['source'] == row_cfg['initial_src']].groupby('target')[metric].mean()
-        init_vals = [init_data.get(t, np.nan) for t in sorted_targets]
+        ref_data = None
+        if has_amber:
+            ref_data = mp[mp['source'] == row_cfg['ref_src']].groupby('target')[metric].mean()
 
-        n_after = len(row_cfg['after_sources'])
+        for t_idx, target in enumerate(sorted_targets):
+            base_x = t_idx * GROUP_W
+            bar_pos = 0
 
-        if n_after == 0:
-            ax.bar(x, init_vals, width=0.8, color='#e74c3c', alpha=0.7,
-                   edgecolor='white', linewidth=0.2, label='Crystal')
-        else:
-            width = 0.8 / max(n_after, 1)
+            # Bar 0: grey reference (pre-AMBER ref for AMBER rows, or initial for non-AMBER)
+            if has_amber and ref_data is not None:
+                val = ref_data.get(target, np.nan)
+                if not np.isnan(val):
+                    ax.bar(base_x + bar_pos, val, width=0.8, color='#888888',
+                           edgecolor='white', linewidth=0.2, zorder=2)
+                bar_pos += 1
 
-            for i, (after_src, after_color, after_label) in enumerate(
-                    zip(row_cfg['after_sources'], row_cfg['after_colors'], row_cfg['after_labels'])):
-                after_data = mp[mp['source'] == after_src].groupby('target')[metric].mean()
-                after_vals = [after_data.get(t, np.nan) for t in sorted_targets]
+                # Bar 1: colored AMBER initial
+                val = init_data.get(target, np.nan)
+                if not np.isnan(val):
+                    ax.bar(base_x + bar_pos, val, width=0.8,
+                           color=row_cfg['amber_color'],
+                           edgecolor='white', linewidth=0.2, zorder=2)
+                bar_pos += 1
+            else:
+                # Non-AMBER: grey initial bar
+                val = init_data.get(target, np.nan)
+                if not np.isnan(val):
+                    ax.bar(base_x + bar_pos, val, width=0.8, color='#888888',
+                           edgecolor='white', linewidth=0.2, zorder=2)
+                bar_pos += 1
+                bar_pos += 1  # Skip 1 position to align protocols at positions 2-7
 
-                offset = (i - (n_after - 1) / 2) * width
-                ax.bar(x + offset, after_vals, width, color=after_color,
-                       edgecolor='white', linewidth=0.2, label=after_label, zorder=3)
+            # Bars 2-7: 6 Rosetta protocols
+            target_proto = proto_stats[proto_stats['target'] == target]
+            for proto in PROTOCOLS:
+                p_row = target_proto[target_proto['protocol'] == proto]
+                if len(p_row) == 1:
+                    y_mean = p_row['mean'].values[0]
+                    y_min = p_row['min'].values[0]
+                    y_max = p_row['max'].values[0]
+                    yerr_lo = max(y_mean - y_min, 0)
+                    yerr_hi = max(y_max - y_mean, 0)
 
-            bar_group_width = width * n_after * 1.2
-            ax.bar(x, init_vals, bar_group_width, alpha=0.3, color='black',
-                   label=f'Initial ({row_cfg["initial_src"].replace("_", " ")})', zorder=10)
+                    ax.bar(base_x + bar_pos, y_mean, width=0.8,
+                           color=PROTO_COLORS[proto],
+                           edgecolor='white', linewidth=0.2, zorder=2)
+                    ax.errorbar(base_x + bar_pos, y_mean,
+                                yerr=[[yerr_lo], [yerr_hi]],
+                                fmt='none', ecolor='black', capsize=1.5,
+                                elinewidth=0.5, zorder=3)
+                bar_pos += 1
 
-        ax.set_ylabel(row_cfg['label'], fontsize=10, fontweight='bold')
+            # Position 8 = gap (no bar drawn)
 
-        all_row_vals = [v for v in init_vals if not np.isnan(v)]
-        if all_row_vals:
-            ymax = np.percentile(all_row_vals, 98) * 1.3
+        # Y-axis limits
+        all_vals = []
+        for t in sorted_targets:
+            v = init_data.get(t, np.nan)
+            if not np.isnan(v):
+                all_vals.append(v)
+            if has_amber and ref_data is not None:
+                v = ref_data.get(t, np.nan)
+                if not np.isnan(v):
+                    all_vals.append(v)
+        if all_vals:
+            ymax = np.percentile(all_vals, 98) * 1.4
             ax.set_ylim(0, max(ymax, 0.1))
 
+        ax.set_ylabel(row_cfg['label'], fontsize=9, fontweight='bold')
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
 
+        # Legend (only on first row to avoid clutter)
         if row_idx == 0:
-            ax.legend(loc='upper right', fontsize=8, framealpha=0.9)
-        else:
-            ax.legend(loc='upper right', fontsize=7, framealpha=0.9, ncol=n_after + 1)
+            from matplotlib.patches import Patch
+            handles = [Patch(facecolor='#888888', label='Initial (pre-Rosetta)')]
+            for proto in PROTOCOLS:
+                handles.append(Patch(facecolor=PROTO_COLORS[proto],
+                                     label=PROTO_LABELS[proto]))
+            ax.legend(handles=handles, loc='upper right', fontsize=6,
+                      framealpha=0.9, ncol=4)
+        elif row_idx == 2:
+            # Add AMBER legend on first AMBER row
+            from matplotlib.patches import Patch
+            handles = [
+                Patch(facecolor='#888888', label='Pre-AMBER'),
+                Patch(facecolor=row_cfg['amber_color'], label='Post-AMBER'),
+            ]
+            ax.legend(handles=handles, loc='upper right', fontsize=6,
+                      framealpha=0.9, ncol=2)
 
-    step = max(1, n_targets // 40)
-    tick_positions = list(range(0, n_targets, step))
+    # X-axis labels: protein names at center of each group
+    tick_step = max(1, n_targets // 50)
+    tick_positions = [i * GROUP_W + GROUP_W // 2 for i in range(0, n_targets, tick_step)]
+    tick_labels = [sorted_targets[i] for i in range(0, n_targets, tick_step)]
     axes[-1].set_xticks(tick_positions)
-    axes[-1].set_xticklabels([sorted_targets[i] for i in tick_positions],
-                              rotation=45, ha='right', fontsize=7)
+    axes[-1].set_xticklabels(tick_labels, rotation=45, ha='right', fontsize=6)
+    axes[-1].set_xlim(-1, n_targets * GROUP_W)
 
     direction = '(lower = better)' if lower_better else '(higher = better)'
     fig.suptitle(f'{label} Per Target {direction}\n'
-                 f'Green pipeline — {n_targets} targets sorted by initial value — '
-                 f'black bars = before AMBER, colored = after AMBER',
-                 fontsize=13, fontweight='bold')
-
-    fig.text(0.01, 0.5, label, va='center', rotation='vertical', fontsize=12)
+                 f'Green pipeline — {n_targets} targets — '
+                 f'grey = initial, colors = 6 Rosetta protocols (error bars = rep range)',
+                 fontsize=12, fontweight='bold')
 
     save_fig(fig, f'bars_{metric}')
 
