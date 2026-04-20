@@ -23,3 +23,6 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+bm55.sqlite
+db/bm55.sqlite
+db/snapshots/
