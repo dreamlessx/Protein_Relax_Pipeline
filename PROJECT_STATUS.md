@@ -1,6 +1,19 @@
 # Project Status
 
-**Last updated:** 2026-04-16
+**Last updated:** 2026-04-20 (post-data-audit)
+
+## 2026-04-20 Data Integrity Audit
+
+See `red_analysis/DATA_AUDIT_2026-04-20.md` for full details.
+
+Summary:
+- Green pipeline: 208,170 / 208,170 Rosetta .pdb.gz (100.0% exact on all 257 targets at 810).
+- Blue pipeline: 208,228 / 208,170 (+58 net). 253 of 257 at exactly 810; 4 anomalies (1K5D, 4GAM legacy collision dirs + 1HE8, 4Y7M real gaps).
+- Real missing data gaps: 40 .pdb.gz files out of 416,340 combined = 0.010% (Blue 4Y7M crystal source, Blue 1HE8 + 1K5D amber_boltz_model_X normal_ref15).
+- Legacy contamination: 244 rows previously pooled into amber_af / amber_boltz source buckets via loose `startswith` matching. Patched `reaggregate_combined.py` to filter `amber_af_relaxed` + `amber_boltz_relaxed` and use precise source-name matching. Impact on findings: negligible (< 0.06% of ~417K rows).
+- Downstream re-run after clean: per_target_means + paired_amber + paired_amber_rotamer all produce values matching iter 42 pre-clean (to 4 dp). Paper findings stable.
+- red_ros_mp (10175020) LOCKED: 255/257 COMPLETED + 2 TIMEOUT (1N2C, 4GAM, the largest complexes).
+
 
 ## Dataset Summary
 
