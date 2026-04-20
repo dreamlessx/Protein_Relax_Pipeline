@@ -78,100 +78,102 @@ def load_all():
 
 
 def table1_pre_rosetta_metrics(data):
-    """Table 1: Pre-Rosetta structural metrics by source."""
+    """Table 1: Pre-Rosetta structural metrics by source. Both pipelines."""
     if 'tm' not in data:
         return
 
-    tm = data['tm'][data['tm']['pipeline'] == 'blue']
-    per_target = tm.groupby(['source', 'target'])[['tmscore', 'rmsd', 'gdtts']].mean().reset_index()
+    for pipe in ['blue', 'green']:
+        pipe_label = pipe.capitalize()
+        tm = data['tm'][data['tm']['pipeline'] == pipe]
+        per_target = tm.groupby(['source', 'target'])[['tmscore', 'rmsd', 'gdtts']].mean().reset_index()
 
-    lines = [
-        r"\begin{table}[htbp]",
-        r"\centering",
-        r"\caption{Structural similarity to crystal reference (Blue pipeline, %d targets). Values are mean $\pm$ std across per-target averages.}" % per_target['target'].nunique(),
-        r"\label{tab:pre-rosetta}",
-        r"\begin{tabular}{lccc}",
-        r"\toprule",
-        r"Source & TM-score & RMSD (\AA) & GDT-TS \\",
-        r"\midrule",
-    ]
+        lines = [
+            r"\begin{table}[htbp]",
+            r"\centering",
+            r"\caption{Structural similarity to crystal reference (%s pipeline, %d targets). Values are mean $\pm$ std across per-target averages.}" % (pipe_label, per_target['target'].nunique()),
+            r"\label{tab:pre-rosetta-%s}" % pipe,
+            r"\begin{tabular}{lccc}",
+            r"\toprule",
+            r"Source & TM-score & RMSD (\AA) & GDT-TS \\",
+            r"\midrule",
+        ]
 
-    for src in SOURCE_ORDER:
-        s = per_target[per_target['source'] == src]
-        if len(s) == 0:
-            continue
-        label = SOURCE_LABELS[src]
-        tm_mean, tm_std = s['tmscore'].mean(), s['tmscore'].std()
-        rmsd_mean, rmsd_std = s['rmsd'].mean(), s['rmsd'].std()
-        gdt_mean, gdt_std = s['gdtts'].mean(), s['gdtts'].std()
-        lines.append(f"  {label} & {tm_mean:.3f} $\\pm$ {tm_std:.3f} & "
-                     f"{rmsd_mean:.2f} $\\pm$ {rmsd_std:.2f} & "
-                     f"{gdt_mean:.3f} $\\pm$ {gdt_std:.3f} \\\\")
+        for src in SOURCE_ORDER:
+            s = per_target[per_target['source'] == src]
+            if len(s) == 0:
+                continue
+            label = SOURCE_LABELS[src]
+            tm_mean, tm_std = s['tmscore'].mean(), s['tmscore'].std()
+            rmsd_mean, rmsd_std = s['rmsd'].mean(), s['rmsd'].std()
+            gdt_mean, gdt_std = s['gdtts'].mean(), s['gdtts'].std()
+            lines.append(f"  {label} & {tm_mean:.3f} $\\pm$ {tm_std:.3f} & "
+                         f"{rmsd_mean:.2f} $\\pm$ {rmsd_std:.2f} & "
+                         f"{gdt_mean:.3f} $\\pm$ {gdt_std:.3f} \\\\")
 
-    lines.extend([
-        r"\bottomrule",
-        r"\end{tabular}",
-        r"\end{table}",
-    ])
+        lines.extend([
+            r"\bottomrule",
+            r"\end{tabular}",
+            r"\end{table}",
+        ])
 
-    tex = "\n".join(lines)
-    path = os.path.join(OUTDIR, "table1_pre_rosetta.tex")
-    with open(path, 'w') as f:
-        f.write(tex)
-    print(f"  Saved table1_pre_rosetta.tex")
-    return tex
+        tex = "\n".join(lines)
+        path = os.path.join(OUTDIR, f"table1_pre_rosetta_{pipe}.tex")
+        with open(path, 'w') as f:
+            f.write(tex)
+        print(f"  Saved table1_pre_rosetta_{pipe}.tex")
 
 
 def table2_molprobity(data):
-    """Table 2: MolProbity validation by source."""
+    """Table 2: MolProbity validation by source. Both pipelines."""
     if 'mp' not in data:
         return
 
-    mp = data['mp'][data['mp']['pipeline'] == 'blue']
-    per_target = mp.groupby(['source', 'target'])[
-        ['clashscore', 'rama_favored', 'rota_outliers', 'molprobity_score']
-    ].mean().reset_index()
+    for pipe in ['blue', 'green']:
+        pipe_label = pipe.capitalize()
+        mp = data['mp'][data['mp']['pipeline'] == pipe]
+        per_target = mp.groupby(['source', 'target'])[
+            ['clashscore', 'rama_favored', 'rota_outliers', 'molprobity_score']
+        ].mean().reset_index()
 
-    n_targets = per_target['target'].nunique()
+        n_targets = per_target['target'].nunique()
 
-    lines = [
-        r"\begin{table}[htbp]",
-        r"\centering",
-        r"\caption{MolProbity validation metrics by structure source (Blue pipeline, %d targets). Values are mean $\pm$ std across per-target averages.}" % n_targets,
-        r"\label{tab:molprobity}",
-        r"\begin{tabular}{lcccc}",
-        r"\toprule",
-        r"Source & Clashscore$\downarrow$ & Rama Fav\%$\uparrow$ & Rota Out\%$\downarrow$ & MP Score$\downarrow$ \\",
-        r"\midrule",
-    ]
+        lines = [
+            r"\begin{table}[htbp]",
+            r"\centering",
+            r"\caption{MolProbity validation metrics by structure source (%s pipeline, %d targets). Values are mean $\pm$ std across per-target averages.}" % (pipe_label, n_targets),
+            r"\label{tab:molprobity-%s}" % pipe,
+            r"\begin{tabular}{lcccc}",
+            r"\toprule",
+            r"Source & Clashscore$\downarrow$ & Rama Fav\%$\uparrow$ & Rota Out\%$\downarrow$ & MP Score$\downarrow$ \\",
+            r"\midrule",
+        ]
 
-    # Crystal first (as reference)
-    all_sources = ['crystal'] + SOURCE_ORDER
-    for src in all_sources:
-        s = per_target[per_target['source'] == src]
-        if len(s) == 0:
-            continue
-        label = SOURCE_LABELS.get(src, src.capitalize())
-        cs = f"{s['clashscore'].mean():.1f} $\\pm$ {s['clashscore'].std():.1f}"
-        rf = f"{s['rama_favored'].mean():.1f} $\\pm$ {s['rama_favored'].std():.1f}"
-        ro = f"{s['rota_outliers'].mean():.2f} $\\pm$ {s['rota_outliers'].std():.2f}"
-        mp_s = f"{s['molprobity_score'].mean():.2f} $\\pm$ {s['molprobity_score'].std():.2f}"
-        lines.append(f"  {label} & {cs} & {rf} & {ro} & {mp_s} \\\\")
-        if src == 'crystal':
-            lines.append(r"  \midrule")
+        # Crystal first (as reference)
+        all_sources = ['crystal'] + SOURCE_ORDER
+        for src in all_sources:
+            s = per_target[per_target['source'] == src]
+            if len(s) == 0:
+                continue
+            label = SOURCE_LABELS.get(src, src.capitalize())
+            cs = f"{s['clashscore'].mean():.1f} $\\pm$ {s['clashscore'].std():.1f}"
+            rf = f"{s['rama_favored'].mean():.1f} $\\pm$ {s['rama_favored'].std():.1f}"
+            ro = f"{s['rota_outliers'].mean():.2f} $\\pm$ {s['rota_outliers'].std():.2f}"
+            mp_s = f"{s['molprobity_score'].mean():.2f} $\\pm$ {s['molprobity_score'].std():.2f}"
+            lines.append(f"  {label} & {cs} & {rf} & {ro} & {mp_s} \\\\")
+            if src == 'crystal':
+                lines.append(r"  \midrule")
 
-    lines.extend([
-        r"\bottomrule",
-        r"\end{tabular}",
-        r"\end{table}",
-    ])
+        lines.extend([
+            r"\bottomrule",
+            r"\end{tabular}",
+            r"\end{table}",
+        ])
 
-    tex = "\n".join(lines)
-    path = os.path.join(OUTDIR, "table2_molprobity.tex")
-    with open(path, 'w') as f:
-        f.write(tex)
-    print(f"  Saved table2_molprobity.tex")
-    return tex
+        tex = "\n".join(lines)
+        path = os.path.join(OUTDIR, f"table2_molprobity_{pipe}.tex")
+        with open(path, 'w') as f:
+            f.write(tex)
+        print(f"  Saved table2_molprobity_{pipe}.tex")
 
 
 def cliffs_delta(x, y):
@@ -198,69 +200,70 @@ def interpret_d(d):
 
 
 def table3_amber_dual_effect(data):
-    """Table 3: AMBER's dual effect — TM-score (none) + MolProbity (large)."""
+    """Table 3: AMBER's dual effect — TM-score (none) + MolProbity (large). Both pipelines."""
     if 'tm' not in data or 'mp' not in data:
         return
 
-    tm = data['tm'][data['tm']['pipeline'] == 'blue']
-    mp = data['mp'][data['mp']['pipeline'] == 'blue']
+    for pipe in ['blue', 'green']:
+        pipe_label = pipe.capitalize()
+        tm = data['tm'][data['tm']['pipeline'] == pipe]
+        mp = data['mp'][data['mp']['pipeline'] == pipe]
 
-    lines = [
-        r"\begin{table}[htbp]",
-        r"\centering",
-        r"\caption{AMBER relaxation effect: structural accuracy (TM-score) vs.\ local geometry (MolProbity). $\Delta$ = after $-$ before; $d$ = Cliff's delta effect size.}",
-        r"\label{tab:amber-dual}",
-        r"\begin{tabular}{llrrrr}",
-        r"\toprule",
-        r"Comparison & Metric & $\Delta$ & $p$-value & $d$ & Effect \\",
-        r"\midrule",
-    ]
+        lines = [
+            r"\begin{table}[htbp]",
+            r"\centering",
+            r"\caption{AMBER relaxation effect (%s pipeline): structural accuracy (TM-score) vs.\ local geometry (MolProbity). $\Delta$ = after $-$ before; $d$ = Cliff's delta effect size.}" % pipe_label,
+            r"\label{tab:amber-dual-%s}" % pipe,
+            r"\begin{tabular}{llrrrr}",
+            r"\toprule",
+            r"Comparison & Metric & $\Delta$ & $p$-value & $d$ & Effect \\",
+            r"\midrule",
+        ]
 
-    pairs = [
-        ('af_unrelaxed', 'amber_af', 'AF $\\to$ AMBER(AF)'),
-        ('boltz', 'amber_boltz', 'Boltz $\\to$ AMBER(Boltz)'),
-    ]
+        pairs = [
+            ('af_unrelaxed', 'amber_af', 'AF $\\to$ AMBER(AF)'),
+            ('boltz', 'amber_boltz', 'Boltz $\\to$ AMBER(Boltz)'),
+        ]
 
-    for src_before, src_after, label in pairs:
-        # TM-score
-        tm_b = tm[tm['source'] == src_before].groupby('target')['tmscore'].mean()
-        tm_a = tm[tm['source'] == src_after].groupby('target')['tmscore'].mean()
-        common_tm = tm_b.index.intersection(tm_a.index)
-        if len(common_tm) > 5:
-            delta_tm = (tm_a.loc[common_tm] - tm_b.loc[common_tm]).mean()
-            _, p_tm = stats.wilcoxon(tm_a.loc[common_tm], tm_b.loc[common_tm])
-            d_tm = cliffs_delta(tm_a.loc[common_tm].values, tm_b.loc[common_tm].values)
-            p_str = f"{p_tm:.1e}" if p_tm < 0.001 else f"{p_tm:.3f}"
-            lines.append(f"  {label} & TM-score & {delta_tm:+.4f} & {p_str} & {d_tm:+.3f} & {interpret_d(d_tm)} \\\\")
+        for src_before, src_after, label in pairs:
+            # TM-score
+            tm_b = tm[tm['source'] == src_before].groupby('target')['tmscore'].mean()
+            tm_a = tm[tm['source'] == src_after].groupby('target')['tmscore'].mean()
+            common_tm = tm_b.index.intersection(tm_a.index)
+            if len(common_tm) > 5:
+                delta_tm = (tm_a.loc[common_tm] - tm_b.loc[common_tm]).mean()
+                _, p_tm = stats.wilcoxon(tm_a.loc[common_tm], tm_b.loc[common_tm])
+                d_tm = cliffs_delta(tm_a.loc[common_tm].values, tm_b.loc[common_tm].values)
+                p_str = f"{p_tm:.1e}" if p_tm < 0.001 else f"{p_tm:.3f}"
+                lines.append(f"  {label} & TM-score & {delta_tm:+.4f} & {p_str} & {d_tm:+.3f} & {interpret_d(d_tm)} \\\\")
 
-        # MolProbity metrics
-        for metric, metric_label in [('clashscore', 'Clashscore'), ('molprobity_score', 'MP Score')]:
-            mp_b = mp[mp['source'] == src_before].groupby('target')[metric].mean()
-            mp_a = mp[mp['source'] == src_after].groupby('target')[metric].mean()
-            common_mp = mp_b.index.intersection(mp_a.index)
-            if len(common_mp) > 5:
-                delta = (mp_a.loc[common_mp] - mp_b.loc[common_mp]).mean()
-                _, p = stats.wilcoxon(mp_a.loc[common_mp], mp_b.loc[common_mp])
-                d = cliffs_delta(mp_a.loc[common_mp].values, mp_b.loc[common_mp].values)
-                p_str = f"{p:.1e}" if p < 0.001 else f"{p:.3f}"
-                lines.append(f"  & {metric_label} & {delta:+.2f} & {p_str} & {d:+.3f} & {interpret_d(d)} \\\\")
+            # MolProbity metrics
+            for metric, metric_label in [('clashscore', 'Clashscore'), ('molprobity_score', 'MP Score')]:
+                mp_b = mp[mp['source'] == src_before].groupby('target')[metric].mean()
+                mp_a = mp[mp['source'] == src_after].groupby('target')[metric].mean()
+                common_mp = mp_b.index.intersection(mp_a.index)
+                if len(common_mp) > 5:
+                    delta = (mp_a.loc[common_mp] - mp_b.loc[common_mp]).mean()
+                    _, p = stats.wilcoxon(mp_a.loc[common_mp], mp_b.loc[common_mp])
+                    d = cliffs_delta(mp_a.loc[common_mp].values, mp_b.loc[common_mp].values)
+                    p_str = f"{p:.1e}" if p < 0.001 else f"{p:.3f}"
+                    lines.append(f"  & {metric_label} & {delta:+.2f} & {p_str} & {d:+.3f} & {interpret_d(d)} \\\\")
 
-        lines.append(r"  \midrule")
+            lines.append(r"  \midrule")
 
-    # Remove last \midrule
-    lines[-1] = r"\bottomrule"
+        # Remove last \midrule
+        lines[-1] = r"\bottomrule"
 
-    lines.extend([
-        r"\end{tabular}",
-        r"\end{table}",
-    ])
+        lines.extend([
+            r"\end{tabular}",
+            r"\end{table}",
+        ])
 
-    tex = "\n".join(lines)
-    path = os.path.join(OUTDIR, "table3_amber_dual_effect.tex")
-    with open(path, 'w') as f:
-        f.write(tex)
-    print(f"  Saved table3_amber_dual_effect.tex")
-    return tex
+        tex = "\n".join(lines)
+        path = os.path.join(OUTDIR, f"table3_amber_dual_effect_{pipe}.tex")
+        with open(path, 'w') as f:
+            f.write(tex)
+        print(f"  Saved table3_amber_dual_effect_{pipe}.tex")
 
 
 def table4_rosetta_protocols(data):
@@ -379,52 +382,53 @@ def table5_reproducibility(data):
 
 
 def table6_outliers(data):
-    """Table 6: Notable outlier targets."""
+    """Table 6: Notable outlier targets. Both pipelines."""
     if 'tm' not in data:
         return
 
-    tm = data['tm'][data['tm']['pipeline'] == 'blue']
-    per_target = tm.groupby(['target', 'source'])['tmscore'].mean().reset_index()
-    best_tm = per_target.groupby('target')['tmscore'].max().reset_index()
-    best_tm.columns = ['target', 'best_tmscore']
-    outliers = best_tm[best_tm['best_tmscore'] < 0.85].sort_values('best_tmscore')
+    for pipe in ['blue', 'green']:
+        pipe_label = pipe.capitalize()
+        tm = data['tm'][data['tm']['pipeline'] == pipe]
+        per_target = tm.groupby(['target', 'source'])['tmscore'].mean().reset_index()
+        best_tm = per_target.groupby('target')['tmscore'].max().reset_index()
+        best_tm.columns = ['target', 'best_tmscore']
+        outliers = best_tm[best_tm['best_tmscore'] < 0.85].sort_values('best_tmscore')
 
-    if len(outliers) == 0:
-        print("  No outliers found")
-        return
+        if len(outliers) == 0:
+            print(f"  No outliers found for {pipe}")
+            continue
 
-    lines = [
-        r"\begin{table}[htbp]",
-        r"\centering",
-        r"\caption{Outlier targets with best TM-score $<$ 0.85 across all prediction methods. These targets may have large conformational changes between bound and unbound states.}",
-        r"\label{tab:outliers}",
-        r"\begin{tabular}{lcccc}",
-        r"\toprule",
-        r"Target & Best TM & AF2 TM & Boltz TM & \# Chains \\",
-        r"\midrule",
-    ]
+        lines = [
+            r"\begin{table}[htbp]",
+            r"\centering",
+            r"\caption{Outlier targets with best TM-score $<$ 0.85 across all prediction methods (%s pipeline). These targets may have large conformational changes between bound and unbound states.}" % pipe_label,
+            r"\label{tab:outliers-%s}" % pipe,
+            r"\begin{tabular}{lcccc}",
+            r"\toprule",
+            r"Target & Best TM & AF2 TM & Boltz TM & \# Chains \\",
+            r"\midrule",
+        ]
 
-    for _, row in outliers.iterrows():
-        target = row['target']
-        best = row['best_tmscore']
-        af_row = per_target[(per_target['target'] == target) & (per_target['source'] == 'af_relaxed')]
-        boltz_row = per_target[(per_target['target'] == target) & (per_target['source'] == 'boltz')]
-        af_tm = f"{af_row['tmscore'].values[0]:.3f}" if len(af_row) > 0 else "---"
-        boltz_tm = f"{boltz_row['tmscore'].values[0]:.3f}" if len(boltz_row) > 0 else "---"
-        lines.append(f"  {target} & {best:.3f} & {af_tm} & {boltz_tm} & --- \\\\")
+        for _, row in outliers.iterrows():
+            target = row['target']
+            best = row['best_tmscore']
+            af_row = per_target[(per_target['target'] == target) & (per_target['source'] == 'af_relaxed')]
+            boltz_row = per_target[(per_target['target'] == target) & (per_target['source'] == 'boltz')]
+            af_tm = f"{af_row['tmscore'].values[0]:.3f}" if len(af_row) > 0 else "---"
+            boltz_tm = f"{boltz_row['tmscore'].values[0]:.3f}" if len(boltz_row) > 0 else "---"
+            lines.append(f"  {target} & {best:.3f} & {af_tm} & {boltz_tm} & --- \\\\")
 
-    lines.extend([
-        r"\bottomrule",
-        r"\end{tabular}",
-        r"\end{table}",
-    ])
+        lines.extend([
+            r"\bottomrule",
+            r"\end{tabular}",
+            r"\end{table}",
+        ])
 
-    tex = "\n".join(lines)
-    path = os.path.join(OUTDIR, "table6_outliers.tex")
-    with open(path, 'w') as f:
-        f.write(tex)
-    print(f"  Saved table6_outliers.tex ({len(outliers)} outliers)")
-    return tex
+        tex = "\n".join(lines)
+        path = os.path.join(OUTDIR, f"table6_outliers_{pipe}.tex")
+        with open(path, 'w') as f:
+            f.write(tex)
+        print(f"  Saved table6_outliers_{pipe}.tex ({len(outliers)} outliers)")
 
 
 def main():

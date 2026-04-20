@@ -34,7 +34,7 @@ All 257 FASTAs are crystal-derived and verified identical across all prediction 
 | Boltz-1 v0.4.1 | 257/257 | COMPLETE |
 | Standalone AMBER (AF) | 257/257 | COMPLETE |
 | Standalone AMBER (Boltz) | 257/257 | COMPLETE |
-| Standalone AMBER (crystal) | 255/257 | 1ACB, 1ATN blocked (AMBER convergence failure) |
+| Standalone AMBER (crystal) | 257/257 | 1ACB, 1ATN fixed via v5 chain-split preprocessing (Jobs 10147059 Blue / 10147060 Green) |
 
 ## Canonical Data Matrix
 
@@ -51,11 +51,13 @@ Per complex (both pipelines identical structure):
 | Boltz + standalone AMBER | 5 | 150 | 155 |
 | **Per complex total** | **27** | **810** | **837** |
 
-**Per-pipeline Rosetta target:** 27 x 30 x 257 - 60 (1ACB+1ATN amber-crystal blocked) = **208,050 files**
+**Per-pipeline Rosetta target:** 27 × 6 × 5 × 257 = **208,170 files**
 
-**Both pipelines combined Rosetta target:** 416,100 .pdb.gz files
+**Per-pipeline base structures:** 27 × 257 = **6,939**
 
-**Base structures:** 27 x 257 - 2 = 6,937 per pipeline (13,874 total)
+**Per-pipeline total:** 208,170 + 6,939 = **215,109 files**
+
+**Both pipelines combined:** 430,218 files (416,340 Rosetta + 13,878 base)
 
 ## Rosetta Relaxation Status (2026-04-16, post-legacy-cleanup)
 
@@ -117,14 +119,16 @@ The `amber_af_relaxed/` and `amber_boltz_relaxed/` directories were created befo
 
 These legacy dirs were previously pooled with proper data in `aggregate_rosetta_molprobity.py` and `aggregate_rosetta_tmscore.py`. Aggregate scripts must be re-run after removal to exclude the collision noise from published metrics.
 
-## Blockers (Permanent)
+## Blockers
 
-- **1ACB, 1ATN AMBER-crystal convergence failure**
-  - AMBER minimization fails after 100 attempts on the crystal PDB
-  - Affects both Blue and Green pipelines
-  - Impact: -60 Rosetta files + -2 base files per pipeline
-  - Final coverage: 255/257 for amber-crystal category
-  - Acceptance: paper uses 255/257; other 6 categories remain 257/257
+None. Previously "permanent" 1ACB/1ATN AMBER-crystal failures were resolved on 2026-04-16.
+
+**Root cause:** Crystal PDBs contained physical chain breaks that shared a single chain ID, causing OpenMM to attempt peptide bonds across 8–19 Å gaps. Minimizer diverged silently.
+
+- 1ACB chain E: three proteolytic cuts (chymotrypsin zymogen → mature form) at 13→14 (19.3 Å), 74→75 (3.8 Å), 143→144 (8.8 Å)
+- 1ATN chain D: one disorder gap at 101→102 (8.0 Å)
+
+**Fix (amber_relax_crystal_v5.py):** Detect peptide bonds > 2.5 Å, split affected chains into new chain IDs, then run PDBFixer + OpenMM normally. Test minimization converges cleanly for both: 1ACB E 8350 → −5986 kcal/mol; 1ATN E 20790 → −12079 kcal/mol.
 
 ## Pipeline Design
 

@@ -52,7 +52,7 @@ def save_fig(fig, name):
 
 
 def figS1_amber_all_metrics(data):
-    """All 7 MolProbity metrics before/after AMBER."""
+    """All 7 MolProbity metrics before/after AMBER. Both pipelines."""
     metrics = [
         ('clashscore', 'Clashscore', True),
         ('molprobity_score', 'MolProbity Score', True),
@@ -63,53 +63,53 @@ def figS1_amber_all_metrics(data):
         ('rms_angles', 'RMS Angles (°)', True),
     ]
 
-    pipe = 'blue'
-    pipe_data = data[data['pipeline'] == pipe]
-
-    fig, axes = plt.subplots(2, 4, figsize=(20, 10))
-    axes = axes.flatten()
-
     pairs = [
         ('af_unrelaxed', 'amber_af', 'AF→AMBER(AF)', '#E69F00'),
         ('boltz', 'amber_boltz', 'Boltz→AMBER(Boltz)', '#D55E00'),
     ]
 
-    for idx, (metric, label, lower_better) in enumerate(metrics):
-        ax = axes[idx]
+    for pipe in ['blue', 'green']:
+        pipe_label = pipe.capitalize()
+        pipe_data = data[data['pipeline'] == pipe]
 
-        for src_before, src_after, pair_label, color in pairs:
-            before = pipe_data[pipe_data['source'] == src_before].groupby('target')[metric].mean()
-            after = pipe_data[pipe_data['source'] == src_after].groupby('target')[metric].mean()
-            common = before.index.intersection(after.index)
+        fig, axes = plt.subplots(2, 4, figsize=(20, 10))
+        axes = axes.flatten()
 
-            if len(common) < 5:
-                continue
+        for idx, (metric, label, lower_better) in enumerate(metrics):
+            ax = axes[idx]
 
-            delta = after.loc[common] - before.loc[common]
+            for src_before, src_after, pair_label, color in pairs:
+                before = pipe_data[pipe_data['source'] == src_before].groupby('target')[metric].mean()
+                after = pipe_data[pipe_data['source'] == src_after].groupby('target')[metric].mean()
+                common = before.index.intersection(after.index)
 
-            ax.hist(delta.values, bins=30, alpha=0.5, color=color, label=pair_label,
-                   edgecolor='white', linewidth=0.3)
+                if len(common) < 5:
+                    continue
 
-        ax.axvline(x=0, color='black', linewidth=0.5, linestyle='--')
-        ax.set_xlabel(f'Δ{label}')
-        ax.set_ylabel('Count')
-        direction = '←better' if lower_better else 'better→'
-        ax.set_title(f'{label}\n({direction})', fontsize=10)
-        ax.legend(fontsize=7)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
+                delta = after.loc[common] - before.loc[common]
 
-    # Hide extra subplot
-    axes[7].set_visible(False)
+                ax.hist(delta.values, bins=30, alpha=0.5, color=color, label=pair_label,
+                       edgecolor='white', linewidth=0.3)
 
-    fig.suptitle('AMBER Effect on All MolProbity Metrics\n(Δ = After - Before)',
-                fontsize=14, fontweight='bold')
-    plt.tight_layout()
-    save_fig(fig, 'figS1_amber_all_metrics')
+            ax.axvline(x=0, color='black', linewidth=0.5, linestyle='--')
+            ax.set_xlabel(f'Δ{label}')
+            ax.set_ylabel('Count')
+            direction = '←better' if lower_better else 'better→'
+            ax.set_title(f'{label}\n({direction})', fontsize=10)
+            ax.legend(fontsize=7)
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+
+        axes[7].set_visible(False)
+
+        fig.suptitle(f'AMBER Effect on All MolProbity Metrics ({pipe_label})\n(Δ = After - Before)',
+                    fontsize=14, fontweight='bold')
+        plt.tight_layout()
+        save_fig(fig, f'figS1_amber_all_metrics_{pipe}')
 
 
 def figS2_molprobity_violins(data):
-    """Violin plots for all MolProbity metrics by source."""
+    """Violin plots for all MolProbity metrics by source. Both pipelines."""
     metrics = [
         ('clashscore', 'Clashscore'),
         ('molprobity_score', 'MP Score'),
@@ -119,47 +119,49 @@ def figS2_molprobity_violins(data):
         ('rms_angles', 'RMS Angles'),
     ]
 
-    pipe = 'blue'
-    per_target = data[data['pipeline'] == pipe].groupby(['source', 'target'])[
-        [m[0] for m in metrics]].mean().reset_index()
+    for pipe in ['blue', 'green']:
+        pipe_label = pipe.capitalize()
+        per_target = data[data['pipeline'] == pipe].groupby(['source', 'target'])[
+            [m[0] for m in metrics]].mean().reset_index()
 
-    fig, axes = plt.subplots(2, 3, figsize=(18, 12))
-    axes = axes.flatten()
+        fig, axes = plt.subplots(2, 3, figsize=(18, 12))
+        axes = axes.flatten()
 
-    for ax, (metric, label) in zip(axes, metrics):
-        plot_data = []
-        positions = []
-        colors = []
-        tick_labels = []
+        for ax, (metric, label) in zip(axes, metrics):
+            plot_data = []
+            positions = []
+            colors = []
+            tick_labels = []
 
-        for i, src in enumerate(SOURCE_ORDER):
-            vals = per_target[per_target['source'] == src][metric].dropna().values
-            if len(vals) > 0:
-                plot_data.append(vals)
-                positions.append(i)
-                colors.append(SRC_COLORS[src])
-                tick_labels.append(SOURCE_LABELS[src])
+            for i, src in enumerate(SOURCE_ORDER):
+                vals = per_target[per_target['source'] == src][metric].dropna().values
+                if len(vals) > 0:
+                    plot_data.append(vals)
+                    positions.append(i)
+                    colors.append(SRC_COLORS[src])
+                    tick_labels.append(SOURCE_LABELS[src])
 
-        vp = ax.violinplot(plot_data, positions=positions, showmedians=True, showextrema=False)
-        for body, color in zip(vp['bodies'], colors):
-            body.set_facecolor(color)
-            body.set_alpha(0.7)
-        vp['cmedians'].set_color('black')
+            if plot_data:
+                vp = ax.violinplot(plot_data, positions=positions, showmedians=True, showextrema=False)
+                for body, color in zip(vp['bodies'], colors):
+                    body.set_facecolor(color)
+                    body.set_alpha(0.7)
+                vp['cmedians'].set_color('black')
 
-        ax.set_xticks(positions)
-        ax.set_xticklabels(tick_labels, fontsize=8, rotation=30, ha='right')
-        ax.set_ylabel(label)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
+            ax.set_xticks(positions)
+            ax.set_xticklabels(tick_labels, fontsize=8, rotation=30, ha='right')
+            ax.set_ylabel(label)
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
 
-    fig.suptitle('MolProbity Metric Distributions by Source\n(Blue pipeline, per-target averages)',
-                fontsize=14, fontweight='bold')
-    plt.tight_layout()
-    save_fig(fig, 'figS2_molprobity_violins')
+        fig.suptitle(f'MolProbity Metric Distributions by Source\n({pipe_label} pipeline, per-target averages)',
+                    fontsize=14, fontweight='bold')
+        plt.tight_layout()
+        save_fig(fig, f'figS2_molprobity_violins_{pipe}')
 
 
 def figS3_rosetta_by_source(data_rosetta):
-    """Rosetta TM-score by input type for each protocol."""
+    """Rosetta TM-score by input type for each protocol. Both pipelines."""
     if data_rosetta is None:
         print("  SKIP figS3: no Rosetta data")
         return
@@ -174,117 +176,119 @@ def figS3_rosetta_by_source(data_rosetta):
         'normal_beta': 'Norm β',
         'normal_ref15': 'Norm REF15',
     }
-
-    pipe = 'blue'
-    pipe_data = data_rosetta[data_rosetta['pipeline'] == pipe]
-
-    fig, axes = plt.subplots(2, 3, figsize=(18, 12))
-    axes = axes.flatten()
-
     src_order = ['af_relaxed', 'af_unrelaxed', 'boltz', 'amber_af', 'amber_boltz', 'crystal']
 
-    for idx, proto in enumerate(PROTOCOL_ORDER):
-        ax = axes[idx]
-        proto_data = pipe_data[pipe_data['protocol'] == proto]
-        per_target = proto_data.groupby(['source', 'target'])['tmscore'].mean().reset_index()
+    for pipe in ['blue', 'green']:
+        pipe_label = pipe.capitalize()
+        pipe_data = data_rosetta[data_rosetta['pipeline'] == pipe]
 
-        plot_data = []
-        labels = []
-        colors = []
-        for src in src_order:
-            vals = per_target[per_target['source'] == src]['tmscore'].dropna().values
-            if len(vals) > 0:
-                plot_data.append(vals)
-                labels.append(SOURCE_LABELS.get(src, src))
-                colors.append(SRC_COLORS.get(src, '#888888'))
+        fig, axes = plt.subplots(2, 3, figsize=(18, 12))
+        axes = axes.flatten()
 
-        if plot_data:
-            bp = ax.boxplot(plot_data, tick_labels=labels, patch_artist=True, widths=0.6,
-                           medianprops={'color': 'black', 'linewidth': 1.5})
-            for patch, color in zip(bp['boxes'], colors):
-                patch.set_facecolor(color)
-                patch.set_alpha(0.7)
+        for idx, proto in enumerate(PROTOCOL_ORDER):
+            ax = axes[idx]
+            proto_data = pipe_data[pipe_data['protocol'] == proto]
+            per_target = proto_data.groupby(['source', 'target'])['tmscore'].mean().reset_index()
 
-        ax.set_title(PROTOCOL_LABELS[proto], fontsize=11, fontweight='bold')
-        ax.set_ylabel('TM-score')
-        ax.tick_params(axis='x', labelsize=7, rotation=30)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
+            plot_data = []
+            labels = []
+            colors = []
+            for src in src_order:
+                vals = per_target[per_target['source'] == src]['tmscore'].dropna().values
+                if len(vals) > 0:
+                    plot_data.append(vals)
+                    labels.append(SOURCE_LABELS.get(src, src))
+                    colors.append(SRC_COLORS.get(src, '#888888'))
 
-    fig.suptitle('Rosetta TM-score by Input Type\n(Blue pipeline, per-target averages)',
-                fontsize=14, fontweight='bold')
-    plt.tight_layout()
-    save_fig(fig, 'figS3_rosetta_by_source')
+            if plot_data:
+                bp = ax.boxplot(plot_data, tick_labels=labels, patch_artist=True, widths=0.6,
+                               medianprops={'color': 'black', 'linewidth': 1.5})
+                for patch, color in zip(bp['boxes'], colors):
+                    patch.set_facecolor(color)
+                    patch.set_alpha(0.7)
+
+            ax.set_title(PROTOCOL_LABELS[proto], fontsize=11, fontweight='bold')
+            ax.set_ylabel('TM-score')
+            ax.tick_params(axis='x', labelsize=7, rotation=30)
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+
+        fig.suptitle(f'Rosetta TM-score by Input Type\n({pipe_label} pipeline, per-target averages)',
+                    fontsize=14, fontweight='bold')
+        plt.tight_layout()
+        save_fig(fig, f'figS3_rosetta_by_source_{pipe}')
 
 
 def figS4_mp_correlation_matrix(data):
-    """Correlation matrix of MolProbity metrics."""
+    """Correlation matrix of MolProbity metrics. Both pipelines."""
     metrics = ['clashscore', 'molprobity_score', 'rama_outliers', 'rama_favored',
                'rota_outliers', 'rms_bonds', 'rms_angles']
     labels = ['Clashscore', 'MP Score', 'Rama Out%', 'Rama Fav%',
               'Rota Out%', 'RMS Bond', 'RMS Angle']
 
-    pipe = 'blue'
-    per_target = data[data['pipeline'] == pipe].groupby(['source', 'target'])[metrics].mean().reset_index()
+    for pipe in ['blue', 'green']:
+        pipe_label = pipe.capitalize()
+        per_target = data[data['pipeline'] == pipe].groupby(['source', 'target'])[metrics].mean().reset_index()
 
-    corr = per_target[metrics].corr()
-    corr.index = labels
-    corr.columns = labels
+        corr = per_target[metrics].corr()
+        corr.index = labels
+        corr.columns = labels
 
-    fig, ax = plt.subplots(figsize=(8, 7))
-    mask = np.triu(np.ones_like(corr, dtype=bool), k=1)
-    sns.heatmap(corr, mask=mask, annot=True, fmt='.2f', cmap='RdBu_r',
-               vmin=-1, vmax=1, center=0, ax=ax, linewidths=0.5,
-               square=True, cbar_kws={'shrink': 0.8})
-    ax.set_title('MolProbity Metric Correlations\n(Blue pipeline)', fontsize=13, fontweight='bold')
-    plt.tight_layout()
-    save_fig(fig, 'figS4_mp_correlation')
+        fig, ax = plt.subplots(figsize=(8, 7))
+        mask = np.triu(np.ones_like(corr, dtype=bool), k=1)
+        sns.heatmap(corr, mask=mask, annot=True, fmt='.2f', cmap='RdBu_r',
+                   vmin=-1, vmax=1, center=0, ax=ax, linewidths=0.5,
+                   square=True, cbar_kws={'shrink': 0.8})
+        ax.set_title(f'MolProbity Metric Correlations\n({pipe_label} pipeline)', fontsize=13, fontweight='bold')
+        plt.tight_layout()
+        save_fig(fig, f'figS4_mp_correlation_{pipe}')
 
 
 def figS5_af_vs_boltz_mp(data):
-    """AF vs Boltz MolProbity scatter (target-level)."""
+    """AF vs Boltz MolProbity scatter (target-level). Both pipelines."""
     metrics = [('clashscore', 'Clashscore'), ('molprobity_score', 'MP Score'),
                ('rota_outliers', 'Rota Outliers %')]
 
-    pipe = 'blue'
-    per_target = data[data['pipeline'] == pipe].groupby(['source', 'target'])[
-        [m[0] for m in metrics]].mean().reset_index()
+    for pipe in ['blue', 'green']:
+        pipe_label = pipe.capitalize()
+        per_target = data[data['pipeline'] == pipe].groupby(['source', 'target'])[
+            [m[0] for m in metrics]].mean().reset_index()
 
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+        fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
-    for ax, (metric, label) in zip(axes, metrics):
-        af = per_target[per_target['source'] == 'af_relaxed'].set_index('target')[metric]
-        boltz = per_target[per_target['source'] == 'boltz'].set_index('target')[metric]
-        common = af.index.intersection(boltz.index)
+        for ax, (metric, label) in zip(axes, metrics):
+            af = per_target[per_target['source'] == 'af_relaxed'].set_index('target')[metric]
+            boltz = per_target[per_target['source'] == 'boltz'].set_index('target')[metric]
+            common = af.index.intersection(boltz.index)
 
-        if len(common) > 5:
-            x = af.loc[common].values
-            y = boltz.loc[common].values
-            mask = np.isfinite(x) & np.isfinite(y)
-            ax.scatter(x[mask], y[mask], alpha=0.5, s=20, color='#0072B2', edgecolors='black', linewidths=0.3)
+            if len(common) > 5:
+                x = af.loc[common].values
+                y = boltz.loc[common].values
+                mask = np.isfinite(x) & np.isfinite(y)
+                ax.scatter(x[mask], y[mask], alpha=0.5, s=20, color='#0072B2', edgecolors='black', linewidths=0.3)
 
-            max_val = max(x[mask].max(), y[mask].max()) * 1.1
-            ax.plot([0, max_val], [0, max_val], 'k--', linewidth=0.5, alpha=0.3)
+                max_val = max(x[mask].max(), y[mask].max()) * 1.1
+                ax.plot([0, max_val], [0, max_val], 'k--', linewidth=0.5, alpha=0.3)
 
-            r, p = stats.pearsonr(x[mask], y[mask])
-            ax.text(0.05, 0.95, f'r = {r:.3f}', transform=ax.transAxes,
-                   fontsize=10, verticalalignment='top')
+                r, p = stats.pearsonr(x[mask], y[mask])
+                ax.text(0.05, 0.95, f'r = {r:.3f}', transform=ax.transAxes,
+                       fontsize=10, verticalalignment='top')
 
-            af_better = (x[mask] < y[mask]).sum()
-            boltz_better = (y[mask] < x[mask]).sum()
-            ax.text(0.05, 0.85, f'AF better: {af_better}\nBoltz better: {boltz_better}',
-                   transform=ax.transAxes, fontsize=8, verticalalignment='top')
+                af_better = (x[mask] < y[mask]).sum()
+                boltz_better = (y[mask] < x[mask]).sum()
+                ax.text(0.05, 0.85, f'AF better: {af_better}\nBoltz better: {boltz_better}',
+                       transform=ax.transAxes, fontsize=8, verticalalignment='top')
 
-        ax.set_xlabel(f'AF2 {label}')
-        ax.set_ylabel(f'Boltz {label}')
-        ax.set_title(label)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
+            ax.set_xlabel(f'AF2 {label}')
+            ax.set_ylabel(f'Boltz {label}')
+            ax.set_title(label)
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
 
-    fig.suptitle('AF2 vs Boltz MolProbity Comparison\n(per-target, Blue pipeline)',
-                fontsize=13, fontweight='bold')
-    plt.tight_layout()
-    save_fig(fig, 'figS5_af_vs_boltz_mp')
+        fig.suptitle(f'AF2 vs Boltz MolProbity Comparison\n(per-target, {pipe_label} pipeline)',
+                    fontsize=13, fontweight='bold')
+        plt.tight_layout()
+        save_fig(fig, f'figS5_af_vs_boltz_mp_{pipe}')
 
 
 def main():

@@ -1,0 +1,25 @@
+# local-only agent scaffolding
+.claude-flow/
+.claude/local/
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+
+# large data directories (tracked only via manifests)
+data/
+predictions/
+test_subset/
+cleaned/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# editor
+.vscode/
+.idea/
+*.swp

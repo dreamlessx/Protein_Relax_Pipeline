@@ -31,10 +31,13 @@ import tempfile
 import warnings
 warnings.filterwarnings('ignore')
 
-# Environment setup
+# Environment setup — ensure conda bin is in PATH for probe/reduce
 conda_prefix = os.environ.get('CONDA_PREFIX', '')
 if not conda_prefix:
     conda_prefix = os.path.dirname(os.path.dirname(sys.executable))
+conda_bin = os.path.join(conda_prefix, 'bin')
+if conda_bin not in os.environ.get('PATH', ''):
+    os.environ['PATH'] = conda_bin + ':' + os.environ.get('PATH', '')
 mon_lib_path = os.path.join(conda_prefix, 'share', 'ccp4_mon_lib')
 if os.path.exists(mon_lib_path):
     os.environ['MMTBX_CCP4_MONOMER_LIB'] = mon_lib_path

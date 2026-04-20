@@ -1,0 +1,39 @@
+=== ACCRE Node cn1340 Failure Report ===
+Generated: Tue Mar 31 03:29:40 PM CDT 2026
+User: agarwm5 | Account: p_csb_meiler
+
+--- Failure count by node (across 6 jobs) ---
+   1614          cn1340 
+
+--- Per-job breakdown ---
+  Job 9740701 (blue_amber_fix): 456 failures on cn1340
+  Job 9740702 (blue_rosetta_r4): 111 failures on cn1340
+  Job 9740703 (green_rosetta_r3): 279 failures on cn1340
+  Job 9741764 (blue_crystal_v3): 231 failures on cn1340
+  Job 9745255 (blue_ros_axtal): 240 failures on cn1340
+  Job 9745256 (green_ros_axtal): 297 failures on cn1340
+
+--- Sample failed tasks on cn1340 (all die in 1-2 sec) ---
+         9740701_101       FAILED       0:53     00:00:02          cn1340 
+         9740701_102       FAILED       0:53     00:00:01          cn1340 
+         9740701_103       FAILED       0:53     00:00:01          cn1340 
+         9740701_104       FAILED       0:53     00:00:01          cn1340 
+         9740701_105       FAILED       0:53     00:00:01          cn1340 
+         9740701_108       FAILED       0:53     00:00:01          cn1340 
+         9740701_110       FAILED       0:53     00:00:01          cn1340 
+         9740701_111       FAILED       0:53     00:00:01          cn1340 
+         9740701_112       FAILED       0:53     00:00:01          cn1340 
+         9740701_113       FAILED       0:53     00:00:01          cn1340 
+
+--- Sample SUCCESSFUL tasks on other nodes (same job) ---
+          9740701_14    COMPLETED        0:0      1-18:47:59          cn1626 
+          9740701_16    COMPLETED        0:0      1-13:37:07          cn1626 
+          9740701_26    COMPLETED        0:0      1-03:36:55          cn1594 
+          9740701_34    COMPLETED        0:0      1-14:33:05          cn1594 
+          9740701_35    COMPLETED        0:0      1-21:32:48          cn1594 
+
+--- Current node status ---
+cn1340 allocated none 21.64 9159/126976 16/0/0/16
+
+No stdout/stderr logs produced by any cn1340 task (dies before writing).
+Suspected filesystem mount issue on cn1340 for /data/p_csb_meiler/.
