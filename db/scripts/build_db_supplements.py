@@ -58,6 +58,45 @@ TARGET_ALIASES = {
     "1e+96": "1E96",
 }
 
+# Mirror of build_db.py's filter logic, used to re-classify silently-dropped
+# rows in combined_rosetta_molprobity.tsv. Anything build_db.py drops that
+# isn't legacy-source or exact-duplicate gets logged to qc_quarantine.
+PROTOCOLS_VALID = {
+    "cartesian_beta", "cartesian_ref15",
+    "dualspace_beta", "dualspace_ref15",
+    "normal_beta",    "normal_ref15",
+}
+SOURCE_BUCKET_PREDICATES = {
+    "af_relaxed":    lambda s: s.startswith("af_relaxed"),
+    "af_unrelaxed":  lambda s: s.startswith("af_unrelaxed"),
+    "amber_af":      lambda s: s.startswith("amber_af_ranked"),
+    "amber_boltz":   lambda s: s.startswith("amber_boltz_model"),
+    "amber_crystal": lambda s: s.startswith("amber_crystal"),
+    "boltz":         lambda s: s.startswith("boltz_boltz_input"),
+    "crystal":       lambda s: s.startswith("crystal_"),
+}
+LEGACY_SRC = {"amber_af_relaxed", "amber_boltz_relaxed"}
+
+
+def _bucket(src_type: str) -> str | None:
+    if src_type in LEGACY_SRC:
+        return None
+    for bkt, pred in SOURCE_BUCKET_PREDICATES.items():
+        if pred(src_type):
+            return bkt
+    return None
+
+
+# Non-standard target IDs in BM5.5 are zlab-built complexes that don't have
+# a direct canonical PDB ID. Each maps to a parent PDB + chain selection.
+# Source: workspace README / zlab Table_BM5.5.xlsx.
+PARENT_PDB_MAP = {
+    "BAAD": "3AAD_A:B",
+    "BOYV": "1OYV_B:I",
+    "BP57": "3P57_AB:P",
+    "CP57": "3P57_CD:P",
+}
+
 
 def _normalize_target(target: str) -> str:
     return TARGET_ALIASES.get(target, target)
@@ -92,6 +131,7 @@ def compute_supplemental_manifest_hash(raw_root: Path) -> str:
         "combined_molprobity.tsv",
         "combined_tmscore.tsv",
         "combined_rosetta_tmscore.tsv",
+        "combined_rosetta_energy.tsv",
     ]
     files = []
     for pat in patterns:
@@ -251,6 +291,240 @@ def ingest_post_tmscore(conn: sqlite3.Connection, tsv: Path, snapshot_id: str) -
     if skipped_missing_tm:
         print(f"  warn: skipped {skipped_missing_tm} post-Rosetta TM rows with missing tmscore", file=sys.stderr)
     return inserted
+
+
+def ensure_schema_extensions(conn: sqlite3.Connection) -> None:
+    """Apply schema migrations for rosetta_energy + targets.parent_pdb_id."""
+    cur = conn.cursor()
+    # rosetta_energy table (IF NOT EXISTS, safe to re-run)
+    cur.executescript("""
+    CREATE TABLE IF NOT EXISTS rosetta_energy (
+      snapshot_id      TEXT NOT NULL,
+      target_id        TEXT NOT NULL,
+      pipeline_id      TEXT NOT NULL,
+      source_id        TEXT NOT NULL,
+      src_type         TEXT NOT NULL,
+      protocol_id      TEXT NOT NULL,
+      rep              INTEGER NOT NULL CHECK(rep BETWEEN 1 AND 5),
+      total_score      REAL,
+      per_residue_energy REAL,
+      PRIMARY KEY (snapshot_id, target_id, pipeline_id, src_type, protocol_id, rep),
+      FOREIGN KEY (snapshot_id) REFERENCES build_runs(snapshot_id),
+      FOREIGN KEY (target_id)   REFERENCES targets(target_id),
+      FOREIGN KEY (pipeline_id) REFERENCES pipelines(pipeline_id),
+      FOREIGN KEY (source_id)   REFERENCES sources(source_id),
+      FOREIGN KEY (protocol_id) REFERENCES protocols(protocol_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_re_target_pipeline ON rosetta_energy(target_id, pipeline_id);
+    CREATE INDEX IF NOT EXISTS idx_re_source_protocol ON rosetta_energy(source_id, protocol_id);
+    CREATE INDEX IF NOT EXISTS idx_re_snapshot ON rosetta_energy(snapshot_id);
+    """)
+    # ALTER TABLE targets ADD COLUMN parent_pdb_id (idempotent via try/except)
+    try:
+        cur.execute("ALTER TABLE targets ADD COLUMN parent_pdb_id TEXT")
+    except sqlite3.OperationalError as e:
+        if "duplicate column" not in str(e).lower():
+            raise
+    conn.commit()
+
+
+def ingest_rosetta_energy(conn: sqlite3.Connection, tsv: Path, snapshot_id: str) -> int:
+    """B6. Load combined_rosetta_energy.tsv into rosetta_energy.
+
+    NOTE: TSV is upstream-incomplete (~44% coverage of rosetta_metrics cells;
+    amber_crystal absent entirely). Coverage gaps logged separately by
+    audit_energy_coverage_gaps(). Internal exact-dup rows in the TSV are
+    logged to qc_quarantine so the audit trail is complete.
+    """
+    cur = conn.cursor()
+    cur.execute(
+        """DELETE FROM qc_quarantine
+           WHERE snapshot_id=? AND notes LIKE 'audit-energy-dup%' """,
+        (snapshot_id,),
+    )
+    inserted = 0
+    skipped_invalid_protocol = 0
+    skipped_invalid_rep = 0
+    seen: set[tuple] = set()
+    dup_quarantine: list[tuple] = []
+    with open(tsv) as f:
+        reader = csv.DictReader(f, delimiter="\t")
+        for row in reader:
+            target = _normalize_target(row["target"])
+            pipeline = row["pipeline"]
+            src_type = row["src_type"]
+            source = row.get("source") or ""
+            protocol = row["protocol"]
+            if protocol not in PROTOCOLS_VALID:
+                skipped_invalid_protocol += 1
+                continue
+            try:
+                rep = int(row["rep"])
+            except (TypeError, ValueError):
+                skipped_invalid_rep += 1
+                continue
+            key = (snapshot_id, target, pipeline, src_type, protocol, rep)
+            if key in seen:
+                dup_quarantine.append((
+                    snapshot_id, "exact_duplicate", str(tsv),
+                    json.dumps(row),
+                    "audit-energy-dup: combined_rosetta_energy.tsv internal duplicate row",
+                ))
+                continue
+            seen.add(key)
+            cur.execute(
+                """
+                INSERT OR IGNORE INTO rosetta_energy
+                (snapshot_id, target_id, pipeline_id, source_id, src_type,
+                 protocol_id, rep, total_score, per_residue_energy)
+                VALUES (?,?,?,?,?, ?,?, ?,?)
+                """,
+                (snapshot_id, target, pipeline, source, src_type,
+                 protocol, rep,
+                 _f(row.get("total_score")), _f(row.get("per_residue_energy"))),
+            )
+            inserted += cur.rowcount
+    if dup_quarantine:
+        cur.executemany(
+            """INSERT INTO qc_quarantine
+               (snapshot_id, bucket, raw_tsv_path, raw_row_json, notes)
+               VALUES (?,?,?,?,?)""",
+            dup_quarantine,
+        )
+        print(f"  logged {len(dup_quarantine)} TSV-internal duplicates to qc_quarantine", file=sys.stderr)
+    conn.commit()
+    if skipped_invalid_protocol:
+        print(f"  warn: skipped {skipped_invalid_protocol} energy rows with unrecognized protocol", file=sys.stderr)
+    if skipped_invalid_rep:
+        print(f"  warn: skipped {skipped_invalid_rep} energy rows with invalid rep", file=sys.stderr)
+    return inserted
+
+
+def update_targets_parent_pdb(conn: sqlite3.Connection) -> int:
+    """B7. Populate parent_pdb_id for the 4 non-standard target_ids."""
+    cur = conn.cursor()
+    n = 0
+    for target_id, parent in PARENT_PDB_MAP.items():
+        cur.execute(
+            "UPDATE targets SET parent_pdb_id=? WHERE target_id=?",
+            (parent, target_id),
+        )
+        n += cur.rowcount
+    conn.commit()
+    return n
+
+
+def audit_dropped_mp_rows(conn: sqlite3.Connection, raw_root: Path, snapshot_id: str) -> dict:
+    """B8a. Re-scan combined_rosetta_molprobity.tsv, log every silently-dropped
+    row to qc_quarantine. Mirrors the filter logic in build_db.py.
+
+    Buckets used:
+    - 'invalid_enum'    -> protocol not in PROTOCOLS_VALID
+    - 'missing_key'     -> rep field unparseable as int
+    Idempotent: clears prior audit-pass rows for this snapshot first.
+    """
+    cur = conn.cursor()
+    cur.execute(
+        """DELETE FROM qc_quarantine
+           WHERE snapshot_id=? AND notes LIKE 'audit-pass%' """,
+        (snapshot_id,),
+    )
+
+    tsv = raw_root / "combined_rosetta_molprobity.tsv"
+    counts = {"invalid_protocol": 0, "invalid_rep": 0, "exact_dups": 0, "legacy_src": 0}
+    seen: set[tuple] = set()
+    rows_to_quarantine: list[tuple] = []
+
+    with open(tsv) as f:
+        reader = csv.DictReader(f, delimiter="\t")
+        for row in reader:
+            src_type = row.get("src_type", "")
+            bkt = _bucket(src_type)
+            if bkt is None:
+                counts["legacy_src"] += 1
+                continue
+            proto = row.get("protocol", "")
+            if proto not in PROTOCOLS_VALID:
+                counts["invalid_protocol"] += 1
+                rows_to_quarantine.append((
+                    snapshot_id, "invalid_enum", str(tsv),
+                    json.dumps(row),
+                    f"audit-pass: protocol={proto!r} not in PROTOCOLS_VALID",
+                ))
+                continue
+            try:
+                rep = int(row["rep"])
+            except (TypeError, ValueError):
+                counts["invalid_rep"] += 1
+                rows_to_quarantine.append((
+                    snapshot_id, "missing_key", str(tsv),
+                    json.dumps(row),
+                    f"audit-pass: rep={row.get('rep')!r} not parseable as int",
+                ))
+                continue
+            target = _normalize_target(row["target"])
+            pipeline = row["pipeline"]
+            key = (snapshot_id, target, pipeline, src_type, proto, rep)
+            if key in seen:
+                counts["exact_dups"] += 1
+                continue
+            seen.add(key)
+
+    if rows_to_quarantine:
+        cur.executemany(
+            """INSERT INTO qc_quarantine
+               (snapshot_id, bucket, raw_tsv_path, raw_row_json, notes)
+               VALUES (?,?,?,?,?)""",
+            rows_to_quarantine,
+        )
+    conn.commit()
+    return counts
+
+
+def audit_energy_coverage_gaps(conn: sqlite3.Connection, snapshot_id: str) -> int:
+    """B8b. Identify rosetta_metrics cells with no matching rosetta_energy row.
+    Insert a single coverage_gap row per (target, pipeline, src_type, protocol, rep).
+    """
+    cur = conn.cursor()
+    cur.execute(
+        """DELETE FROM qc_quarantine
+           WHERE snapshot_id=? AND bucket='coverage_gap' AND notes LIKE 'audit-energy%' """,
+        (snapshot_id,),
+    )
+    cur.execute(
+        """
+        INSERT INTO qc_quarantine
+        (snapshot_id, bucket, raw_tsv_path, raw_row_json, notes)
+        SELECT
+            rm.snapshot_id,
+            'coverage_gap',
+            'combined_rosetta_energy.tsv',
+            json_object(
+                'target_id', rm.target_id,
+                'pipeline_id', rm.pipeline_id,
+                'source_id', rm.source_id,
+                'src_type', rm.src_type,
+                'protocol_id', rm.protocol_id,
+                'rep', rm.rep
+            ),
+            'audit-energy: rosetta_metrics cell has no rosetta_energy row'
+        FROM rosetta_metrics rm
+        WHERE rm.snapshot_id = ?
+          AND NOT EXISTS (
+            SELECT 1 FROM rosetta_energy re
+            WHERE re.snapshot_id = rm.snapshot_id
+              AND re.target_id   = rm.target_id
+              AND re.pipeline_id = rm.pipeline_id
+              AND re.src_type    = rm.src_type
+              AND re.protocol_id = rm.protocol_id
+              AND re.rep         = rm.rep
+          )
+        """,
+        (snapshot_id,),
+    )
+    n = cur.rowcount
+    conn.commit()
+    return n
 
 
 def stage_c_backfill_blue_crystal(conn: sqlite3.Connection, snapshot_id: str) -> tuple[int, list[str]]:
@@ -423,16 +697,37 @@ def qc_supplements(conn: sqlite3.Connection, snapshot_id: str) -> dict:
         WHERE NOT EXISTS (SELECT 1 FROM targets t WHERE t.target_id = tm.target_id)
     """).fetchone()[0]
 
+    n_energy = cur.execute("SELECT COUNT(*) FROM rosetta_energy WHERE snapshot_id=?", (snapshot_id,)).fetchone()[0]
+    n_targets_with_parent = cur.execute("SELECT COUNT(*) FROM targets WHERE parent_pdb_id IS NOT NULL").fetchone()[0]
+    n_quarantine = cur.execute("SELECT COUNT(*) FROM qc_quarantine WHERE snapshot_id=?", (snapshot_id,)).fetchone()[0]
+    n_q_invalid_enum = cur.execute("SELECT COUNT(*) FROM qc_quarantine WHERE snapshot_id=? AND bucket='invalid_enum'", (snapshot_id,)).fetchone()[0]
+    n_q_missing_key = cur.execute("SELECT COUNT(*) FROM qc_quarantine WHERE snapshot_id=? AND bucket='missing_key'", (snapshot_id,)).fetchone()[0]
+    n_q_coverage = cur.execute("SELECT COUNT(*) FROM qc_quarantine WHERE snapshot_id=? AND bucket='coverage_gap'", (snapshot_id,)).fetchone()[0]
+    orphans_energy = cur.execute("""
+        SELECT COUNT(*) FROM rosetta_energy re
+        WHERE NOT EXISTS (SELECT 1 FROM targets t WHERE t.target_id = re.target_id)
+    """).fetchone()[0]
+    n_rm = cur.execute("SELECT COUNT(*) FROM rosetta_metrics WHERE snapshot_id=?", (snapshot_id,)).fetchone()[0]
+
     return {
         "prerosetta_metrics_rows": n_pre,
         "tm_scores_pre_rows": n_pre_tm,
         "tm_scores_post_rows": n_post_tm,
         "tm_scores_total": n_pre_tm + n_post_tm,
+        "rosetta_metrics_rows": n_rm,
+        "rosetta_energy_rows": n_energy,
+        "rosetta_energy_coverage_pct": round(100 * n_energy / n_rm, 2) if n_rm else 0,
         "targets_with_difficulty": n_targets_with_diff,
         "targets_with_chains_residues": n_targets_with_chains,
+        "targets_with_parent_pdb": n_targets_with_parent,
         "targets_total": n_targets,
         "orphan_prerosetta_target_rows": orphans_pre,
         "orphan_tm_score_target_rows": orphans_tm,
+        "orphan_rosetta_energy_target_rows": orphans_energy,
+        "qc_quarantine_total": n_quarantine,
+        "qc_quarantine_invalid_enum": n_q_invalid_enum,
+        "qc_quarantine_missing_key": n_q_missing_key,
+        "qc_quarantine_coverage_gap": n_q_coverage,
     }
 
 
@@ -452,7 +747,8 @@ def main() -> None:
     pre_mp_tsv = args.raw_root / "combined_molprobity.tsv"
     pre_tm_tsv = args.raw_root / "combined_tmscore.tsv"
     post_tm_tsv = args.raw_root / "combined_rosetta_tmscore.tsv"
-    for p in [pre_mp_tsv, pre_tm_tsv, post_tm_tsv, args.difficulty_csv, args.chains_csv]:
+    energy_tsv = args.raw_root / "combined_rosetta_energy.tsv"
+    for p in [pre_mp_tsv, pre_tm_tsv, post_tm_tsv, energy_tsv, args.difficulty_csv, args.chains_csv]:
         if not p.exists():
             sys.exit(f"missing input: {p}")
 
@@ -460,6 +756,9 @@ def main() -> None:
     conn.execute("PRAGMA foreign_keys = ON")
 
     print(f"Supplementing {args.db} under snapshot {args.snapshot_id}")
+
+    print("B0. applying schema extensions (rosetta_energy + targets.parent_pdb_id) ...")
+    ensure_schema_extensions(conn)
 
     print("B1. ingesting prerosetta_metrics ...")
     n1 = ingest_prerosetta(conn, pre_mp_tsv, args.snapshot_id)
@@ -481,6 +780,23 @@ def main() -> None:
     diff_n, chains_n = update_targets_metadata(conn, args.difficulty_csv, args.chains_csv)
     print(f"   updated {diff_n} difficulty/category, {chains_n} chains/residues")
 
+    print("B6. ingesting rosetta_energy ...")
+    n6 = ingest_rosetta_energy(conn, energy_tsv, args.snapshot_id)
+    print(f"   inserted {n6} rows (incomplete vs rosetta_metrics; gaps logged in B8b)")
+
+    print("B7. updating targets.parent_pdb_id for non-standard ...")
+    n7 = update_targets_parent_pdb(conn)
+    print(f"   updated {n7} rows ({list(PARENT_PDB_MAP.keys())})")
+
+    print("B8a. auditing silently-dropped rows in combined_rosetta_molprobity.tsv ...")
+    audit_counts = audit_dropped_mp_rows(conn, args.raw_root, args.snapshot_id)
+    for k, v in audit_counts.items():
+        print(f"   {k}: {v}")
+
+    print("B8b. auditing rosetta_energy coverage gaps vs rosetta_metrics ...")
+    n_gaps = audit_energy_coverage_gaps(conn, args.snapshot_id)
+    print(f"   logged {n_gaps} coverage_gap rows to qc_quarantine")
+
     print("B5. QC ...")
     qc = qc_supplements(conn, args.snapshot_id)
     for k, v in qc.items():
@@ -489,22 +805,32 @@ def main() -> None:
     qc_pass = (
         qc["orphan_prerosetta_target_rows"] == 0 and
         qc["orphan_tm_score_target_rows"] == 0 and
+        qc["orphan_rosetta_energy_target_rows"] == 0 and
         qc["targets_with_difficulty"] == qc["targets_total"] and
         qc["targets_with_chains_residues"] == qc["targets_total"] and
+        qc["targets_with_parent_pdb"] == len(PARENT_PDB_MAP) and
         qc["prerosetta_metrics_rows"] >= 13_364 and          # 13,344 from TSV + 20 Stage C backfill
         qc["tm_scores_pre_rows"] >= 12_000 and
-        qc["tm_scores_post_rows"] >= 92_000
+        qc["tm_scores_post_rows"] >= 92_000 and
+        qc["rosetta_energy_rows"] >= 183_000              # incomplete by design (~44%); 979 TSV-internal dups quarantined
     )
     qc_status = "pass" if qc_pass else "warn"
 
     print("B4. updating build_runs row in place ...")
     new_counts = {
-        "rosetta_metrics": 416340,
+        "rosetta_metrics": qc["rosetta_metrics_rows"],
         "prerosetta_metrics": qc["prerosetta_metrics_rows"],
         "tm_scores_pre": qc["tm_scores_pre_rows"],
         "tm_scores_post": qc["tm_scores_post_rows"],
         "tm_scores_total": qc["tm_scores_total"],
+        "rosetta_energy": qc["rosetta_energy_rows"],
+        "rosetta_energy_coverage_pct": qc["rosetta_energy_coverage_pct"],
         "targets_with_metadata": qc["targets_with_difficulty"],
+        "targets_with_parent_pdb": qc["targets_with_parent_pdb"],
+        "qc_quarantine_total": qc["qc_quarantine_total"],
+        "qc_quarantine_invalid_enum": qc["qc_quarantine_invalid_enum"],
+        "qc_quarantine_missing_key": qc["qc_quarantine_missing_key"],
+        "qc_quarantine_coverage_gap": qc["qc_quarantine_coverage_gap"],
     }
     update_build_run(conn, args.snapshot_id, args.raw_root, new_counts, qc_status)
 

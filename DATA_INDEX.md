@@ -2,7 +2,7 @@
 
 **"I want X. Where do I get it?"** — every artifact in this project, where it lives, and one command to fetch it.
 
-Last verified: 2026-04-28 (Stage B + C complete, all schema-reserved tables populated). Data lock 2026-04-27a: 416,340 Rosetta MP + 13,364 prerosetta MP + 104,765 TM scores + 257 targets full metadata. qc_status=pass.
+Last verified: 2026-04-28 (Stage B + C + B6 + B7 + B8 complete; every schema-defined table populated; every silently-dropped row logged). Data lock 2026-04-27a: 416,340 Rosetta MP + 13,364 prerosetta MP + 104,765 TM scores + 183,373 Rosetta energy (44.04% coverage; gaps audited) + 257 targets full metadata + 240,451 qc_quarantine rows (audit trail). qc_status=pass.
 
 ---
 
@@ -62,17 +62,18 @@ All sync scripts are atomic (`rsync --partial --delay-updates`) and idempotent.
   | Table | Rows | Notes |
   |---|---|---|
   | `rosetta_metrics` | **416,340** | Locked. Authoritative post-Rosetta MP. |
-  | `targets` | 257 | All metadata populated: difficulty (162R/60M/35D from zlab), category (8 zlab codes: AA/AS/EI/ER/ES/OG/OR/OX), n_chains (605 total), n_residues (122,966 total). 4 non-standard flagged (BAAD, BOYV, BP57, CP57). |
+  | `targets` | 257 | All metadata populated: difficulty (162R/60M/35D from zlab), category (8 zlab codes: AA/AS/EI/ER/ES/OG/OR/OX), n_chains (605 total), n_residues (122,966 total). 4 non-standard flagged (BAAD, BOYV, BP57, CP57) with `parent_pdb_id` (3AAD_A:B, 1OYV_B:I, 3P57_AB:P, 3P57_CD:P). |
   | `pipelines` | 2 | blue, green |
   | `sources` | 7 | af_relaxed, af_unrelaxed, amber_af, amber_boltz, amber_crystal, boltz, crystal |
   | `protocols` | 6 | cartesian/dualspace/normal × beta_nov16/ref2015 |
   | `prerosetta_metrics` | **13,364** | 13,344 from `combined_molprobity.tsv` + 20 Stage C backfilled from Green crystal MP (PDB-identical, MolProbity deterministic). |
   | `tm_scores` | **104,765** | 12,065 pre-Rosetta + 92,700 post-Rosetta. PK uses `is_post_rosetta` flag; pre-Rosetta has NULL protocol_id and rep. |
-  | `qc_quarantine` | 0 | Empty (no rows quarantined at lock) |
+  | `rosetta_energy` | **183,373** | Schema-extension table (added 2026-04-28). Total_score + per_residue_energy per (target, pipeline, src_type, protocol, rep) cell. **Upstream-incomplete: 44.04% coverage of rosetta_metrics.** amber_crystal source has 0 energy rows in either pipeline; other sources partial. Each missing cell logged to qc_quarantine. |
+  | `qc_quarantine` | **240,451** | 239,472 `coverage_gap` (rosetta_metrics cells with no corresponding rosetta_energy row) + 979 `exact_duplicate` (combined_rosetta_energy.tsv internal duplicate rows). Audit trail for the rosetta_energy gap. |
   | `build_runs` | 1 | Single locked snapshot 2026-04-27a, qc_status=pass, raw_manifest_hash recomputed against supplemental TSVs. |
   | views: `v_cell_summary`, `v_per_target_mp_means` | — | Pre-built convenience views |
 
-  **Status:** All schema-reserved tables populated as of 2026-04-28 via `db/scripts/build_db_supplements.py` (companion to `build_db.py`, idempotent, additive under the same snapshot_id). Stages B + C complete. Single citation point for the manuscript: snapshot 2026-04-27a.
+  **Status:** All schema-defined tables populated as of 2026-04-28 via `db/scripts/build_db_supplements.py` (idempotent, additive under the same snapshot_id, applies the schema migration for `rosetta_energy` + `targets.parent_pdb_id` on first run). Stages B + C + B6 + B7 + B8 complete. Single citation point for the manuscript: snapshot 2026-04-27a.
 
 ### Per-target output (Blue pipeline, individual target metrics)
 - **ACCRE source:** `accre:/data/p_csb_meiler/agarwm5/red_analysis/metrics/molprobity_blue_<TARGET>.tsv` and `molprobity_green_<TARGET>.tsv` (one per target × per pipeline)
@@ -134,7 +135,7 @@ All sync scripts are atomic (`rsync --partial --delay-updates`) and idempotent.
 | `Protein_Ideal` | github.com/dreamlessx/Protein_Ideal | GREEN pipeline + dataset prep |
 | `Protein_Data_Analysis` | github.com/dreamlessx/Protein_Data_Analysis | MolProbity validation toolchain (Phase 1 pilot, 20 proteins) |
 
-All three are clean at upstream HEAD as of 2026-04-28, with paper-level cleanup landed (AI-agent scaffolding stripped, em-dashes scrubbed, lock state propagated). DB supplements (13,364 prerosetta + 104,765 tm + targets metadata) shipped under `db/scripts/build_db_supplements.py` in `Protein_Relax_Pipeline`. Live SQLite published as a GitHub Release.
+All three are clean at upstream HEAD as of 2026-04-28. DB now fully populated: `rosetta_metrics` 416,340 + `prerosetta_metrics` 13,364 + `tm_scores` 104,765 + `rosetta_energy` 183,373 (44.04% coverage; gaps audited) + `qc_quarantine` 240,451 (audit trail) + `targets` 257 with full metadata. Loader in `Protein_Relax_Pipeline/db/scripts/build_db_supplements.py` includes schema migration. Live SQLite + 5 raw TSVs in the `db-2026-04-27a-supp` GitHub Release.
 
 ---
 

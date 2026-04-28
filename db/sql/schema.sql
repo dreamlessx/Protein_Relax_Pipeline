@@ -22,10 +22,11 @@ CREATE TABLE IF NOT EXISTS build_runs (
 CREATE TABLE IF NOT EXISTS targets (
   target_id        TEXT PRIMARY KEY,             -- e.g., "1ACB", "BAAD", "4Y7M"
   difficulty       TEXT CHECK(difficulty IN ('rigid','medium','difficult')),
-  category         TEXT,                          -- OG / EI / ES / OX / OR / AB / AB-AG
+  category         TEXT,                          -- zlab BM5.5: AA/AS/EI/ER/ES/OG/OR/OX
   n_chains         INTEGER,
   n_residues       INTEGER,
-  non_standard_flag INTEGER DEFAULT 0             -- BAAD/BOYV/BP57/CP57 = 1
+  non_standard_flag INTEGER DEFAULT 0,            -- BAAD/BOYV/BP57/CP57 = 1
+  parent_pdb_id    TEXT                           -- non-standard parent (e.g. BAAD->3AAD_A:B)
 );
 
 CREATE TABLE IF NOT EXISTS pipelines (
@@ -95,6 +96,34 @@ CREATE TABLE IF NOT EXISTS prerosetta_metrics (
   FOREIGN KEY (target_id)   REFERENCES targets(target_id),
   FOREIGN KEY (pipeline_id) REFERENCES pipelines(pipeline_id)
 );
+
+-- Rosetta-relaxed structure energies (total_score + per-residue energy)
+-- NOTE: incomplete vs rosetta_metrics. As of 2026-04-28: 184,352 of 416,340
+-- expected rows present (~44% coverage). amber_crystal source has 0 energy
+-- rows in both pipelines. Missing cells are logged to qc_quarantine bucket
+-- 'coverage_gap'. Re-extraction would require re-running Rosetta scoring on
+-- the remaining .pdb.gz outputs in /data/.../{blue,green}_relax/ on ACCRE.
+CREATE TABLE IF NOT EXISTS rosetta_energy (
+  snapshot_id      TEXT NOT NULL,
+  target_id        TEXT NOT NULL,
+  pipeline_id      TEXT NOT NULL,
+  source_id        TEXT NOT NULL,
+  src_type         TEXT NOT NULL,
+  protocol_id      TEXT NOT NULL,
+  rep              INTEGER NOT NULL CHECK(rep BETWEEN 1 AND 5),
+  total_score      REAL,
+  per_residue_energy REAL,
+  PRIMARY KEY (snapshot_id, target_id, pipeline_id, src_type, protocol_id, rep),
+  FOREIGN KEY (snapshot_id) REFERENCES build_runs(snapshot_id),
+  FOREIGN KEY (target_id)   REFERENCES targets(target_id),
+  FOREIGN KEY (pipeline_id) REFERENCES pipelines(pipeline_id),
+  FOREIGN KEY (source_id)   REFERENCES sources(source_id),
+  FOREIGN KEY (protocol_id) REFERENCES protocols(protocol_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_re_target_pipeline ON rosetta_energy(target_id, pipeline_id);
+CREATE INDEX IF NOT EXISTS idx_re_source_protocol ON rosetta_energy(source_id, protocol_id);
+CREATE INDEX IF NOT EXISTS idx_re_snapshot ON rosetta_energy(snapshot_id);
 
 -- TM-score (pre + post Rosetta)
 CREATE TABLE IF NOT EXISTS tm_scores (
