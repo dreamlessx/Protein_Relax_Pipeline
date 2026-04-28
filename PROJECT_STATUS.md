@@ -105,7 +105,7 @@ None. Previously "permanent" 1ACB/1ATN AMBER-crystal failures were resolved on 2
 
 ## Pipeline Design
 
-- **Blue pipeline** = primary (Claude). Job prefix: `blue_`
+- **Blue pipeline** = primary. Job prefix: `blue_`
 - **Green pipeline** = independent verification of Blue. Job prefix: `green_`
 - **Red analysis** = metrics & figures. Job prefix: `red_`
 - Both Blue and Green follow identical Rosetta flags, same inputs, same output structure

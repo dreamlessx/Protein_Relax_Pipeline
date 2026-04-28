@@ -241,7 +241,7 @@ The pipeline is locked at 100.000% completion as of 2026-04-27.
 | Filtered at ingest | 663 exact dups + 27 legacy-source rows | (does not affect locked count) |
 
 Pipeline definitions:
-- Blue pipeline: primary (Claude). Job prefix: `blue_`
+- Blue pipeline: primary. Job prefix: `blue_`
 - Green pipeline: independent verification of Blue. Job prefix: `green_`
 - Red analysis: metrics and figures. Job prefix: `red_`
 

@@ -4,7 +4,7 @@
 
 ## Identities
 
-- **Blue** = primary pipeline (Claude). Job prefix: `blue_`
+- **Blue** = primary pipeline. Job prefix: `blue_`
 - **Green** = independent verification of Blue's protocol. Job prefix: `green_`
 - **Red** = analysis and metrics. Job prefix: `red_`
 - Blue and Green follow identical Rosetta flags, identical inputs, identical output structure.
