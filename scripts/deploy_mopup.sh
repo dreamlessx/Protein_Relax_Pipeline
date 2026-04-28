@@ -8,7 +8,7 @@
 #   3. Patches array size into SLURM scripts
 #   4. Submits both mop-up arrays
 #
-# Safe to run while existing jobs are active — all scripts have skip-logic
+# Safe to run while existing jobs are active - all scripts have skip-logic
 
 set -euo pipefail
 

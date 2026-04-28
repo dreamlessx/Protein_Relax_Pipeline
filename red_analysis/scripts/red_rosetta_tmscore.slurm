@@ -11,13 +11,13 @@
 #SBATCH --error=/data/p_csb_meiler/agarwm5/red_analysis/logs/rosetta_tm_%a.err
 
 ###############################################################################
-# red_rosetta_tmscore.slurm — TM-score for all Rosetta-relaxed structures
+# red_rosetta_tmscore.slurm - TM-score for all Rosetta-relaxed structures
 #
 # COMMENT: Only submit this when Rosetta jobs are complete (or near-complete).
 # Each target may have up to 780 pdb.gz files to score. With TMscore taking
 # ~0.5s per file, worst case is ~7 minutes per target. 4 hour limit is generous.
 #
-# Run for partial data too — the script handles missing files gracefully.
+# Run for partial data too - the script handles missing files gracefully.
 ###############################################################################
 
 set -euo pipefail

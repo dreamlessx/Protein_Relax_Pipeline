@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-generate_rosetta_figures.py — Red Analysis Pipeline
+generate_rosetta_figures.py - Red Analysis Pipeline
 
 Publication figures for Rosetta relaxation analysis.
 

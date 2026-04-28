@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-generate_clashscore_scatter.py — Red Analysis Pipeline
+generate_clashscore_scatter.py - Red Analysis Pipeline
 
 Initial vs Final clashscore scatter: AMBER relaxed vs non-AMBER.
 
 4-panel figure:
-  Panel 1: Crystal (reference — no relaxation, plotted on identity)
+  Panel 1: Crystal (reference - no relaxation, plotted on identity)
   Panel 2: AF unrelaxed → AF relaxed (built-in AMBER)
   Panel 3: AF unrelaxed → AMBER(AF) (standalone AMBER)
   Panel 4: Boltz → AMBER(Boltz) (standalone AMBER)
@@ -201,7 +201,7 @@ def clashscore_amber_comparison(data):
             ax.spines['right'].set_visible(False)
 
         fig.suptitle(f'AMBER Relaxation: Initial vs Final Clashscore ({pipe_label})\n'
-                     f'257 BM5.5 targets — per-target averages',
+                     f'257 BM5.5 targets - per-target averages',
                      fontsize=13, fontweight='bold')
         plt.tight_layout()
         save_fig(fig, f'fig22_amber_clashscore_comparison_{pipe}')

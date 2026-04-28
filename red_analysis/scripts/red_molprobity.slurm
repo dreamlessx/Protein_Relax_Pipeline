@@ -11,7 +11,7 @@
 #SBATCH --error=/data/p_csb_meiler/agarwm5/red_analysis/logs/molprobity_%a.err
 
 ###############################################################################
-# red_molprobity.slurm — MolProbity validation for all pre-Rosetta structures
+# red_molprobity.slurm - MolProbity validation for all pre-Rosetta structures
 #
 # COMMENT: This is Phase 3 of Red analysis. Uses cctbx Python API with
 # individual validators (ramalyze, rotalyze, cbetadev, clashscore) plus
@@ -26,7 +26,7 @@
 # REQUIRES: conda env red_analysis with cctbx-base, probe, reduce (wrapper)
 #
 # Key patches for this cluster:
-#   1. reduce wrapper (forces return code 0 — reduce v4.16 returns 255 on success)
+#   1. reduce wrapper (forces return code 0 - reduce v4.16 returns 255 on success)
 #   2. SS link alias (CCP4 lib uses 'disulf', cctbx expects 'SS')
 #   3. probe/reduce module detection monkey-patch
 #   4. H-stripping for AF-relaxed and AMBER structures (424 extra H atoms)

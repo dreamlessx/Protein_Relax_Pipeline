@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-compute_molprobity_py.py — Red Analysis Pipeline
+compute_molprobity_py.py - Red Analysis Pipeline
 
 Computes MolProbity validation metrics using cctbx Python API.
 Designed for SLURM array parallelization (one target per task).
@@ -27,7 +27,7 @@ COMMENT: MolProbity is the key complement to TM-score. TM-score tells us
 reasonable is this structure?" A structure can have perfect TM-score but
 terrible MolProbity (e.g., steric clashes, bad rotamers). The hypothesis
 is that AMBER relaxation fixes MolProbity metrics without changing global
-fold (TM-score) — which is exactly what we saw in Phase 1.
+fold (TM-score) - which is exactly what we saw in Phase 1.
 
 If that's true, it would mean:
   - AMBER is doing what it should: optimizing local geometry
@@ -108,7 +108,7 @@ def run_molprobity(pdb_path, target, pipeline, source, model_idx, outfile):
 
     tmppath = None
     try:
-        # Strip hydrogen atoms — AF-relaxed and AMBER structures contain H atoms
+        # Strip hydrogen atoms - AF-relaxed and AMBER structures contain H atoms
         # that cause "unknown nonbonded energy type symbols" errors in cctbx.
         # MolProbity uses reduce to place its own hydrogens for clashscore anyway.
         pdb_inp = iotbx.pdb.input(file_name=pdb_path)

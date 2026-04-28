@@ -15,11 +15,11 @@
 #SBATCH --exclude=cn1340
 
 # AMBER crystal relaxation for 95 targets missing it
-# GPU job — uses AlphaFold's AMBER minimization on crystal PDBs
+# GPU job - uses AlphaFold's AMBER minimization on crystal PDBs
 
 set -eo pipefail
 
-# ACCRE migrated module system — load new stack first
+# ACCRE migrated module system - load new stack first
 setup_accre_software_stack 2>/dev/null || true
 source /sb/apps/alphafold232/miniconda3/bin/activate af232
 

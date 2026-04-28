@@ -12,7 +12,7 @@
 
 # Green mop-up: one array task per (target, model, protocol) combo
 # Each task runs only the missing replicates for ONE combo (~5-50 min each)
-# Safe to run alongside existing jobs — skip-logic checks before each rep
+# Safe to run alongside existing jobs - skip-logic checks before each rep
 #
 # Setup:
 #   1. bash green_scan_gaps.sh > /data/p_csb_meiler/agarwm5/protein_ideal_test/benchmarking/green_worklist.tsv
@@ -78,7 +78,7 @@ IFS=',' read -ra REPS <<< "$MISSING_REPS"
 DONE=0
 for r in "${REPS[@]}"; do
   if compgen -G "${OUT_DIR}/*_r${r}.pdb.gz" > /dev/null 2>&1; then
-    echo "Rep $r already exists — skipping"
+    echo "Rep $r already exists - skipping"
     DONE=$((DONE+1))
     continue
   fi

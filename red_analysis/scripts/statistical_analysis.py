@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-statistical_analysis.py — Red Analysis Pipeline
+statistical_analysis.py - Red Analysis Pipeline
 
 Comprehensive statistical analysis combining TM-score and MolProbity data.
 This is the main analysis script for the paper's Results section.
@@ -23,7 +23,7 @@ Statistical methods:
 
 COMMENT: This is where the paper lives or dies. Good science is about
 asking the right questions and answering them honestly. The data tells
-the story — our job is to present it fairly.
+the story - our job is to present it fairly.
 """
 
 import os

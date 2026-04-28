@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-compute_rosetta_molprobity.py — Red Analysis Pipeline
+compute_rosetta_molprobity.py - Red Analysis Pipeline
 
 Computes MolProbity metrics for Rosetta-relaxed structures.
 Handles .pdb.gz files (decompresses on the fly).
 
-COMMENT: This is Phase 4 — the most important analysis for the paper.
+COMMENT: This is Phase 4 - the most important analysis for the paper.
 The key question: does Rosetta improve MolProbity metrics?
 We already know:
   - Rosetta degrades TM-score by ~0.02 (Phase 2)
@@ -31,7 +31,7 @@ import tempfile
 import warnings
 warnings.filterwarnings('ignore')
 
-# Environment setup — ensure conda bin is in PATH for probe/reduce
+# Environment setup - ensure conda bin is in PATH for probe/reduce
 conda_prefix = os.environ.get('CONDA_PREFIX', '')
 if not conda_prefix:
     conda_prefix = os.path.dirname(os.path.dirname(sys.executable))
@@ -188,12 +188,12 @@ def main():
         with open(outfile) as f:
             existing_rows = sum(1 for _ in f) - 1  # subtract header
         if existing_rows >= expected_count and expected_count > 0:
-            print(f"SKIP: {target} ({pipeline}) — {existing_rows} rows already exist "
+            print(f"SKIP: {target} ({pipeline}) - {existing_rows} rows already exist "
                   f"(expected {expected_count})")
             return
         elif existing_rows > 0:
-            # Partial file — delete and start fresh to avoid duplicates
-            print(f"PARTIAL: {target} ({pipeline}) — {existing_rows}/{expected_count} rows, "
+            # Partial file - delete and start fresh to avoid duplicates
+            print(f"PARTIAL: {target} ({pipeline}) - {existing_rows}/{expected_count} rows, "
                   f"restarting fresh")
             os.unlink(outfile)
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-target_summary.py — Red Analysis Pipeline
+target_summary.py - Red Analysis Pipeline
 
 Creates a per-target summary combining TM-score and MolProbity data.
 Identifies which prediction source is "best" for each target and metric.
@@ -64,12 +64,12 @@ def main():
     tm_cols = [f'tm_{s}' for s in SOURCE_ORDER if f'tm_{s}' in summary.columns]
     mp_cols = [f'mp_{s}' for s in SOURCE_ORDER if f'mp_{s}' in summary.columns]
 
-    # Best TM (highest) — skip rows with all NaN
+    # Best TM (highest) - skip rows with all NaN
     tm_valid = summary[tm_cols].dropna(how='all')
     summary.loc[tm_valid.index, 'best_tm_source'] = tm_valid.idxmax(axis=1).str.replace('tm_', '')
     summary['best_tm_value'] = summary[tm_cols].max(axis=1)
 
-    # Best MP (lowest) — skip rows with all NaN
+    # Best MP (lowest) - skip rows with all NaN
     mp_valid = summary[mp_cols].dropna(how='all')
     summary.loc[mp_valid.index, 'best_mp_source'] = mp_valid.idxmin(axis=1).str.replace('mp_', '')
     summary['best_mp_value'] = summary[mp_cols].min(axis=1)

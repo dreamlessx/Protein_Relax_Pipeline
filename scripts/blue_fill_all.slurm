@@ -112,7 +112,7 @@ done
 
 REMAINING=$((TOTAL-SKIP))
 if [[ $REMAINING -eq 0 ]]; then
-  echo "$TARGET: all $TOTAL runs complete — skipping"
+  echo "$TARGET: all $TOTAL runs complete - skipping"
   exit 0
 fi
 

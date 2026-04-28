@@ -105,10 +105,10 @@ else
     echo "full_dbs FAILED for $TARGET"
     unrelaxed_count=$(find "$CALCDIR/af_out" -name "unrelaxed_model_*.pdb" 2>/dev/null | wc -l)
     if [[ "$unrelaxed_count" -gt 0 ]]; then
-        echo "WARNING: Found $unrelaxed_count unrelaxed models — AMBER likely failed."
+        echo "WARNING: Found $unrelaxed_count unrelaxed models - AMBER likely failed."
         echo "Keeping unrelaxed output."
     else
-        echo "No unrelaxed models — MSA failure. Trying reduced_dbs..."
+        echo "No unrelaxed models - MSA failure. Trying reduced_dbs..."
         rm -rf "$CALCDIR/af_out" 2>/dev/null
         if run_af "reduced_dbs"; then
             echo "reduced_dbs succeeded for $TARGET"

@@ -11,7 +11,7 @@
 #SBATCH --error=/data/p_csb_meiler/agarwm5/red_analysis/logs/rerun_mp_%a.err
 
 ###############################################################################
-# red_rerun_4targets.slurm — Re-run Phase 4 MolProbity for 3 Blue targets
+# red_rerun_4targets.slurm - Re-run Phase 4 MolProbity for 3 Blue targets
 # (1A2K already done, so only 1ATN, 1BKD, 1D6R need processing)
 #
 # Array task mapping:

@@ -28,7 +28,7 @@ TARGET=$(basename "$D")
 
 AMBER_CRYSTAL="$D/amber_out/crystal/relaxed.pdb"
 if [[ ! -f "$AMBER_CRYSTAL" ]]; then
-  echo "No AMBER(crystal) for $TARGET — skipping"
+  echo "No AMBER(crystal) for $TARGET - skipping"
   exit 0
 fi
 

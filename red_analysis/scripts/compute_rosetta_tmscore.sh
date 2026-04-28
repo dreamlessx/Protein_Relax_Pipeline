@@ -1,6 +1,6 @@
 #!/bin/bash
 ###############################################################################
-# compute_rosetta_tmscore.sh — Red Analysis Pipeline
+# compute_rosetta_tmscore.sh - Red Analysis Pipeline
 #
 # Computes TM-score for Rosetta-relaxed structures against crystal references.
 # Handles .pdb.gz files (decompresses on the fly).

@@ -1,6 +1,6 @@
 #!/bin/bash
 ###############################################################################
-# compute_molprobity.sh — Red Analysis Pipeline
+# compute_molprobity.sh - Red Analysis Pipeline
 #
 # Computes MolProbity validation metrics for all pre-Rosetta structures.
 # Uses Phenix's molprobity command-line tool.
@@ -19,7 +19,7 @@
 # perfect TM-score but terrible MolProbity if it has bad geometry.
 #
 # QUESTION: Should we also run on crystal structures themselves? This gives
-# a baseline — published crystal structures aren't perfect either. Knowing
+# a baseline - published crystal structures aren't perfect either. Knowing
 # crystal MolProbity helps contextualize prediction quality.
 # DECISION: Yes, run on crystals too. It's 257 extra structures, negligible cost.
 ###############################################################################

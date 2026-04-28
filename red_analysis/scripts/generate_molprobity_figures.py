@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-generate_molprobity_figures.py — Red Analysis Pipeline
+generate_molprobity_figures.py - Red Analysis Pipeline
 
 Publication figures for MolProbity validation analysis.
 

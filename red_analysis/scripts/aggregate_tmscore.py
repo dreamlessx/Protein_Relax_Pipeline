@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-aggregate_tmscore.py — Red Analysis Pipeline
+aggregate_tmscore.py - Red Analysis Pipeline
 
 Merges per-target TM-score TSV files into a single combined dataset,
 computes summary statistics, and generates initial comparison tables.
 
 Output files:
-  - metrics/combined_tmscore.tsv    — all rows merged
-  - tables/summary_by_source.tsv   — mean/median/std per source type
-  - tables/summary_by_pipeline.tsv — Blue vs Green comparison
-  - tables/blue_green_agreement.tsv — per-target correlation metrics
+  - metrics/combined_tmscore.tsv    - all rows merged
+  - tables/summary_by_source.tsv   - mean/median/std per source type
+  - tables/summary_by_pipeline.tsv - Blue vs Green comparison
+  - tables/blue_green_agreement.tsv - per-target correlation metrics
 
 QUESTION: Should we report TM-score or 1-TM-score? TM-score is bounded [0,1]
 and most of our values will be very high (>0.95). Reporting 1-TM might make
@@ -208,7 +208,7 @@ def compute_blue_green_agreement(rows):
 def print_quick_summary(rows):
     """Print a quick human-readable summary to stdout."""
     print("\n" + "="*70)
-    print("RED ANALYSIS — Pre-Rosetta TM-score Summary")
+    print("RED ANALYSIS - Pre-Rosetta TM-score Summary")
     print("="*70)
 
     # Group by (pipeline, source)

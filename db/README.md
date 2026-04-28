@@ -41,7 +41,7 @@ python db/scripts/build_db.py \
 ```
 
 Emits:
-- `bm55.sqlite` — single canonical file
+- `bm55.sqlite` - single canonical file
 - Quarantine table populated with all skipped rows + coverage gaps
 - `build_runs` row with git commit + manifest hash + qc_status ∈ {pass, warn, fail}
 
