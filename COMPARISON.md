@@ -1,21 +1,22 @@
 # Comparison Framework
 
-**Last updated:** 2026-03-09
+**Last updated:** 2026-04-27 (snapshot 2026-04-27a, pipeline locked at 100.000%)
 
 ## Overview
 
 This document describes the benchmarking framework for comparing protein structure prediction and relaxation methods against experimental crystal structures from the BM5.5 dataset.
 
-## Input Sources (6 Types)
+## Input Sources (7 buckets)
 
 | # | Input Type | Source | Description |
 |---|-----------|--------|-------------|
-| 1 | `af_relaxed` | AlphaFold 2.3.2 | Built-in AMBER relaxation (control) |
-| 2 | `af_unrelaxed` | AlphaFold 2.3.2 | Raw neural network output |
-| 3 | `boltz` | Boltz-1 v0.4.1 | Diffusion model prediction |
-| 4 | `amber_af` | Standalone AMBER | AF unrelaxed + standalone AMBER relaxation (test) |
-| 5 | `amber_boltz` | Standalone AMBER | Boltz + standalone AMBER relaxation (test) |
-| 6 | `crystal` | PDB/RCSB | Experimental X-ray/NMR structures |
+| 1 | `af_relaxed` | AlphaFold 2.3.2 | Built-in AMBER relaxation (control), 5 ranked models per target |
+| 2 | `af_unrelaxed` | AlphaFold 2.3.2 | Raw neural network output, 5 ranked models per target |
+| 3 | `boltz` | Boltz-1 v0.4.1 | Diffusion model prediction, 5 samples per target |
+| 4 | `amber_af` | Standalone AMBER | AF unrelaxed + standalone AMBER, 5 models per target |
+| 5 | `amber_boltz` | Standalone AMBER | Boltz + standalone AMBER, 5 models per target |
+| 6 | `crystal` | PDB/RCSB | Experimental X-ray/NMR structures, 1 per target |
+| 7 | `amber_crystal` | Standalone AMBER | Standalone AMBER on crystal, 1 model per target |
 
 ## Relaxation Protocols (6 Rosetta + 1 AMBER)
 
@@ -56,13 +57,12 @@ Each Rosetta protocol uses 5 replicates for statistical robustness.
 
 | Component | Count |
 |-----------|-------|
-| Input types | 6 |
+| Input structures per target | 27 (5 AF relaxed + 5 AF unrelaxed + 5 Boltz + 5 AMBER(AF) + 5 AMBER(Boltz) + 1 crystal + 1 AMBER(crystal)) |
 | Rosetta protocols | 6 |
 | Replicates | 5 |
-| **Total Rosetta runs** | **180** (6 x 6 x 5) |
-| **Total per target** | **780** (6 inputs x 6 protocols x 5 reps, max) |
-
-**Note:** Not all input types have 5 models (Boltz has 5 diffusion samples, AF has 5 ranked models), so actual run count may vary.
+| **Per target per pipeline** | **810** (27 x 6 x 5) |
+| **Per pipeline (257 targets)** | **208,170** |
+| **Both pipelines combined** | **416,340** |
 
 ## FASTA Strategy: Crystal-Derived
 
@@ -79,7 +79,7 @@ All predictions use FASTAs derived directly from crystal PDB coordinates to ensu
 
 | Metric | Value |
 |--------|-------|
-| Targets changed | 236/257 (92%) |
+| Targets changed | 241/257 (94%) |
 | Net residue change | -3,956 |
 | Targets shortened | 227 |
 | Targets lengthened | 14 |
@@ -89,12 +89,12 @@ All predictions use FASTAs derived directly from crystal PDB coordinates to ensu
 ### Prediction Quality Improvement
 
 | Method | Mean Improvement | Targets Improved |
-|--------|-----------------|------------------|
+|--------|------------------|------------------|
 | Boltz confidence | +0.026 | 72% |
 | AF pLDDT | +1.40 | 73% |
-| AF targets with +5 pLDDT | 22 | -- |
+| AF targets with +5 pLDDT | 22 | n/a |
 
-## Quality Metrics (Planned)
+## Quality Metrics (Computed)
 
 ### Structural Metrics
 - RMSD to crystal (backbone + all-atom)
@@ -104,30 +104,31 @@ All predictions use FASTAs derived directly from crystal PDB coordinates to ensu
 
 ### Geometry Validation
 - MolProbity (clashscore, Ramachandran, rotamer outliers)
-- PoseBusters (bond lengths, angles, planarity)
+- PoseBusters: deprecated per paper scope
 
 ### Energy Metrics
 - Rosetta total score (REU)
 - Per-residue energy profiles
 
-## Current Progress
+## Pipeline Status (snapshot 2026-04-27a)
 
-| Stage | Status |
-|-------|--------|
-| Crystal structures | 257/257 cleaned and stripped |
-| FASTAs | 257/257 crystal-derived, verified consistent |
-| AlphaFold predictions | 257/257 COMPLETE |
-| AF built-in AMBER | 257/257 COMPLETE |
-| AF unrelaxed | 257/257 COMPLETE |
-| Boltz predictions | 257/257 COMPLETE |
-| Standalone AMBER | 256/257 (1KTZ finishing, Job 9399617) |
-| Rosetta relaxation | IN PROGRESS (~2,512/~200k runs, Jobs 9373165 + 9371774) |
-| MolProbity | Pending |
-| PoseBusters | Pending |
+The pipeline is locked at 100.000%.
+
+| Stage | Blue | Green |
+|-------|------|-------|
+| Crystal structures | 257/257 | 257/257 |
+| FASTAs | 257/257 | 257/257 |
+| AlphaFold predictions | 257/257 | 257/257 |
+| AF built-in AMBER | 257/257 | 257/257 |
+| AF unrelaxed | 257/257 | 257/257 |
+| Boltz predictions | 257/257 | 257/257 |
+| Standalone AMBER (AF + Boltz + crystal) | 257/257 | 257/257 |
+| Rosetta MolProbity rows | 208,170 / 208,170 | 208,170 / 208,170 |
+| Combined Rosetta MolProbity rows | 416,340 / 416,340 | (locked) |
 
 ## Green Pipeline
 
-This is our independent verification ("green") of the Blue pipeline's protocol. The green pipeline reproduces the exact same Rosetta flags and AMBER parameters to validate reproducibility.
+Green is the independent verification of the Blue pipeline's protocol. The green pipeline reproduces the exact same Rosetta flags and AMBER parameters to validate reproducibility.
 
 - All SLURM jobs tagged with `green_` prefix
 - Output files are `.pdb.gz` compressed

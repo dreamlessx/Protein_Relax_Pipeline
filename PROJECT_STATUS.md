@@ -1,18 +1,15 @@
 # Project Status
 
-**Last updated:** 2026-04-20 (post-data-audit)
+**Last updated:** 2026-04-27 (snapshot 2026-04-27a, pipeline locked at 100.000%)
 
-## 2026-04-20 Data Integrity Audit
+## Locked-State Summary (snapshot 2026-04-27a)
 
-See `red_analysis/DATA_AUDIT_2026-04-20.md` for full details.
-
-Summary:
-- Green pipeline: 208,170 / 208,170 Rosetta .pdb.gz (100.0% exact on all 257 targets at 810).
-- Blue pipeline: 208,228 / 208,170 (+58 net). 253 of 257 at exactly 810; 4 anomalies (1K5D, 4GAM legacy collision dirs + 1HE8, 4Y7M real gaps).
-- Real missing data gaps: 40 .pdb.gz files out of 416,340 combined = 0.010% (Blue 4Y7M crystal source, Blue 1HE8 + 1K5D amber_boltz_model_X normal_ref15).
-- Legacy contamination: 244 rows previously pooled into amber_af / amber_boltz source buckets via loose `startswith` matching. Patched `reaggregate_combined.py` to filter `amber_af_relaxed` + `amber_boltz_relaxed` and use precise source-name matching. Impact on findings: negligible (< 0.06% of ~417K rows).
-- Downstream re-run after clean: per_target_means + paired_amber + paired_amber_rotamer all produce values matching iter 42 pre-clean (to 4 dp). Paper findings stable.
-- red_ros_mp (10175020) LOCKED: 255/257 COMPLETED + 2 TIMEOUT (1N2C, 4GAM, the largest complexes).
+- Both pipelines: 208,170 / 208,170 Rosetta MolProbity rows. Combined: 416,340 / 416,340.
+- 0 gap cells, 0 missing rows, 0 NaN.
+- 663 exact dups + 27 legacy-source rows filtered at ingest.
+- 7 source buckets x 6 protocols verified across all 257 targets per pipeline.
+- 1ACB and 1ATN AMBER-crystal RESOLVED via v5 chain-split preprocessing.
+- Earlier 2026-04-20 audit details (gap diagnosis, legacy contamination cleanup): see `red_analysis/DATA_AUDIT_2026-04-20.md`.
 
 
 ## Dataset Summary
@@ -72,57 +69,20 @@ Per complex (both pipelines identical structure):
 
 **Both pipelines combined:** 430,218 files (416,340 Rosetta + 13,878 base)
 
-## Rosetta Relaxation Status (2026-04-16, post-legacy-cleanup)
+## Rosetta Relaxation Status (locked snapshot 2026-04-27a)
 
-### File counts
+### Category completeness (both pipelines)
 
-| Pipeline | Rosetta .pdb.gz on disk | vs target (208,050) | Gap |
-|----------|-------------------------|---------------------|-----|
-| Blue | 207,496 | 99.7% | 554 files in partial dirs |
-| Green | in progress | TBD | TBD |
-
-### Blue dir status breakdown
-
-| Status | Count |
-|--------|-------|
-| Full (30 .pdb.gz) | 6,878 |
-| Partial (1-29 files) | 57 |
-| Empty (0 files) | 1 |
-| Missing | 3 (2 blocked: 1ACB/1ATN amber-crystal; 1 in-flight) |
-| **Total** | **6,939** |
-
-### Category completeness (Blue)
-
-| Category | Rosetta complete | Notes |
-|----------|------------------|-------|
-| crystal | 252/257 | 5 partial filling via Job 10145091 |
-| amber-crystal | 197/257 -> 255/257 | Job 10107933 (88 targets); 2 permanent blocked |
-| AF unrelaxed | 257/257 | COMPLETE |
-| AF + standalone AMBER | 257/257 | COMPLETE |
-| AF + built-in AMBER | 257/257 | COMPLETE |
-| Boltz | 257/257 | COMPLETE |
-| Boltz + AMBER | 254/257 | 3 partial filling via Job 10145097 |
-
-### Category completeness (Green)
-
-| Category | Rosetta complete | Notes |
-|----------|------------------|-------|
-| crystal | 257/257 | COMPLETE |
-| amber-crystal | 183/257 -> 255/257 | Job 10107934 (85 targets); 2 permanent blocked |
-| AF unrelaxed | 257/257 | COMPLETE |
-| AF + standalone AMBER | 257/257 | COMPLETE |
-| AF + built-in AMBER | 257/257 | COMPLETE |
-| Boltz | 257/257 | COMPLETE |
-| Boltz + AMBER | 257/257 | COMPLETE |
-
-### Active SLURM Jobs (2026-04-16)
-
-| Job ID | Name | Purpose | Targets |
-|--------|------|---------|---------|
-| 10107933 | blue_axtal_v4 | Blue amber-crystal Rosetta | 88 |
-| 10107934 | green_axtal_v4 | Green amber-crystal Rosetta | 85 |
-| 10145091 | blue_crystal_fin | Blue crystal partial fills | 5 (3WD5, 4DN4, 4G6M, 4GAM, 4Y7M) |
-| 10145097 | blue_boltz_amber_fin | Blue Boltz-AMBER partial fills | 3 (1HE8, 1K5D, 4GAM) |
+| Category | Blue | Green |
+|----------|------|-------|
+| af_relaxed (AF + built-in AMBER) | 257/257 | 257/257 |
+| af_unrelaxed | 257/257 | 257/257 |
+| amber_af (AF + standalone AMBER) | 257/257 | 257/257 |
+| boltz | 257/257 | 257/257 |
+| amber_boltz (Boltz + standalone AMBER) | 257/257 | 257/257 |
+| crystal | 257/257 | 257/257 |
+| amber_crystal | 257/257 | 257/257 |
+| **Total Rosetta MP rows** | **208,170** | **208,170** |
 
 ## Cleanup Applied (2026-04-16)
 
@@ -136,12 +96,12 @@ These legacy dirs were previously pooled with proper data in `aggregate_rosetta_
 
 None. Previously "permanent" 1ACB/1ATN AMBER-crystal failures were resolved on 2026-04-16.
 
-**Root cause:** Crystal PDBs contained physical chain breaks that shared a single chain ID, causing OpenMM to attempt peptide bonds across 8–19 Å gaps. Minimizer diverged silently.
+**Root cause:** Crystal PDBs contained physical chain breaks that shared a single chain ID, causing OpenMM to attempt peptide bonds across 8-19 A gaps. Minimizer diverged silently.
 
-- 1ACB chain E: three proteolytic cuts (chymotrypsin zymogen → mature form) at 13→14 (19.3 Å), 74→75 (3.8 Å), 143→144 (8.8 Å)
-- 1ATN chain D: one disorder gap at 101→102 (8.0 Å)
+- 1ACB chain E: three proteolytic cuts (chymotrypsin zymogen to mature form) at 13->14 (19.3 A), 74->75 (3.8 A), 143->144 (8.8 A)
+- 1ATN chain D: one disorder gap at 101->102 (8.0 A)
 
-**Fix (amber_relax_crystal_v5.py):** Detect peptide bonds > 2.5 Å, split affected chains into new chain IDs, then run PDBFixer + OpenMM normally. Test minimization converges cleanly for both: 1ACB E 8350 → −5986 kcal/mol; 1ATN E 20790 → −12079 kcal/mol.
+**Fix (amber_relax_crystal_v5.py):** Detect peptide bonds > 2.5 A, split affected chains into new chain IDs, then run PDBFixer + OpenMM normally. Test minimization converges cleanly for both: 1ACB E 8350 to -5986 kcal/mol; 1ATN E 20790 to -12079 kcal/mol.
 
 ## Pipeline Design
 
@@ -155,30 +115,22 @@ None. Previously "permanent" 1ACB/1ATN AMBER-crystal failures were resolved on 2
 | Validation | Blue | Green |
 |------------|------|-------|
 | MolProbity (pre-Rosetta) | 257/257 | 257/257 |
-| MolProbity (Rosetta outputs) | 174,721 rows aggregated | (in same table) |
+| MolProbity (Rosetta outputs) | 208,170 rows | 208,170 rows |
 | TM-score (pre-Rosetta) | 257/257 | 257/257 |
-| Rosetta energy | ~174K scorefiles | (combined) |
-| PoseBusters | Not in pipeline (deprecated per paper scope) | — |
+| Rosetta energy | scorefiles complete | scorefiles complete |
+| PoseBusters | Not in pipeline (deprecated per paper scope) | n/a |
 
 ## Key Fixes Applied
 
 | # | Fix | Impact |
 |---|-----|--------|
-| 1 | Crystal-derived FASTAs | 236 targets changed from UniProt full-length; net -3,956 residues |
+| 1 | Crystal-derived FASTAs | 241 targets changed from UniProt full-length; net -3,956 residues |
 | 2 | Crystal chain deduplication | 36 PDBs stripped of homo-multimer duplicate chains |
 | 3 | FASTA deduplication | 135 Boltz FASTAs had duplicated homo-multimer chains |
 | 4 | His-tag removal | 41 targets had expression artifacts removed |
 | 5 | 1KTZ template bug | AF workaround using max_template_date=1900 |
 | 6 | Rosetta AMBER naming collision | MODEL_LABELS array fix to avoid overwriting |
 | 7 | Legacy collision dir purge (2026-04-16) | 340 dirs / 7,775 stale files removed for clean per-model data |
-
-## Remaining Work
-
-- [ ] In-flight Rosetta fills drain (~5-6 days wall clock)
-- [ ] Re-run `aggregate_rosetta_molprobity.py` after legacy removal
-- [ ] Re-run `aggregate_rosetta_tmscore.py` after legacy removal
-- [ ] PDB integrity pass (file size + energy outlier check)
-- [ ] Finalize paper tables with clean per-model aggregates
 
 ## Timeline
 
@@ -203,3 +155,5 @@ None. Previously "permanent" 1ACB/1ATN AMBER-crystal failures were resolved on 2
 | 2026-04-16 | Amber-crystal Rosetta fill jobs submitted (88 Blue, 85 Green) |
 | 2026-04-16 | Legacy collision dirs purged (340 dirs, 7,775 files) |
 | 2026-04-16 | Crystal + Boltz-AMBER partial fills submitted (Blue only; Green clean) |
+| 2026-04-20 | Data integrity audit completed; legacy contamination filtered at ingest |
+| 2026-04-27 | Snapshot 2026-04-27a: pipeline locked at 100.000% (416,340 / 416,340) |

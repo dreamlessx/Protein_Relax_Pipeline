@@ -56,12 +56,12 @@ All 257 FASTAs are derived directly from crystal PDB coordinates (ATOM records, 
 - Missing chains or extra entities in RCSB metadata
 - Construct variants vs canonical UniProt sequences
 
-**Impact of crystal derivation (241 targets changed):**
+**Impact of crystal derivation (241/257 targets changed):**
 - Net change: -3,956 residues (crystal constructs shorter than RCSB canonical)
 - 227 targets got shorter (trimmed unresolved termini)
 - 14 targets got longer (gained chains missing from RCSB FASTA)
 - 13 targets gained additional chains from crystal
-- Mean change: -16.4 residues / -2.8% per target
+- Mean change: -16.4 residues per target (-2.8%)
 
 **Prediction quality improved:**
 - Boltz: +0.026 mean confidence score (72% of targets improved)
@@ -100,6 +100,8 @@ Protein_Relax_Pipeline/
 │   └── boltz/                  # Boltz-1 predictions
 │       └── {PDB_ID}/boltz_input_model_0..4.pdb
 ├── scripts/                    # SLURM and processing scripts
+├── db/                         # SQLite schema, build script, queries
+├── red_analysis/               # Metrics, figures, scripts, tables, presentations
 ├── AMBER_FIX_LOG.txt           # Log of AMBER-related FASTA fixes
 ├── consistency_fix_log.txt     # Log of chain composition fixes
 ├── histag_fix_log.txt          # Log of His-tag removals
@@ -162,9 +164,9 @@ Six relaxation protocols with 5 replicates each:
 | # | Type | Method | Applied To |
 |---|------|--------|------------|
 | 1 | AMBER (native) | AlphaFold/OpenMM | AlphaFold predictions |
-| 2-7 | Rosetta protocols | Rosetta 3.15 | All 6 input types (AF relaxed, AF unrelaxed, Boltz, AMBER-AF, AMBER-Boltz, crystal) |
+| 2-7 | Rosetta protocols | Rosetta 3.15 | All 7 input source buckets (af_relaxed, af_unrelaxed, boltz, amber_af, amber_boltz, crystal, amber_crystal) |
 
-Each target produces up to 780 Rosetta runs: 6 input types x 6 protocols x 5 replicates. Total across 257 targets: ~200,000 runs.
+Each target produces 810 Rosetta runs per pipeline: 27 inputs (5 AF relaxed + 5 AF unrelaxed + 5 Boltz + 5 AMBER(AF) + 5 AMBER(Boltz) + 1 crystal + 1 AMBER(crystal)) x 6 protocols x 5 replicates. 257 targets per pipeline = 208,170. Both pipelines combined = 416,340.
 
 ## Computational Resources
 
@@ -212,39 +214,16 @@ Only PDB outputs and FASTA files retained.
 |--------|---------|
 | `derive_all_from_crystal.py` | Derive all 257 FASTAs from crystal PDB coordinates |
 | `strip_crystals.py` | Strip crystal PDBs to match FASTA (remove homo-multimer duplicates) |
-| `af_consistency_rerun.slurm` | AF re-prediction for crystal-derived FASTAs |
-| `boltz_consistency_rerun.slurm` | Boltz re-prediction for crystal-derived FASTAs |
-| `rosetta_relax.slurm` | Rosetta relaxation (6 protocols x 5 replicates) |
-| `green_amber_relax.py` | Standalone AMBER relaxation for AF + Boltz models |
-| `green_amber.slurm` | SLURM wrapper for standalone AMBER |
-| `green_rosetta.slurm` | Rosetta v2: all 6 input types x 6 protocols x 5 reps |
+| `af_consistency_rerun.slurm` | AlphaFold prediction for crystal-derived FASTAs |
+| `boltz_consistency_rerun.slurm` | Boltz prediction for crystal-derived FASTAs |
+| `amber_relax.py` + `amber_relax.slurm` | Standalone AMBER relaxation (AF + Boltz models) |
+| `blue_fill_all.slurm` / `green_fill_all.slurm` | Rosetta relaxation: 27 inputs x 6 protocols x 5 reps |
+| `blue_amber_crystal_fill.slurm` / `green_amber_crystal_fill.slurm` | AMBER-crystal Rosetta fills with v5 chain-split preprocessing |
+| `blue_scan_gaps.sh` / `green_scan_gaps.sh` | Output completeness scanners |
 
-## Run Log
+## Pipeline Status (snapshot 2026-04-27a)
 
-| Date | Event | Details |
-|------|-------|---------|
-| 2026-02-07 | Initial batch | AF2 257 targets with reduced_dbs |
-| 2026-02-09 | Full re-run | All 257 with full_dbs + fallback |
-| 2026-02-11 | AF complete | 257/257, 7 AMBER failures (unrelaxed saved) |
-| 2026-02-15 | Boltz batch 1 | 233/257 completed |
-| 2026-02-20 | AMBER root cause | X/Z non-standard residues in FASTAs, trimmed |
-| 2026-02-22 | Rosetta started | Job 9195328, 6 protocols x 5 replicates |
-| 2026-03-02 | Boltz complete | All 257 targets (L40S + H100) |
-| 2026-03-03 | FASTA deduplication | 135 Boltz FASTAs had duplicated homo-multimer chains |
-| 2026-03-03 | Consistency fix | Removed extra chains (9 targets) + His-tags (41 targets) |
-| 2026-03-04 | Crystal-derived FASTAs | All 257 FASTAs derived from crystal PDB coordinates |
-| 2026-03-04 | Crystal stripping | 36 PDBs stripped of homo-multimer duplicate chains |
-| 2026-03-05 | Boltz re-prediction | Job 9304974: 236 targets complete (251/257 valid) |
-| 2026-03-05 | AF re-prediction | Job 9304973: 236 targets (215/257 valid, rest running) |
-| 2026-03-05 | Rosetta restart needed | Current Rosetta jobs used old predictions, need restart |
-| 2026-03-08 | All predictions complete | AF 257/257, Boltz 257/257, AF built-in AMBER 257/257 |
-| 2026-03-08 | 1KTZ fix applied | AF completed, symlinks created, AMBER submitted |
-| 2026-03-09 | Rosetta relaxation | IN PROGRESS: ~50/257 targets (Jobs 9373165, 9371774) |
-| 2026-03-09 | Standalone AMBER | 257/257 COMPLETE |
-| 2026-03-12 | Rosetta timeout fix | 48/50 tasks timed out at 72h limit; resubmitted with 7-day limit (Job 9458817) |
-| 2026-03-13 | AMBER naming bug | Green identified collision: all 5 AMBER models map to same dir. Fix planned after current jobs. |
-
-### Current Progress (2026-03-13)
+The pipeline is locked at 100.000% completion as of 2026-04-27.
 
 | Method | Status | Details |
 |--------|--------|---------|
@@ -254,28 +233,36 @@ Only PDB outputs and FASTA files retained.
 | Boltz-1 | 257/257 | COMPLETE |
 | Standalone AMBER (AF) | 257/257 | COMPLETE |
 | Standalone AMBER (Boltz) | 257/257 | COMPLETE |
-| Rosetta v2 relax | In progress | ~14,600/~200K files, 100/257 targets started, 0 complete |
-| AMBER Rosetta fix | Planned | Naming collision — only 1/5 AMBER models per type getting relaxed |
-| MolProbity | Pending | After Rosetta completion |
-| PoseBusters | Pending | After Rosetta completion |
+| Standalone AMBER (crystal) | 257/257 | COMPLETE (1ACB + 1ATN resolved via v5 chain-split preprocessing) |
+| Rosetta MolProbity rows (Blue) | 208,170 / 208,170 | COMPLETE |
+| Rosetta MolProbity rows (Green) | 208,170 / 208,170 | COMPLETE |
+| Rosetta MolProbity rows (combined) | 416,340 / 416,340 | 100.000% locked |
+| Gap cells | 0 | 0 NaN, 0 missing rows |
+| Filtered at ingest | 663 exact dups + 27 legacy-source rows | (does not affect locked count) |
 
-**Active Blue jobs:**
-- Job 9371774 (rosetta_v2, 72h): 50 running, 48 timed out, 157 pending
-- Job 9458817 (blue_rosetta_resume, 7d): 50 running, 4 done, 203 pending
+Pipeline definitions:
+- Blue pipeline: primary (Claude). Job prefix: `blue_`
+- Green pipeline: independent verification of Blue. Job prefix: `green_`
+- Red analysis: metrics and figures. Job prefix: `red_`
 
-**Rosetta details:** 6 input types (af_relaxed, af_unrelaxed, boltz, amber_af, amber_boltz, crystal) x 6 protocols (cartesian_beta, cartesian_ref15, dualspace_beta, dualspace_ref15, normal_beta, normal_ref15) x 5 replicates = 780 runs/target max.
+Per-target arithmetic: 27 input structures x 6 protocols x 5 replicates = 810 Rosetta runs per target per pipeline.
 
-**Blue pipeline** = primary. **Green pipeline** = independent verification. Job prefixes: `blue_` and `green_`.
+Source buckets (7): af_relaxed, af_unrelaxed, amber_af, amber_boltz, amber_crystal, boltz, crystal.
+
+Protocols (6): cartesian_beta, cartesian_ref15, dualspace_beta, dualspace_ref15, normal_beta, normal_ref15.
+
+All SLURM array scripts include `#SBATCH --exclude=cn1340` after 1,614 instant-failure jobs were traced to that node.
 
 ## References
 
 1. Jumper, J. et al. Highly accurate protein structure prediction with AlphaFold. *Nature* 596, 583-589 (2021).
 2. Wohlwend, J. et al. Boltz-1: Democratizing Biomolecular Interaction Modeling. *bioRxiv* (2024).
-3. Vreven, T. et al. Updates to the Integrated Protein-Protein Interaction Benchmarks. *J. Mol. Biol.* 427, 3031-3041 (2015).
+3. Vreven, T. et al. (2015). Updates to the Integrated Protein-Protein Interaction Benchmarks. *J. Mol. Biol.* 427:3031-3041 (BM5.0).
+4. Guest, J.D. et al. (2021). An expanded benchmark for antibody-antigen docking and affinity prediction reveals insights into antibody recognition determinants. *J. Mol. Biol.* 433:166983 (BM5.5).
 
 ## License
 
 MIT License
 
 ---
-*Last updated: 2026-03-13*
+*Last updated: 2026-04-27 (snapshot 2026-04-27a, pipeline locked at 100.000%)*
