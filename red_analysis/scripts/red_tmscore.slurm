@@ -11,7 +11,7 @@
 #SBATCH --error=/data/p_csb_meiler/agarwm5/red_analysis/logs/tmscore_%a.err
 
 ###############################################################################
-# red_tmscore.slurm - Compute TM-score, RMSD, GDT for all pre-Rosetta
+# red_tmscore.slurm — Compute TM-score, RMSD, GDT for all pre-Rosetta
 # structures against crystal references.
 #
 # Runs BOTH Blue and Green pipelines per target (one SLURM task per target).

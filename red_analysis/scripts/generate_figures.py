@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-generate_figures.py - Red Analysis Pipeline
+generate_figures.py — Red Analysis Pipeline
 
 Publication-quality figures for the BM5.5 protein relaxation benchmark.
 

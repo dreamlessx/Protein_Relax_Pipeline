@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-aggregate_rosetta_molprobity.py - Red Analysis Pipeline
+aggregate_rosetta_molprobity.py — Red Analysis Pipeline
 
 Phase 4 aggregation: merges per-target Rosetta MolProbity TSVs and
 compares against pre-Rosetta MolProbity (Phase 3).

@@ -1,16 +1,16 @@
 #!/bin/bash
 ###############################################################################
-# compute_tmscore.sh - Red Analysis Pipeline
+# compute_tmscore.sh — Red Analysis Pipeline
 #
 # Computes TM-score, RMSD, GDT-TS, GDT-HA for all pre-Rosetta structures
 # against crystal references. Designed for SLURM array parallelization.
 #
 # Input types (pre-Rosetta, all 257/257 complete):
-#   1. af_relaxed    - AF2 built-in AMBER (ranked_0..4)
-#   2. af_unrelaxed  - AF2 unrelaxed (ranked_0..4)
-#   3. boltz         - Boltz-1 (model_0..4)
-#   4. amber_af      - Standalone AMBER on AF (5 models)
-#   5. amber_boltz   - Standalone AMBER on Boltz (5 models)
+#   1. af_relaxed    — AF2 built-in AMBER (ranked_0..4)
+#   2. af_unrelaxed  — AF2 unrelaxed (ranked_0..4)
+#   3. boltz         — Boltz-1 (model_0..4)
+#   4. amber_af      — Standalone AMBER on AF (5 models)
+#   5. amber_boltz   — Standalone AMBER on Boltz (5 models)
 #
 # Output: TSV with columns:
 #   target, source, model_idx, rmsd, tmscore, gdtts, gdtha, aligned_len, seq_len
@@ -123,12 +123,12 @@ echo "=== Red Analysis: TM-score for ${TARGET} (${PIPELINE}) ==="
 if [ "$PIPELINE" == "blue" ]; then
     BASE="${BLUE_BASE}/${TARGET}"
 
-    # 1. AF relaxed (built-in AMBER) - ranked_0..4
+    # 1. AF relaxed (built-in AMBER) — ranked_0..4
     for i in 0 1 2 3 4; do
         run_tmscore "${BASE}/af_out/ranked_${i}.pdb" "af_relaxed" "$i"
     done
 
-    # 2. AF unrelaxed - ranked_0..4
+    # 2. AF unrelaxed — ranked_0..4
     # Blue stores unrelaxed in af_out_unrelaxed/
     for i in 0 1 2 3 4; do
         pdb="${BASE}/af_out_unrelaxed/ranked_${i}.pdb"
@@ -139,17 +139,17 @@ if [ "$PIPELINE" == "blue" ]; then
         run_tmscore "$pdb" "af_unrelaxed" "$i"
     done
 
-    # 3. Boltz - model_0..4
+    # 3. Boltz — model_0..4
     for i in 0 1 2 3 4; do
         run_tmscore "${BASE}/boltz_out/boltz_results_boltz_input/predictions/boltz_input/boltz_input_model_${i}.pdb" "boltz" "$i"
     done
 
-    # 4. Standalone AMBER AF - af_unrelaxed_ranked_0..4/relaxed.pdb
+    # 4. Standalone AMBER AF — af_unrelaxed_ranked_0..4/relaxed.pdb
     for i in 0 1 2 3 4; do
         run_tmscore "${BASE}/amber_out/af_unrelaxed_ranked_${i}/relaxed.pdb" "amber_af" "$i"
     done
 
-    # 5. Standalone AMBER Boltz - boltz_model_0..4/relaxed.pdb
+    # 5. Standalone AMBER Boltz — boltz_model_0..4/relaxed.pdb
     for i in 0 1 2 3 4; do
         run_tmscore "${BASE}/amber_out/boltz_model_${i}/relaxed.pdb" "amber_boltz" "$i"
     done
@@ -157,27 +157,27 @@ if [ "$PIPELINE" == "blue" ]; then
 elif [ "$PIPELINE" == "green" ]; then
     BASE="${GREEN_BASE}/${TARGET}"
 
-    # 1. AF relaxed (built-in AMBER) - AF/ranked_0..4.pdb
+    # 1. AF relaxed (built-in AMBER) — AF/ranked_0..4.pdb
     for i in 0 1 2 3 4; do
         run_tmscore "${BASE}/AF/ranked_${i}.pdb" "af_relaxed" "$i"
     done
 
-    # 2. AF unrelaxed - af_out_unrelaxed/ranked_0..4.pdb (symlinks)
+    # 2. AF unrelaxed — af_out_unrelaxed/ranked_0..4.pdb (symlinks)
     for i in 0 1 2 3 4; do
         run_tmscore "${BASE}/af_out_unrelaxed/ranked_${i}.pdb" "af_unrelaxed" "$i"
     done
 
-    # 3. Boltz - Boltz/boltz_input_model_0..4.pdb
+    # 3. Boltz — Boltz/boltz_input_model_0..4.pdb
     for i in 0 1 2 3 4; do
         run_tmscore "${BASE}/Boltz/boltz_input_model_${i}.pdb" "boltz" "$i"
     done
 
-    # 4. Standalone AMBER AF - amber_out/af_unrelaxed_0..4/relaxed.pdb
+    # 4. Standalone AMBER AF — amber_out/af_unrelaxed_0..4/relaxed.pdb
     for i in 0 1 2 3 4; do
         run_tmscore "${BASE}/amber_out/af_unrelaxed_${i}/relaxed.pdb" "amber_af" "$i"
     done
 
-    # 5. Standalone AMBER Boltz - amber_out/boltz_model_0..4/relaxed.pdb
+    # 5. Standalone AMBER Boltz — amber_out/boltz_model_0..4/relaxed.pdb
     for i in 0 1 2 3 4; do
         run_tmscore "${BASE}/amber_out/boltz_model_${i}/relaxed.pdb" "amber_boltz" "$i"
     done

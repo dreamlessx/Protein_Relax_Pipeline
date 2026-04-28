@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-generate_latex_tables.py - Red Analysis Pipeline
+generate_latex_tables.py — Red Analysis Pipeline
 
 Generates publication-ready LaTeX tables for the paper.
 
@@ -200,7 +200,7 @@ def interpret_d(d):
 
 
 def table3_amber_dual_effect(data):
-    """Table 3: AMBER's dual effect - TM-score (none) + MolProbity (large). Both pipelines."""
+    """Table 3: AMBER's dual effect — TM-score (none) + MolProbity (large). Both pipelines."""
     if 'tm' not in data or 'mp' not in data:
         return
 

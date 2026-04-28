@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-generate_powerpoint.py - Red Analysis Pipeline
+generate_powerpoint.py — Red Analysis Pipeline
 
 Generates a comprehensive PowerPoint presentation for the BM5.5
 protein structure relaxation benchmark paper.
@@ -302,7 +302,7 @@ def make_amber_dual_effect(data, pipeline='blue'):
 
 
 def make_molprobity_comparison(data, pipeline='blue'):
-    """MolProbity clashscore by source - crystal vs predicted."""
+    """MolProbity clashscore by source — crystal vs predicted."""
     fig, ax = plt.subplots(figsize=(7, 4.5))
     mp = data['mp']
     blue = mp[mp['pipeline'] == pipeline]
@@ -336,7 +336,7 @@ def make_molprobity_comparison(data, pipeline='blue'):
 
 
 def make_rosetta_protocol_tm(data, pipeline='blue'):
-    """Rosetta protocol comparison - TM-score."""
+    """Rosetta protocol comparison — TM-score."""
     if 'ros_tm' not in data:
         return None
     fig, ax = plt.subplots(figsize=(7, 4.5))
@@ -376,7 +376,7 @@ def make_rosetta_protocol_tm(data, pipeline='blue'):
 
 
 def make_rosetta_mp_protocol(data, pipeline='blue'):
-    """Rosetta MolProbity by protocol - the Phase 4 key result."""
+    """Rosetta MolProbity by protocol — the Phase 4 key result."""
     if 'ros_mp' not in data:
         return None
     fig, ax = plt.subplots(figsize=(7, 4.5))

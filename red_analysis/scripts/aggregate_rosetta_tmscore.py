@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-aggregate_rosetta_tmscore.py - Red Analysis Pipeline
+aggregate_rosetta_tmscore.py — Red Analysis Pipeline
 
 Merges per-target Rosetta TM-score TSVs and performs comprehensive analysis.
 
@@ -14,7 +14,7 @@ COMMENT: This is the main analysis script for the paper. The questions:
 
 The pre-Rosetta analysis showed TM-scores of ~0.94-0.95. If Rosetta
 improves things, post-Rosetta should be higher. If it degrades, lower.
-Preliminary data (104 targets) shows degradation of ~0.02 - which is
+Preliminary data (104 targets) shows degradation of ~0.02 — which is
 expected since Rosetta optimizes energy, not similarity to crystal.
 """
 

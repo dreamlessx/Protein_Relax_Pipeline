@@ -1,0 +1,18 @@
+\begin{table}[htbp]
+\centering
+\caption{MolProbity validation metrics by structure source (Green pipeline, 257 targets). Values are mean $\pm$ std across per-target averages.}
+\label{tab:molprobity-green}
+\begin{tabular}{lcccc}
+\toprule
+Source & Clashscore$\downarrow$ & Rama Fav\%$\uparrow$ & Rota Out\%$\downarrow$ & MP Score$\downarrow$ \\
+\midrule
+  Crystal & 13.8 $\pm$ 14.6 & 93.2 $\pm$ 5.8 & 6.15 $\pm$ 5.57 & 1.81 $\pm$ 0.81 \\
+  \midrule
+  AF2 (relaxed) & 2.8 $\pm$ 2.5 & 97.0 $\pm$ 1.6 & 0.90 $\pm$ 0.72 & 0.69 $\pm$ 0.35 \\
+  AF2 (unrelaxed) & 24.7 $\pm$ 17.1 & 96.8 $\pm$ 3.2 & 1.06 $\pm$ 1.07 & 1.54 $\pm$ 0.38 \\
+  Boltz-1 & 15.1 $\pm$ 10.9 & 98.4 $\pm$ 0.6 & 0.23 $\pm$ 0.23 & 1.16 $\pm$ 0.20 \\
+  AMBER(AF) & 2.8 $\pm$ 2.5 & 97.0 $\pm$ 1.6 & 0.92 $\pm$ 0.75 & 0.70 $\pm$ 0.36 \\
+  AMBER(Boltz) & 1.7 $\pm$ 1.9 & 97.7 $\pm$ 0.9 & 0.38 $\pm$ 0.40 & 0.45 $\pm$ 0.24 \\
+\bottomrule
+\end{tabular}
+\end{table}

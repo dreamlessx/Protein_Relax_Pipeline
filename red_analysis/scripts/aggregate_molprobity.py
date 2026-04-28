@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-aggregate_molprobity.py - Red Analysis Pipeline
+aggregate_molprobity.py — Red Analysis Pipeline
 
 Merges per-target MolProbity TSV files into a combined dataset and
 computes summary statistics.
@@ -106,7 +106,7 @@ def main():
                   f"{s['molprobity_score'].mean():>10.2f} {s['rms_bonds'].mean():>10.4f} "
                   f"{s['rms_angles'].mean():>10.4f}")
 
-        # Crystal baseline (separate - only 1 model per target)
+        # Crystal baseline (separate — only 1 model per target)
         crystal = data[(data['pipeline'] == pipe) & (data['source'] == 'crystal')]
         if len(crystal) > 0:
             print(f"{'crystal':<15} {crystal['clashscore'].mean():>10.2f} {crystal['rama_outliers'].mean():>10.2f} "

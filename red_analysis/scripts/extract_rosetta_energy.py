@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-extract_rosetta_energy.py - Red Analysis Pipeline
+extract_rosetta_energy.py — Red Analysis Pipeline
 
 Extracts total_score (REU) from Rosetta relax.fasc files for all targets.
 Also computes per-residue energy (total_score / seq_len) for cross-target comparison.

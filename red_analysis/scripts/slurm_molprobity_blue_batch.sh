@@ -8,7 +8,7 @@
 #SBATCH --output=/data/p_csb_meiler/agarwm5/red_analysis/logs/molprobity_blue_batch_%j.out
 #SBATCH --error=/data/p_csb_meiler/agarwm5/red_analysis/logs/molprobity_blue_batch_%j.err
 
-# Red Analysis Pipeline - Phase 4 MolProbity for 12 Blue targets
+# Red Analysis Pipeline — Phase 4 MolProbity for 12 Blue targets
 # Run sequentially on a compute node to avoid login node OOM
 
 PYTHON=/home/agarwm5/miniconda3/envs/red_analysis/bin/python

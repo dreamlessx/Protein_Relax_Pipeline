@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-backfill_green_molprobity.py - Red Analysis Pipeline
+backfill_green_molprobity.py — Red Analysis Pipeline
 
 Compute missing Green pre-Rosetta MolProbity for crystal + af_unrelaxed targets.
 Uses same mmtbx Python API approach as compute_molprobity_py.py.
@@ -156,7 +156,7 @@ def main():
 
         metrics = run_molprobity(pdb)
         if 'error' in metrics:
-            print(f"  {target}: FAILED - {metrics['error'][:80]}")
+            print(f"  {target}: FAILED — {metrics['error'][:80]}")
             continue
 
         row = {'target': target, 'pipeline': 'green', 'source': 'crystal', 'model_idx': 0}

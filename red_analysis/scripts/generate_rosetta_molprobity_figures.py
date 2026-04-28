@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-generate_rosetta_molprobity_figures.py - Red Analysis Pipeline
+generate_rosetta_molprobity_figures.py — Red Analysis Pipeline
 
 Phase 4 figures: does Rosetta improve local geometry?
 
@@ -188,7 +188,7 @@ def fig17_rosetta_protocol_mp(ros_data):
 
 
 def fig18_amber_vs_rosetta(ros_data, pre_data):
-    """AMBER vs Rosetta MolProbity comparison - the key figure. Both pipelines."""
+    """AMBER vs Rosetta MolProbity comparison — the key figure. Both pipelines."""
     metrics = [('clashscore', 'Clashscore'), ('molprobity_score', 'MP Score')]
 
     for pipe in ['blue', 'green']:

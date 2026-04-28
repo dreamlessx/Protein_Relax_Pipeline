@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-generate_green_presentation.py - Red Analysis Pipeline
+generate_green_presentation.py — Red Analysis Pipeline
 
 Generates all presentation figures for the Green pipeline.
 For every MolProbity metric, produces:
   1. 4-panel scatter: initial vs Rosetta-averaged final, 2 colors = AMBER vs non-AMBER
-     Error bars = range (min-max) across 6 Rosetta protocols
+     Error bars = range (min–max) across 6 Rosetta protocols
   2. Per-target bar chart (sorted by initial, showing before/after AMBER)
 
 Output: green_data_analysis/ folder
@@ -33,7 +33,7 @@ METRICS = [
 ]
 
 # Per-metric scatter axis bounds: (x_min, x_max, y_min, y_max)
-# Tight bounds - x captures initial range, y zoomed to Rosetta range
+# Tight bounds — x captures initial range, y zoomed to Rosetta range
 # INCLUDING error bars (min-max range across 6 protocols).
 # Based on data: p99/max analysis of Green pipeline (257 targets).
 SCATTER_BOUNDS = {
@@ -97,12 +97,12 @@ def make_scatter(mp, ros, metric, label, lower_better):
     """
     4-panel scatter: initial (pre-Rosetta) vs final (Rosetta-averaged).
 
-    Panel 1: Crystal - single color reference
-    Panel 2: AF - non-AMBER (af_unrelaxed→Rosetta) vs AMBER (amber_af→Rosetta)
-    Panel 3: AF built-in - non-AMBER (af_unrelaxed→Rosetta) vs built-in AMBER (af_relaxed→Rosetta)
-    Panel 4: Boltz - non-AMBER (boltz→Rosetta) vs AMBER (amber_boltz→Rosetta)
+    Panel 1: Crystal — single color reference
+    Panel 2: AF — non-AMBER (af_unrelaxed→Rosetta) vs AMBER (amber_af→Rosetta)
+    Panel 3: AF built-in — non-AMBER (af_unrelaxed→Rosetta) vs built-in AMBER (af_relaxed→Rosetta)
+    Panel 4: Boltz — non-AMBER (boltz→Rosetta) vs AMBER (amber_boltz→Rosetta)
 
-    Error bars = range (min-max across 6 Rosetta protocols).
+    Error bars = range (min–max across 6 Rosetta protocols).
     """
     panels = [
         {
@@ -147,7 +147,7 @@ def make_scatter(mp, ros, metric, label, lower_better):
         panel_y = []
 
         for initial_src, rosetta_src, color, set_label in panel['sets']:
-            # Initial values (pre-Rosetta) - from the source itself
+            # Initial values (pre-Rosetta) — from the source itself
             initial = mp[mp['source'] == initial_src].groupby('target')[metric].mean()
 
             # Rosetta stats (mean, min, max across protocols)
@@ -171,7 +171,7 @@ def make_scatter(mp, ros, metric, label, lower_better):
             y_min = y_min[mask]
             y_max = y_max[mask]
 
-            # Error bars: range (min to max) - sizes must be >= 0 for matplotlib
+            # Error bars: range (min to max) — sizes must be >= 0 for matplotlib
             # but the resulting positions (y_mean - yerr_lo) can be negative
             yerr_lo = np.maximum(y_mean - y_min, 0)
             yerr_hi = np.maximum(y_max - y_mean, 0)
@@ -204,7 +204,7 @@ def make_scatter(mp, ros, metric, label, lower_better):
     fig.text(0.5, -0.02, f'Initial {label} (pre-Rosetta)', ha='center', fontsize=11)
     direction = '(lower = better)' if lower_better else '(higher = better)'
     fig.suptitle(f'{label} {direction}: Initial vs Rosetta-Averaged Final\n'
-                 f'Green pipeline - error bars = range across 6 Rosetta protocols',
+                 f'Green pipeline — error bars = range across 6 Rosetta protocols',
                  fontsize=13, fontweight='bold', y=1.06)
 
     save_fig(fig, f'scatter_{metric}')
@@ -259,14 +259,14 @@ def make_per_target_bars(mp, ros, metric, label, lower_better):
     """
     Per-target bar chart for one metric.
 
-    6 rows (one per source type - AMBER and non-AMBER separate):
+    6 rows (one per source type — AMBER and non-AMBER separate):
       1. Crystal, 2. AF unrelaxed, 3. AF relaxed (built-in AMBER),
       4. AMBER(AF) (standalone), 5. Boltz, 6. AMBER(Boltz) (standalone)
 
     Per protein in each row:
       - Wide transparent grey bar spanning the 6 protocol positions = initial value
       - 6 colored bars on top: one per Rosetta protocol (mean across reps)
-      - Min-max error bars on each Rosetta bar
+      - Min–max error bars on each Rosetta bar
       - 1 bar gap between proteins
 
     Targets sorted by initial value (af_unrelaxed).
@@ -312,7 +312,7 @@ def make_per_target_bars(mp, ros, metric, label, lower_better):
                 ax.bar(base_x + 2.5, init_val, width=5.6, color='#888888',
                        alpha=0.25, edgecolor='none', zorder=1)
 
-            # 6 Rosetta protocol bars (positions 0-5)
+            # 6 Rosetta protocol bars (positions 0–5)
             target_proto = proto_stats[proto_stats['target'] == target]
             for p_idx, proto in enumerate(PROTOCOLS):
                 p_row = target_proto[target_proto['protocol'] == proto]
@@ -346,7 +346,7 @@ def make_per_target_bars(mp, ros, metric, label, lower_better):
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
 
-        # Legend on first row - placed above the axes so it never overlaps data
+        # Legend on first row — placed above the axes so it never overlaps data
         if row_idx == 0:
             from matplotlib.patches import Patch
             handles = [Patch(facecolor='#888888', alpha=0.25, label='Initial (pre-Rosetta)')]
@@ -365,7 +365,7 @@ def make_per_target_bars(mp, ros, metric, label, lower_better):
 
     direction = '(lower = better)' if lower_better else '(higher = better)'
     fig.suptitle(f'{label} Per Target {direction}\n'
-                 f'Green pipeline - {n_targets} targets - '
+                 f'Green pipeline — {n_targets} targets — '
                  f'grey = initial, colors = 6 Rosetta protocols (error bars = rep range)',
                  fontsize=12, fontweight='bold')
 
@@ -453,7 +453,7 @@ def make_energy_bars(energy_df):
     axes[-1].set_xlim(-1, n_targets * GROUP_W)
 
     fig.suptitle('Per-Residue Rosetta Energy (REU/residue) Per Target\n'
-                 f'Green pipeline - {n_targets} targets - '
+                 f'Green pipeline — {n_targets} targets — '
                  f'6 Rosetta protocols (error bars = rep range)',
                  fontsize=12, fontweight='bold')
 
@@ -519,7 +519,7 @@ def make_energy_scatter(energy_df, mp):
         ax.spines['right'].set_visible(False)
 
     fig.suptitle('Rosetta Energy vs Structure Quality (Clashscore)\n'
-                 'Green pipeline - per-target averages',
+                 'Green pipeline — per-target averages',
                  fontsize=13, fontweight='bold', y=1.06)
 
     save_fig(fig, 'scatter_energy_vs_clashscore')

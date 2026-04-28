@@ -10,10 +10,10 @@ __pycache__/
 *.egg-info/
 
 # large data directories (tracked only via manifests)
-data/
-predictions/
-test_subset/
-cleaned/
+/data/
+/predictions/
+/test_subset/
+/cleaned/
 
 # OS
 .DS_Store

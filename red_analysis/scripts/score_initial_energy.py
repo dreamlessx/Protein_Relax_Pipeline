@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-score_initial_energy.py - Red Analysis Pipeline
+score_initial_energy.py — Red Analysis Pipeline
 
 Score input PDBs (pre-Rosetta) with Rosetta's score function to get initial energies.
 Uses score_jd2 binary to compute total_score for each input structure.
@@ -106,7 +106,7 @@ def main():
         with open(outfile) as f:
             n = sum(1 for _ in f) - 1
         if n >= 20:  # at least 4 sources × 5 models
-            print(f"SKIP: {target} - {n} rows exist (complete)")
+            print(f"SKIP: {target} — {n} rows exist (complete)")
             return
 
     # Load existing sources to avoid re-scoring

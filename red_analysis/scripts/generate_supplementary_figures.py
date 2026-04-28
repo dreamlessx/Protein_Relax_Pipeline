@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-generate_supplementary_figures.py - Red Analysis Pipeline
+generate_supplementary_figures.py — Red Analysis Pipeline
 
 Supplementary figures for the paper.
 
