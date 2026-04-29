@@ -1,0 +1,7 @@
+pipeline	source_no_amber	source_with_amber	metric	n_paired	mean_delta	median_delta	ci_low	ci_high	paired_t_p	wilcoxon_p	cliffs_d	effect_label	paired_t_q	wilcoxon_q
+blue	af_unrelaxed	amber_af	tm_score_pre_rosetta	257	-0.00041	-0.0002	-0.00058	-0.00023	8e-06	0.0	-0.6342	large	2.4e-05	0.0
+blue	af_relaxed	amber_af	tm_score_pre_rosetta	257	-0.0	0.0	-1e-05	1e-05	0.894748	0.123639	-0.0739	negligible	0.894748	0.148367
+blue	boltz	amber_boltz	tm_score_pre_rosetta	257	-0.00088	-0.00022	-0.00204	0.00028	0.135492	0.0	-0.7782	large	0.203238	0.0
+green	af_unrelaxed	amber_af	tm_score_pre_rosetta	100	-0.0008	-0.0002	-0.0016	1e-05	0.053399	0.0	-0.63	large	0.106798	0.0
+green	af_relaxed	amber_af	tm_score_pre_rosetta	257	-1e-05	0.0	-2e-05	1e-05	0.276471	0.2771	-0.0623	negligible	0.331765	0.2771
+green	boltz	amber_boltz	tm_score_pre_rosetta	257	-0.0003	-0.0002	-0.00036	-0.00025	0.0	0.0	-0.7432	large	0.0	0.0

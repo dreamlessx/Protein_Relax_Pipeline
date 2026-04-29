@@ -1,0 +1,9 @@
+pipeline	source_no_amber	source_with_amber	metric	n_paired	amber_mean	ref_mean	mean_delta	median_delta	ci_low	ci_high	paired_t_p	wilcoxon_p	cliffs_d	effect_label	paired_t_q	wilcoxon_q
+blue	af_unrelaxed	amber_af	total_score	257	-2394.5852	-2368.0892	-26.496	-26.1261	-28.9223	-24.0697	0.0	0.0	-0.9222	large	0.0	0.0
+blue	af_relaxed	amber_af	total_score	257	-2394.5852	-2394.433	-0.1521	0.1349	-0.8003	0.496	0.644271	0.862558	0.0584	negligible	0.644271	0.862558
+blue	boltz	amber_boltz	total_score	257	-2412.2482	-2400.3637	-11.8845	-10.6949	-13.2059	-10.563	0.0	0.0	-0.8833	large	0.0	0.0
+blue	crystal	amber_crystal_relaxed	total_score	257	-2351.6022	-2325.3451	-26.2571	-22.5387	-30.0604	-22.4538	0.0	0.0	-0.7432	large	0.0	0.0
+green	af_unrelaxed	amber_af	total_score	257	-2393.5931	-2367.4146	-26.1785	-25.877	-28.8366	-23.5204	0.0	0.0	-0.9144	large	0.0	0.0
+green	af_relaxed	amber_af	total_score	257	-2393.5931	-2393.1004	-0.4927	-0.1222	-1.2095	0.2241	0.177016	0.373515	-0.035	negligible	0.202304	0.426874
+green	boltz	amber_boltz	total_score	257	-2412.0109	-2400.7908	-11.2201	-10.1119	-12.6546	-9.7856	0.0	0.0	-0.8677	large	0.0	0.0
+green	crystal	amber_crystal_relaxed	total_score	257	-2351.2096	-2324.7249	-26.4846	-22.6562	-30.7234	-22.2459	0.0	0.0	-0.7743	large	0.0	0.0

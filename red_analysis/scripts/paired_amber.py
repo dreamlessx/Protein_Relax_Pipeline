@@ -8,7 +8,9 @@ from scipy import stats
 TSV = "/data/p_csb_meiler/agarwm5/red_analysis/metrics/combined_rosetta_molprobity.tsv"
 OUT = "/data/p_csb_meiler/agarwm5/red_analysis/tables/amber_paired_table2.tsv"
 
-df = pd.read_csv(TSV, sep='\t')
+# The combined TSV upstream coerced target '1E96' -> '1e+96' via float inference.
+df = pd.read_csv(TSV, sep='\t', dtype={'target': str})
+df['target'] = df['target'].replace({'1e+96': '1E96'})
 src_col = 'source' if 'source' in df.columns else 'src_type'
 
 # per-target means (average reps)

@@ -104,9 +104,8 @@ def expected_inputs(target, pipeline):
         out.append((f"amber_boltz_boltz_model_{n}",
                     os.path.join(tdir, "amber_out", f"boltz_model_{n}", "relaxed.pdb")))
 
-    # amber_crystal -> amber_out/crystal/relaxed.pdb (green only)
-    if pipeline == "green":
-        out.append(("amber_crystal", os.path.join(tdir, "amber_out", "crystal", "relaxed.pdb")))
+    # amber_crystal -> amber_out/crystal/relaxed.pdb (both pipelines)
+    out.append(("amber_crystal", os.path.join(tdir, "amber_out", "crystal", "relaxed.pdb")))
 
     # crystal -> cleaned/<TARGET>.pdb (sanity DockQ=1.0 self-comparison)
     out.append((f"crystal_{target}", os.path.join(CRYSTAL_BASE, f"{target}.pdb")))
