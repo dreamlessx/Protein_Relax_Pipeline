@@ -61,11 +61,14 @@ We ran the AMBER paired test on the post-Rosetta MolProbity outputs to test whet
 | `amber_paired_table2.tsv` summary | Value |
 |---|---|
 | Cells tested | 16 (Blue + Green × 4 source-pairs × 2 metrics) |
-| Cells reaching p < 0.05 (paired t or Wilcoxon) | **0** |
+| Cells reaching paired-t p < 0.05 | **0** |
+| Cells reaching Wilcoxon p < 0.05 | **2** (Blue amber_boltz vs boltz, dualspace_beta, MolProbity score: Wilcoxon p = 0.016; same cell, clashscore: Wilcoxon p = 0.007) |
 | Mean Δ MolProbity score range | -0.007 to +0.001 |
 | Mean Δ Clashscore range | -0.04 to +0.02 |
 
-Stratified by difficulty (`amber_paired_table2_by_difficulty.tsv`, 48 rows): 0 cells reach p < 0.05 in any difficulty tier. The Boltz-on-difficult cells reach p = 0.63 — the AMBER pre-conditioning effect is genuinely null at the post-Rosetta frame for difficult Boltz targets.
+Stratified by difficulty (`amber_paired_table2_by_difficulty.tsv`, 48 rows): 0 cells reach paired-t p < 0.05 in any difficulty tier. The Boltz-on-difficult cells reach p = 0.63 — the AMBER pre-conditioning effect is genuinely null at the post-Rosetta frame for difficult Boltz targets.
+
+The two Wilcoxon-significant cells (Blue, AMBER(Boltz) vs Boltz, dualspace_beta) reflect a directionally consistent but tiny rank-shift (mean Δ MP = -0.005, mean Δ clashscore = -0.02). The paired-t p-values are 0.107 and 0.062, indicating the magnitude is small enough that the parametric test does not detect it. Honest reading: the Wilcoxon hint of an AMBER-on-Boltz dualspace_beta benefit is real but the magnitude is in the order of 1-2% relative to the cell mean, well below the practitioner's noise floor for protocol selection. Surface as a footnote, not as the headline.
 
 The honest interpretation: AMBER's separable contribution is real but it is upstream of Rosetta. Rosetta itself does enough geometric work that the marginal post-Rosetta MolProbity benefit of AMBER pre-conditioning is in the noise. Two practical readings:
 
