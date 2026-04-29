@@ -11,6 +11,8 @@ Output: metrics/combined_rosetta_energy.tsv
 import os
 import sys
 import glob
+import gzip
+import re
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
@@ -32,6 +34,8 @@ def classify_source(src_name):
         return 'amber_af'
     elif src_name.startswith('amber_boltz'):
         return 'amber_boltz'
+    elif src_name.startswith('amber_crystal'):
+        return 'amber_crystal'
     elif src_name.startswith('boltz'):
         return 'boltz'
     elif src_name.startswith('crystal'):
@@ -46,6 +50,76 @@ def get_seq_len(target, base_dir):
         with open(fasta) as f:
             lines = [l.strip() for l in f if not l.startswith('>')]
             return len(''.join(lines))
+    return None
+
+
+import re
+
+# Patterns for extracting rep number from Rosetta SCORE description column.
+# `relax.fasc` uses `<stem>_r<N>` (canonical). When relax.fasc is incomplete,
+# fill-in sidecars exist:
+#   score_tmp{N}.sc       -> description like "<target>_tmp<N>"
+#   score_TMP{N}.sc       -> description like "relaxed_TMP<N>"
+#   score_fill{N}.sc      -> description like "<stem>_fill<N>"
+# Each holds a single SCORE line for one rep. Combine all source files per
+# (src_type, protocol) cell, dedup by rep, prefer relax.fasc when overlap.
+REP_RE = re.compile(r'_(?:r|tmp|TMP|fill)(\d+)$')
+
+
+def _parse_score_file(path, dest, source_priority):
+    """Parse one .sc / .fasc file. Append (rep, total_score) into `dest` dict
+    only if rep not already present from a higher-priority source."""
+    try:
+        with open(path) as f:
+            for line in f:
+                if not line.startswith('SCORE:'):
+                    continue
+                if 'total_score' in line:
+                    continue  # header line
+                parts = line.split()
+                if len(parts) < 3:
+                    continue
+                try:
+                    total_score = float(parts[1])
+                except ValueError:
+                    continue
+                desc = parts[-1]
+                m = REP_RE.search(desc)
+                if not m:
+                    continue
+                rep = int(m.group(1))
+                if rep < 1 or rep > 5:
+                    continue
+                if rep in dest:
+                    # Already have this rep from higher- or equal-priority source
+                    if dest[rep][1] <= source_priority:
+                        continue
+                dest[rep] = (total_score, source_priority)
+    except (OSError, IOError) as e:
+        print(f"  WARN: {path}: {e}", file=sys.stderr)
+
+
+PDB_REP_RE = re.compile(r'_r(\d+)\.pdb(?:\.gz)?$')
+
+
+def _parse_pdb_total_score(path):
+    """Parse Rosetta-output PDB; return total_score from POSE_ENERGIES_TABLE
+    `pose` line (last column). None on failure."""
+    try:
+        opener = gzip.open if path.endswith('.gz') else open
+        in_table = False
+        with opener(path, 'rt') as f:
+            for line in f:
+                if line.startswith('#BEGIN_POSE_ENERGIES_TABLE'):
+                    in_table = True
+                    continue
+                if line.startswith('#END_POSE_ENERGIES_TABLE'):
+                    break
+                if in_table and line.startswith('pose '):
+                    parts = line.split()
+                    return float(parts[-1])
+    except (OSError, IOError, ValueError):
+        return None
     return None
 
 
@@ -66,26 +140,41 @@ def extract_target(args):
         source = classify_source(src_name)
 
         for protocol in PROTOCOLS:
-            fasc_path = os.path.join(src_dir, protocol, 'relax.fasc')
-            if not os.path.exists(fasc_path):
+            proto_dir = os.path.join(src_dir, protocol)
+            if not os.path.isdir(proto_dir):
                 continue
 
-            try:
-                with open(fasc_path) as f:
-                    for line in f:
-                        if line.startswith('SCORE:') and 'total_score' not in line:
-                            parts = line.split()
-                            if len(parts) >= 3:
-                                total_score = float(parts[1])
-                                desc = parts[-1]  # e.g., ranked_0_r1
-                                # Extract rep number from description
-                                rep = desc.split('_r')[-1] if '_r' in desc else '1'
-                                per_res = total_score / seq_len if seq_len else ''
-                                rows.append(f"{target}\t{pipeline}\t{src_name}\t"
-                                           f"{protocol}\t{rep}\t{total_score}\t"
-                                           f"{per_res}\t{source}")
-            except Exception as e:
-                print(f"  WARN: {fasc_path}: {e}", file=sys.stderr)
+            # Collect rep -> (total_score, priority) across sources, lowest priority wins:
+            #   priority 0: relax.fasc (canonical)
+            #   priority 1: score_{tmp,TMP,fill}*.sc sidecars
+            #   priority 2: PDB POSE_ENERGIES_TABLE pose line (only if no fasc/sc covers it)
+            scores = {}
+
+            fasc = os.path.join(proto_dir, 'relax.fasc')
+            if os.path.exists(fasc):
+                _parse_score_file(fasc, scores, source_priority=0)
+
+            for sidecar in sorted(glob.glob(os.path.join(proto_dir, 'score_*.sc'))):
+                _parse_score_file(sidecar, scores, source_priority=1)
+
+            # Final fallback: parse PDB POSE_ENERGIES_TABLE for any rep still missing.
+            for pdb_path in sorted(glob.glob(os.path.join(proto_dir, '*_r*.pdb.gz'))):
+                m = PDB_REP_RE.search(pdb_path)
+                if not m:
+                    continue
+                rep = int(m.group(1))
+                if rep < 1 or rep > 5 or rep in scores:
+                    continue
+                ts = _parse_pdb_total_score(pdb_path)
+                if ts is not None:
+                    scores[rep] = (ts, 2)
+
+            for rep in sorted(scores.keys()):
+                total_score = scores[rep][0]
+                per_res = total_score / seq_len if seq_len else ''
+                rows.append(f"{target}\t{pipeline}\t{src_name}\t"
+                           f"{protocol}\t{rep}\t{total_score}\t"
+                           f"{per_res}\t{source}")
 
     return rows
 
@@ -94,11 +183,19 @@ def main():
     os.makedirs(OUTDIR, exist_ok=True)
     outfile = os.path.join(OUTDIR, "combined_rosetta_energy.tsv")
 
-    # Get target list from existing MolProbity data
-    mp_path = os.path.join(OUTDIR, "combined_rosetta_molprobity.tsv")
-    import pandas as pd
-    mp = pd.read_csv(mp_path, sep='\t')
-    targets = sorted(mp['target'].unique())
+    # Get target list (use target_list.txt as canonical; fallback to MP TSV)
+    target_list_path = "/data/p_csb_meiler/agarwm5/red_analysis/target_list.txt"
+    if os.path.exists(target_list_path):
+        with open(target_list_path) as f:
+            targets = sorted(t.strip() for t in f if t.strip())
+    else:
+        mp_path = os.path.join(OUTDIR, "combined_rosetta_molprobity.tsv")
+        seen = set()
+        with open(mp_path) as f:
+            next(f)
+            for line in f:
+                seen.add(line.split('\t', 1)[0])
+        targets = sorted(seen)
 
     print(f"Extracting Rosetta energy for {len(targets)} targets...")
 
