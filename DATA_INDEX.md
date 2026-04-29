@@ -1,8 +1,12 @@
 # Data Index
 
-**"I want X. Where do I get it?"** — every artifact in this project, where it lives, and one command to fetch it.
+**"I want X. Where do I get it?"** Every artifact in the BM5.5 docking-relaxation benchmark, where it lives, and one command to fetch it.
 
-Last verified: 2026-04-28 (every fact table at 100% coverage; no audit-log padding). Data lock 2026-04-27a: 416,340 Rosetta MP + 13,364 prerosetta MP + 104,765 TM scores + **416,340 Rosetta energy (100%)** + 257 targets full metadata + 0 quarantine rows. qc_status=pass.
+## The story in one paragraph
+
+We benchmark structure-prediction and relaxation pipelines on the 257-complex BM5.5 protein-protein docking dataset. AlphaFold 2.3.2 (5 ranked + 5 unrelaxed) and Boltz-1 v0.4.1 (5 single-sequence) predictions feed a relaxation matrix: AMBER as a pre-conditioning step, then Rosetta 3.15 under 6 protocols (cartesian / dualspace / normal × beta_nov16 / ref2015) at 5 replicates each. Two independent pipelines (Blue, primary; Green, matched-parameters re-run) produce 416,340 Rosetta MolProbity rows, 416,340 Rosetta energy rows, 104,765 TM scores, 13,364 pre-Rosetta MolProbity rows, and 257 targets with full metadata in a single locked SQLite DB at snapshot 2026-04-27a (qc_status = pass). Three findings emerge: AMBER fixes local geometry without touching global fold (clashscore Cliff's d = -0.99 at TM Cliff's d = -0.01); crystal structures carry the worst pre-Rosetta MolProbity (idealization artifact); dualspace_beta wins integrated MolProbity at small TM cost.
+
+Last verified: 2026-04-28. Every fact table at 100% coverage; no audit-log padding.
 
 ---
 
@@ -13,8 +17,8 @@ cd ~/proteins-workspace
 make sync-all          # everything from ACCRE: figures + tables + raw metrics + DB + pptx
 make sync-figures      # 64 PNG + 64 PDF (37 MB)
 make sync-tables       # 16 TSV + 17 LaTeX aggregate tables (1.8 MB) → aggregates/
-make sync-metrics      # 5 raw row-level TSVs (~65 MB) → aggregates/raw/
-make sync-db           # bm55.sqlite via sqlite3 .backup (115 MB) → db/
+make sync-metrics      # 5 raw row-level TSVs (~100 MB) → aggregates/raw/
+make sync-db           # bm55.sqlite via sqlite3 .backup (~225 MB) → db/
 make sync-pptx         # 3 BM55 .pptx → briefs/pptx/
 make accre-status      # squeue + recent ACCRE log tail
 ```
@@ -45,18 +49,19 @@ All sync scripts are atomic (`rsync --partial --delay-updates`) and idempotent.
 - **Inventory:**
   | File | Rows | What |
   |---|---|---|
-  | `combined_molprobity.tsv` | 13,344 | **Pre-Rosetta MP** (the initials: AF/Boltz/AMBER variants/crystal MolProbity before Rosetta) |
-  | `combined_tmscore.tsv` | 12,065 | **Pre-Rosetta TM-score** (initials vs crystal) |
-  | `combined_rosetta_molprobity.tsv` | 418,060 raw / 416,340 in lock | Post-Rosetta MP (the paper's primary table) |
+  | `combined_molprobity.tsv` | 13,344 | Pre-Rosetta MP (initials: AF / Boltz / AMBER variants / crystal MolProbity before Rosetta). 20 Blue crystal rows backfilled in DB from Green source via Stage C. |
+  | `combined_tmscore.tsv` | 12,065 | Pre-Rosetta TM-score (initials vs crystal) |
+  | `combined_rosetta_molprobity.tsv` | 418,060 raw / 416,340 in lock | Post-Rosetta MP (the paper's primary fact table) |
   | `combined_rosetta_tmscore.tsv` | 92,700 | Post-Rosetta TM-score |
-  | `combined_rosetta_energy.tsv` | 184,352 | Rosetta energy values |
+  | `combined_rosetta_energy.tsv` | 416,370 raw / 416,340 in DB | Rosetta total_score + per_residue_energy. 30 legacy src_type rows filtered at ingest. |
 - **Schema (header rows):** `target | pipeline | source | model_idx | clashscore | rama_outliers | rama_favored | rota_outliers | molprobity_score | cbeta_outliers | rms_bonds | rms_angles` (MP) and `target | pipeline | source | model_idx | rmsd | tmscore | gdtts | gdtha | aligned_len | seq_len` (TM).
 
 ### SQLite DB (queryable, locked snapshot)
-- **Local:** `db/bm55.sqlite` (after `make sync-db`, 115 MB)
-- **ACCRE source:** `accre:/data/p_csb_meiler/agarwm5/red_analysis/db/bm55.sqlite` (144 MB live)
+- **Local:** `db/bm55.sqlite` (after `make sync-db`, ~225 MB VACUUMed)
+- **ACCRE source:** `accre:/data/p_csb_meiler/agarwm5/red_analysis/db/bm55.sqlite`
 - **Schema:** `repos/Protein_Relax_Pipeline/db/sql/schema.sql`
-- **Builder:** `repos/Protein_Relax_Pipeline/db/scripts/build_db.py`
+- **Builders:** `repos/Protein_Relax_Pipeline/db/scripts/build_db.py` (locks `rosetta_metrics` from per-target TSVs) + `build_db_supplements.py` (idempotent companion that loads the supplemental tables)
+- **Release:** [`db-2026-04-27a-supp`](https://github.com/dreamlessx/Protein_Relax_Pipeline/releases/tag/db-2026-04-27a-supp) on the primary repo: 6 assets (DB + 5 raw TSVs)
 - **Snapshot:** 2026-04-27a (qc_status=pass)
 - **Tables (current state):**
   | Table | Rows | Notes |
@@ -71,7 +76,7 @@ All sync scripts are atomic (`rsync --partial --delay-updates`) and idempotent.
   | `rosetta_energy` | **416,340** | Schema-extension table (added 2026-04-28). Total_score + per_residue_energy per (target, pipeline, src_type, protocol, rep) cell. **100% coverage of rosetta_metrics**, 0 orphans, 0 gaps. Extracted via patched `extract_rosetta_energy.py` (canonical `relax.fasc` + sidecar `score_*.sc` fillers + final fallback to `POSE_ENERGIES_TABLE` parsed directly from PDBs for any rep that wasn't otherwise covered). |
   | `qc_quarantine` | **0** | Empty; the snapshot is fully consistent. |
   | `build_runs` | 1 | Single locked snapshot 2026-04-27a, qc_status=pass, raw_manifest_hash recomputed against supplemental TSVs. |
-  | views: `v_cell_summary`, `v_per_target_mp_means` | — | Pre-built convenience views |
+  | views: `v_cell_summary`, `v_per_target_mp_means` | n/a | Pre-built convenience views |
 
   **Status:** Every fact table at 100% coverage as of 2026-04-28. Loader: `db/scripts/build_db_supplements.py` (idempotent, applies schema migration for `rosetta_energy` + `targets.parent_pdb_id` on first run, wipe-and-reload for energy table on every run). Energy extraction: `red_analysis/scripts/extract_rosetta_energy.py` (patched to handle sidecar `score_*.sc` fill-ins and PDB POSE_ENERGIES_TABLE fallback). Single citation point for the manuscript: snapshot 2026-04-27a.
 
@@ -85,9 +90,10 @@ All sync scripts are atomic (`rsync --partial --delay-updates`) and idempotent.
 - **Inventory:** Blue (16 slides), Green (16 slides), combined.
 
 ### Crystal PDBs (the BM5.5 originals)
-- **ACCRE source:** `accre:/data/p_csb_meiler/agarwm5/protein_pipeline/cleaned/<TARGET>.pdb` and `accre:/data/p_csb_meiler/agarwm5/protein_ideal_test/benchmarking/cleaned/`
-- **Repo:** `repos/Protein_Relax_Pipeline/cleaned/` (257 cleaned crystal PDBs)
+- **Repo (canonical):** `repos/Protein_Relax_Pipeline/cleaned/` (257 cleaned crystal PDBs, homo-multimer dedup applied)
+- **ACCRE Green source:** `accre:/data/p_csb_meiler/agarwm5/protein_ideal_test/benchmarking/cleaned/`
 - **FASTAs:** `repos/Protein_Relax_Pipeline/fasta/` (257 crystal-derived FASTAs)
+- **Note:** Blue's original `protein_pipeline/cleaned/` has been removed from ACCRE; Green's cleaned crystal PDBs are byte-identical to Blue's per empirical verification on 1A2K, 7CEI, 1ACB.
 
 ### AlphaFold + Boltz predictions (the upstream models)
 - **ACCRE source:** `accre:/data/p_csb_meiler/agarwm5/protein_pipeline/predictions/alphafold/` and `predictions/boltz/`
@@ -103,7 +109,7 @@ All sync scripts are atomic (`rsync --partial --delay-updates`) and idempotent.
 ### Manuscript (drafted from scratch, post-deletion 2026-04-28)
 - **Vault:** `Dreamless_Machine/03-Research/Protein/Docs/manuscript/` (subdir to be created when the proteins agent generates fresh v2 drafts; v1 cleared 2026-04-28)
 - **Workspace:** `manuscript/` (workspace-side new sections, response-to-reviewer drafts, build artifacts)
-- **Style:** Academic register from `~/.claude/VOICE.md` (Bair pattern). No iter logs in frontmatter — use `verifier_history` list.
+- **Style:** Academic register from `~/.claude/VOICE.md` (Bair pattern). No iter logs in frontmatter, use `verifier_history` list.
 - **Target:** Proteins: Structure, Function, and Bioinformatics (250-word abstract limit).
 
 ### PI briefs and weekly status
@@ -112,13 +118,13 @@ All sync scripts are atomic (`rsync --partial --delay-updates`) and idempotent.
 - **Template:** model new briefs on the canonical PI brief structure (1-line narrative → 3 headline findings → method defensibility → open items → file index).
 
 ### Vault landmark docs
-- `Plan.md` — strategic plan (operator-editable)
-- `Status.md` — live status (operator refreshes)
-- `Notes.md`, `Ideas.md` — Damien / Ary owned, free-form
-- `Protein.md` — hub dashboard with dataview queries
-- `Docs/{Architecture, Overview, Decisions, Glossary, References, Changelog, Status}.md` — landmark docs
-- `Docs/audits/` — historical audit snapshots (citation audit, data completeness iter48, interim rosetta 2026-04-18)
-- `pi_review_2026-04-26/` — PI brief + files index
+- `Plan.md`: strategic plan (operator-editable)
+- `Status.md`: live status (operator refreshes)
+- `Notes.md`, `Ideas.md`: Damien / Ary owned, free-form
+- `Protein.md`: hub dashboard with dataview queries
+- `Docs/{Architecture, Overview, Decisions, Glossary, References, Changelog, Status}.md`, landmark docs
+- `Docs/audits/`, historical audit snapshots (citation audit, data completeness iter48, interim rosetta 2026-04-18)
+- `pi_review_2026-04-26/`, PI brief + files index
 
 ### Sub-agent (Claude Code)
 - **Location:** `~/.claude/agents/proteins.md`
@@ -145,13 +151,13 @@ All three are clean at upstream HEAD as of 2026-04-28. DB at 100% coverage: `ros
 257 BM5.5 complexes      = 162 rigid + 60 medium + 35 difficult (incl. 4 non-standard: BAAD, BOYV, BP57, CP57)
 605 chains, 122,966 res  = post-strip across 257; 119 homo-multimers deduped to unique seqs; 41 his-tags removed
 6,939 input structures   = 257 crystal + 1,285 AF ranked + 1,285 AF unrelaxed + 1,285 Boltz + 257 amber_crystal + 1,285 amber_af + 1,285 amber_boltz
-416,340 Rosetta MP rows  = 5 × 77,100 (5-model sources) + 2 × 15,420 (1-model sources). NOT 2× — Blue (208,170 in Protein_Relax_Pipeline) + Green (208,170 in Protein_Ideal), DB unifies.
+416,340 Rosetta MP rows  = 5 × 77,100 (5-model sources) + 2 × 15,420 (1-model sources). Blue (208,170) + Green (208,170); the DB unifies under one snapshot.
 208,170 per pipeline     = 257 × 810 outputs/target = 257 × 27 × 6 × 5
-13,364 pre-Rosetta MP    = the initials' MolProbity, post-Stage-C. 13,344 from combined TSV + 20 Stage C Blue crystal backfill. Now 6,682 Blue + 6,682 Green; symmetric.
+13,364 pre-Rosetta MP    = post-Stage-C. 13,344 from combined TSV + 20 Stage C Blue crystal backfill. 6,682 Blue + 6,682 Green; symmetric.
 12,065 pre-Rosetta TM    = initials vs crystal TM-score
 92,700 post-Rosetta TM   = Rosetta outputs vs crystal TM-score
-184,352 Rosetta energy   = energy values from Rosetta runs
-1,720 filtered at lock   = 663 exact-duplicate + 27 legacy-source + 1,030 other dedup
+416,340 Rosetta energy   = total_score + per_residue_energy per Rosetta cell, 1:1 with rosetta_metrics
+1,720 filtered at lock   = 663 exact-duplicate + 27 legacy-source + 1,030 secondary dedup (re-aggregation duplicates from per-target TSVs)
 6,820 (Phase 1 pilot)    = 20 proteins × 341 structures (Protein_Data_Analysis only, pre-full-benchmark)
 ```
 

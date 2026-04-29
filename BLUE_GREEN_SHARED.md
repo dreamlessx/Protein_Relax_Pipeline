@@ -1,12 +1,14 @@
 # Blue / Green Shared Context
 
-**Last updated 2026-04-27, pipeline locked at 100.000% (snapshot 2026-04-27a)**
+**Last updated 2026-04-27, pipelines locked at 100.000% (snapshot 2026-04-27a)**
+
+This file documents the shared protocol surface where Blue and Green agree exactly: identities, locked-state counts, output directory layout, input paths, Rosetta flags, and key scripts. For the Blue-vs-Green diff (Rosetta version, AF AMBER compute, infrastructure), see `COMPARISON.md` in this repo (Blue's perspective) or `Protein_Ideal/COMPARISON.md` (Green's perspective).
 
 ## Identities
 
-- **Blue** = primary pipeline. Job prefix: `blue_`
-- **Green** = independent verification of Blue's protocol. Job prefix: `green_`
-- **Red** = analysis and metrics. Job prefix: `red_`
+- **Blue** = primary pipeline (this repo, `Protein_Relax_Pipeline`). Job prefix: `blue_`
+- **Green** = matched-parameters re-run (companion repo `Protein_Ideal`). Job prefix: `green_`
+- **Red** = analysis and metrics, lives under `red_analysis/` in this repo. Job prefix: `red_`
 - Blue and Green follow identical Rosetta flags, identical inputs, identical output structure.
 
 ## Attribution

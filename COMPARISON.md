@@ -4,6 +4,8 @@
 
 ## Overview
 
+This document describes the BM5.5 benchmarking framework from Blue's perspective. Blue is the primary pipeline housed in this repo (`Protein_Relax_Pipeline`); Green is the matched-parameters re-run housed in companion repo `Protein_Ideal`. The two pipelines share dataset, FASTA strategy, Rosetta flags, and AMBER parameters. They differ on infrastructure (job naming, directory layout, Rosetta version 3.14 vs 3.15, AF AMBER on GPU vs CPU). The Protein_Ideal/COMPARISON.md mirror documents the same diff from Green's perspective.
+
 This document describes the benchmarking framework for comparing protein structure prediction and relaxation methods against experimental crystal structures from the BM5.5 dataset.
 
 ## Input Sources (7 buckets)
@@ -133,3 +135,7 @@ Green is the independent verification of the Blue pipeline's protocol. The green
 - All SLURM jobs tagged with `green_` prefix
 - Output files are `.pdb.gz` compressed
 - Blue's Rosetta flags matched exactly
+
+## Summary
+
+Snapshot 2026-04-27a is the locked single citation point. Both Blue and Green hit 100.000% (208,170 / 208,170 each, 416,340 / 416,340 combined). The matched-parameter Green re-run reproduces Blue's three findings: (1) AMBER fixes local geometry without touching global fold (clashscore Cliff's d = -0.99 at TM Cliff's d = -0.01); (2) Crystal carries the worst pre-Rosetta MolProbity (idealization artifact); (3) `dualspace_beta` wins integrated MolProbity at small TM cost. Canonical figures, tables, and pptx live in `red_analysis/`. Phase 1 pilot (20 proteins) is in companion repo `Protein_Data_Analysis`.
