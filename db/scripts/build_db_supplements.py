@@ -294,7 +294,7 @@ def ingest_post_tmscore(conn: sqlite3.Connection, tsv: Path, snapshot_id: str) -
 
 
 def ensure_schema_extensions(conn: sqlite3.Connection) -> None:
-    """Apply schema migrations for rosetta_energy + targets.parent_pdb_id."""
+    """Apply schema migrations for rosetta_energy + dockq_metrics + targets.parent_pdb_id."""
     cur = conn.cursor()
     # rosetta_energy table (IF NOT EXISTS, safe to re-run)
     cur.executescript("""
@@ -318,6 +318,26 @@ def ensure_schema_extensions(conn: sqlite3.Connection) -> None:
     CREATE INDEX IF NOT EXISTS idx_re_target_pipeline ON rosetta_energy(target_id, pipeline_id);
     CREATE INDEX IF NOT EXISTS idx_re_source_protocol ON rosetta_energy(source_id, protocol_id);
     CREATE INDEX IF NOT EXISTS idx_re_snapshot ON rosetta_energy(snapshot_id);
+
+    CREATE TABLE IF NOT EXISTS dockq_metrics (
+      snapshot_id      TEXT NOT NULL,
+      target_id        TEXT NOT NULL,
+      pipeline_id      TEXT NOT NULL,
+      source_id        TEXT NOT NULL,
+      src_type         TEXT NOT NULL,
+      dockq            REAL,
+      i_rmsd           REAL,
+      l_rmsd           REAL,
+      f_nat            REAL,
+      n_interfaces     INTEGER,
+      status           TEXT,
+      PRIMARY KEY (snapshot_id, target_id, pipeline_id, src_type),
+      FOREIGN KEY (snapshot_id) REFERENCES build_runs(snapshot_id),
+      FOREIGN KEY (target_id)   REFERENCES targets(target_id),
+      FOREIGN KEY (pipeline_id) REFERENCES pipelines(pipeline_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_dq_target_pipeline ON dockq_metrics(target_id, pipeline_id);
+    CREATE INDEX IF NOT EXISTS idx_dq_snapshot ON dockq_metrics(snapshot_id);
     """)
     # ALTER TABLE targets ADD COLUMN parent_pdb_id (idempotent via try/except)
     try:
@@ -388,6 +408,58 @@ def ingest_rosetta_energy(conn: sqlite3.Connection, tsv: Path, snapshot_id: str)
         print(f"  warn: skipped {skipped_invalid_protocol} energy rows with unrecognized protocol", file=sys.stderr)
     if skipped_invalid_rep:
         print(f"  warn: skipped {skipped_invalid_rep} energy rows with invalid rep", file=sys.stderr)
+    return inserted
+
+
+def ingest_dockq(conn: sqlite3.Connection, tsv: Path, snapshot_id: str) -> int:
+    """B9. Load combined_dockq_input.tsv into dockq_metrics.
+
+    Wipe-and-reload pattern. Source: DockQ 2.x output on the 27 input structures
+    per (target, pipeline) cell, computed against the cleaned crystal reference.
+    """
+    cur = conn.cursor()
+    cur.execute(
+        "DELETE FROM dockq_metrics WHERE snapshot_id = ?",
+        (snapshot_id,),
+    )
+    inserted = 0
+    seen: set[tuple] = set()
+    skipped_unknown_source = 0
+    with open(tsv) as f:
+        reader = csv.DictReader(f, delimiter="\t")
+        for row in reader:
+            target = _normalize_target(row["target"])
+            pipeline = row["pipeline"]
+            source = row.get("source") or ""
+            src_type = row["src_type"]
+            if source not in SOURCE_TO_SRC_TYPE:
+                skipped_unknown_source += 1
+                continue
+            key = (snapshot_id, target, pipeline, src_type)
+            if key in seen:
+                continue
+            seen.add(key)
+            cur.execute(
+                """
+                INSERT OR IGNORE INTO dockq_metrics
+                (snapshot_id, target_id, pipeline_id, source_id, src_type,
+                 dockq, i_rmsd, l_rmsd, f_nat, n_interfaces, status)
+                VALUES (?,?,?,?,?, ?,?,?,?, ?, ?)
+                """,
+                (
+                    snapshot_id, target, pipeline, source, src_type,
+                    _f(row.get("dockq")),
+                    _f(row.get("i_rmsd")),
+                    _f(row.get("l_rmsd")),
+                    _f(row.get("f_nat")),
+                    _i(row.get("n_interfaces")),
+                    row.get("status") or "ok",
+                ),
+            )
+            inserted += cur.rowcount
+    conn.commit()
+    if skipped_unknown_source:
+        print(f"  warn: skipped {skipped_unknown_source} dockq rows with unrecognized source", file=sys.stderr)
     return inserted
 
 
@@ -643,6 +715,10 @@ def qc_supplements(conn: sqlite3.Connection, snapshot_id: str) -> dict:
     """).fetchone()[0]
 
     n_energy = cur.execute("SELECT COUNT(*) FROM rosetta_energy WHERE snapshot_id=?", (snapshot_id,)).fetchone()[0]
+    try:
+        n_dockq = cur.execute("SELECT COUNT(*) FROM dockq_metrics WHERE snapshot_id=?", (snapshot_id,)).fetchone()[0]
+    except sqlite3.OperationalError:
+        n_dockq = 0
     n_targets_with_parent = cur.execute("SELECT COUNT(*) FROM targets WHERE parent_pdb_id IS NOT NULL").fetchone()[0]
     n_quarantine = cur.execute("SELECT COUNT(*) FROM qc_quarantine WHERE snapshot_id=?", (snapshot_id,)).fetchone()[0]
     n_q_invalid_enum = cur.execute("SELECT COUNT(*) FROM qc_quarantine WHERE snapshot_id=? AND bucket='invalid_enum'", (snapshot_id,)).fetchone()[0]
@@ -662,6 +738,7 @@ def qc_supplements(conn: sqlite3.Connection, snapshot_id: str) -> dict:
         "rosetta_metrics_rows": n_rm,
         "rosetta_energy_rows": n_energy,
         "rosetta_energy_coverage_pct": round(100 * n_energy / n_rm, 2) if n_rm else 0,
+        "dockq_metrics_rows": n_dockq,
         "targets_with_difficulty": n_targets_with_diff,
         "targets_with_chains_residues": n_targets_with_chains,
         "targets_with_parent_pdb": n_targets_with_parent,
@@ -693,9 +770,14 @@ def main() -> None:
     pre_tm_tsv = args.raw_root / "combined_tmscore.tsv"
     post_tm_tsv = args.raw_root / "combined_rosetta_tmscore.tsv"
     energy_tsv = args.raw_root / "combined_rosetta_energy.tsv"
+    dockq_tsv = args.raw_root / "combined_dockq_input.tsv"
     for p in [pre_mp_tsv, pre_tm_tsv, post_tm_tsv, energy_tsv, args.difficulty_csv, args.chains_csv]:
         if not p.exists():
             sys.exit(f"missing input: {p}")
+    # dockq_tsv is optional; warn if absent but don't block
+    if not dockq_tsv.exists():
+        print(f"  note: {dockq_tsv} not present; skipping B9 dockq ingest", file=sys.stderr)
+        dockq_tsv = None
 
     conn = sqlite3.connect(str(args.db))
     conn.execute("PRAGMA foreign_keys = ON")
@@ -732,6 +814,13 @@ def main() -> None:
     print("B7. updating targets.parent_pdb_id for non-standard ...")
     n7 = update_targets_parent_pdb(conn)
     print(f"   updated {n7} rows ({list(PARENT_PDB_MAP.keys())})")
+
+    if dockq_tsv:
+        print("B9. ingesting dockq_metrics ...")
+        n9 = ingest_dockq(conn, dockq_tsv, args.snapshot_id)
+        print(f"   inserted {n9} rows")
+    else:
+        n9 = 0
 
     print("B8. resetting qc_quarantine (audit-log padding from earlier runs no longer informative) ...")
     cleared = reset_qc_quarantine(conn, args.snapshot_id)
@@ -770,6 +859,7 @@ def main() -> None:
         "rosetta_energy": qc["rosetta_energy_rows"],
         "rosetta_energy_coverage_pct": qc["rosetta_energy_coverage_pct"],
         "energy_missing_vs_metrics": gaps["energy_missing_vs_metrics"],
+        "dockq_metrics": qc["dockq_metrics_rows"],
         "targets_with_metadata": qc["targets_with_difficulty"],
         "targets_with_parent_pdb": qc["targets_with_parent_pdb"],
         "qc_quarantine_total": qc["qc_quarantine_total"],
