@@ -1,17 +1,17 @@
-pipeline	pair	protocol	metric	n_paired	amber_mean	std_mean	mean_diff	diff_ci_lo	diff_ci_hi	paired_t_p	wilcoxon_p
-blue	amber_boltz_vs_boltz	normal_beta	molprobity_score	257	0.2193	0.2134	0.006	-0.0034	0.0154	0.21311	0.54336
-blue	amber_boltz_vs_boltz	normal_beta	clashscore	257	0.6381	0.6104	0.0277	-0.0424	0.0978	0.4369	0.36872
-blue	amber_boltz_vs_boltz	dualspace_beta	molprobity_score	257	0.222	0.2265	-0.0046	-0.0101	0.001	0.10681	0.01632
-blue	amber_boltz_vs_boltz	dualspace_beta	clashscore	257	0.6775	0.6974	-0.0199	-0.0408	0.001	0.06193	0.00658
-blue	amber_af_vs_af_relaxed	normal_beta	molprobity_score	257	0.2354	0.2355	-0.0001	-0.0038	0.0035	0.94608	0.72975
-blue	amber_af_vs_af_relaxed	normal_beta	clashscore	257	0.6463	0.6565	-0.0103	-0.0312	0.0106	0.33339	0.88905
-blue	amber_af_vs_af_relaxed	dualspace_beta	molprobity_score	257	0.2262	0.2258	0.0004	-0.0022	0.0031	0.75679	0.46805
-blue	amber_af_vs_af_relaxed	dualspace_beta	clashscore	257	0.6865	0.688	-0.0015	-0.0115	0.0085	0.76828	0.60339
-green	amber_boltz_vs_boltz	normal_beta	molprobity_score	257	0.2195	0.2132	0.0063	-0.0041	0.0167	0.23141	0.59837
-green	amber_boltz_vs_boltz	normal_beta	clashscore	257	0.6397	0.6003	0.0394	-0.0402	0.119	0.33095	0.29185
-green	amber_boltz_vs_boltz	dualspace_beta	molprobity_score	257	0.2268	0.2245	0.0023	-0.0031	0.0077	0.40375	0.56836
-green	amber_boltz_vs_boltz	dualspace_beta	clashscore	257	0.6929	0.6893	0.0035	-0.0172	0.0242	0.73651	0.8747
-green	amber_af_vs_af_relaxed	normal_beta	molprobity_score	257	0.238	0.237	0.001	-0.0031	0.005	0.63957	0.95394
-green	amber_af_vs_af_relaxed	normal_beta	clashscore	257	0.6847	0.666	0.0187	-0.0127	0.0502	0.24093	0.50773
-green	amber_af_vs_af_relaxed	dualspace_beta	molprobity_score	257	0.2296	0.2289	0.0008	-0.0019	0.0034	0.57341	0.92455
-green	amber_af_vs_af_relaxed	dualspace_beta	clashscore	257	0.6992	0.6956	0.0036	-0.0062	0.0134	0.47376	0.97429
+pipeline	pair	protocol	metric	n_paired	amber_mean	std_mean	mean_diff	diff_ci_lo	diff_ci_hi	paired_t_p	wilcoxon_p	mde_paired_t_a05_p80	observed_below_mde
+blue	amber_boltz_vs_boltz	normal_beta	molprobity_score	257	0.2193	0.2134	0.006	-0.0034	0.0154	0.21311	0.54336	0.013424	yes
+blue	amber_boltz_vs_boltz	normal_beta	clashscore	257	0.6381	0.6104	0.0277	-0.0424	0.0978	0.4369	0.36872	0.100109	yes
+blue	amber_boltz_vs_boltz	dualspace_beta	molprobity_score	257	0.222	0.2265	-0.0046	-0.0101	0.001	0.10681	0.01632	0.007926	yes
+blue	amber_boltz_vs_boltz	dualspace_beta	clashscore	257	0.6775	0.6974	-0.0199	-0.0408	0.001	0.06193	0.00658	0.029847	yes
+blue	amber_af_vs_af_relaxed	normal_beta	molprobity_score	257	0.2354	0.2355	-0.0001	-0.0038	0.0035	0.94608	0.72975	0.005213	yes
+blue	amber_af_vs_af_relaxed	normal_beta	clashscore	257	0.6463	0.6565	-0.0103	-0.0312	0.0106	0.33339	0.88905	0.029847	yes
+blue	amber_af_vs_af_relaxed	dualspace_beta	molprobity_score	257	0.2262	0.2258	0.0004	-0.0022	0.0031	0.75679	0.46805	0.003784	yes
+blue	amber_af_vs_af_relaxed	dualspace_beta	clashscore	257	0.6865	0.688	-0.0015	-0.0115	0.0085	0.76828	0.60339	0.014281	yes
+green	amber_boltz_vs_boltz	normal_beta	molprobity_score	257	0.2195	0.2132	0.0063	-0.0041	0.0167	0.23141	0.59837	0.014852	yes
+green	amber_boltz_vs_boltz	normal_beta	clashscore	257	0.6397	0.6003	0.0394	-0.0402	0.119	0.33095	0.29185	0.113676	yes
+green	amber_boltz_vs_boltz	dualspace_beta	molprobity_score	257	0.2268	0.2245	0.0023	-0.0031	0.0077	0.40375	0.56836	0.007712	yes
+green	amber_boltz_vs_boltz	dualspace_beta	clashscore	257	0.6929	0.6893	0.0035	-0.0172	0.0242	0.73651	0.8747	0.029561	yes
+green	amber_af_vs_af_relaxed	normal_beta	molprobity_score	257	0.238	0.237	0.001	-0.0031	0.005	0.63957	0.95394	0.005784	yes
+green	amber_af_vs_af_relaxed	normal_beta	clashscore	257	0.6847	0.666	0.0187	-0.0127	0.0502	0.24093	0.50773	0.044913	yes
+green	amber_af_vs_af_relaxed	dualspace_beta	molprobity_score	257	0.2296	0.2289	0.0008	-0.0019	0.0034	0.57341	0.92455	0.003784	yes
+green	amber_af_vs_af_relaxed	dualspace_beta	clashscore	257	0.6992	0.6956	0.0036	-0.0062	0.0134	0.47376	0.97429	0.013995	yes
