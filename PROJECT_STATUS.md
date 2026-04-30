@@ -1,15 +1,16 @@
 # Project Status
 
-**Last verified:** 2026-04-28. Snapshot 2026-04-27a locked. Every fact table at 100% coverage. qc_quarantine clean.
+**Last verified:** 2026-04-29. Snapshot 2026-04-27a locked. Every fact table at 100% coverage post data-gap fixes (157 green af_unrelaxed TM rows backfilled; 257 Blue amber_crystal DockQ rows added; 1Y64 Boltz outlier identified). qc_quarantine clean.
 
 ## Locked DB (single citation point)
 
 | Table | Rows | Coverage |
 |---|---|---|
 | `rosetta_metrics` | 416,340 | 100.000% (locked) |
-| `prerosetta_metrics` | 13,364 | 13,344 base + 20 Stage C Blue crystal backfill (Green-source, MolProbity deterministic on identical input PDBs) |
-| `tm_scores` | 104,765 | 12,065 pre-Rosetta + 92,700 post-Rosetta |
+| `prerosetta_metrics` | 13,364 | 13,344 base + 20 Stage C Blue crystal backfill |
+| `tm_scores` | 105,550 | 12,850 pre-Rosetta (post green af_unrelaxed backfill) + 92,700 post-Rosetta |
 | `rosetta_energy` | 416,340 | 100.000% (matches `rosetta_metrics` 1:1 on every join key) |
+| `dockq_metrics` | 13,878 | 100.000% across 7 sources × 257 targets × 2 pipelines (post Blue amber_crystal backfill) |
 | `targets` | 257 | difficulty + category + n_chains + n_residues + non_standard_flag + parent_pdb_id (4 non-standard) |
 | `qc_quarantine` | 0 | clean |
 | dimension tables | 2 / 7 / 6 | pipelines / sources / protocols |
@@ -54,11 +55,13 @@ Both pipelines (Blue + Green) populated identically across all 7 sources × 6 pr
 
 Blue and Green use identical Rosetta flags, the same 257 targets, the same 27 input structures per target, the same 6 protocols, and the same 5 replicates. The DB unifies both under snapshot 2026-04-27a.
 
-## Three findings (`red_analysis/PAPER_FINDINGS.md` for full numbers + figure pointers)
+## Five findings (`red_analysis/PAPER_FINDINGS.md` for full numbers + figure pointers)
 
-1. **AMBER fixes local geometry without touching global fold.** Clashscore Cliff's d = -0.99 at TM Cliff's d = -0.01. AMBER improves MolProbity for 257/257 AlphaFold and 256/257 Boltz targets.
-2. **Crystal structures carry the worst pre-Rosetta MolProbity.** Crystal clashscore 13.85 vs AlphaFold-relaxed 2.82 vs AMBER(Boltz) 1.60. Frame as idealization artifact, not failure.
-3. **dualspace_beta wins integrated MolProbity at small TM cost.** beta_nov16 dominates ref2015 on 40-42 of 42 (pipeline, source, move-set) triples for MP, clashscore, Rama-favored. cartesian_beta is the TM-retentive runner-up. ref2015 wins on rotamer outliers (21 of 42 triples).
+1. **AMBER fixes prediction defects without meaningfully changing global fold or interface.** Clashscore Cliff's d = -0.99, mean drop 13-21 clashes per target. TM mean Δ < 0.001 absolute. DockQ mean Δ < 0.0002 (well below DockQ's practitioner threshold of ~0.05). 257/257 AlphaFold + 256/257 Boltz targets improve.
+2. **AMBER on crystal references produces a small structural perturbation comparable to crystallographic refinement uncertainty.** Median Δ i-RMSD 0.246 Å (vs Luzzati / Sigma-A 0.2-0.3 Å typical for the BM5.5 ~2.2 Å median resolution); Δ DockQ -0.022 sits below the practitioner decision threshold. The Cliff's d = -1.0 is mathematically tautological (crystal vs crystal = 1.0 by construction). Skip AMBER on crystal sources where the crystal is held as the unmodified reference.
+3. **Post-Rosetta paired AMBER effect: small, directionally consistent, below practitioner noise floor.** 0/16 cells reach paired-t p<0.05; 2/16 reach Wilcoxon p<0.05 (consistent direction toward AMBER, magnitude ~1-2% of cell mean). Mean Δ MP sits below the n=257 paired-t MDE (~0.008). AMBER as geometry pre-conditioner (massive Section 1 effect), not as Rosetta-MolProbity scoring enhancer.
+4. **`dualspace_beta` and `normal_beta` tie at the top of integrated MolProbity (within 0.01 MP units).** `boltz + normal_beta` MP 0.213 (no pre-AMBER); `amber_boltz + dualspace_beta` MP 0.222 (with pre-AMBER). beta_nov16 dominates ref2015 on 40-42 of 42 (pipeline, source, move-set) triples for MP, clashscore, Rama-favored; ref2015 wins on rotamer outliers (21 of 42 triples). cartesian_beta is the TM-retentive runner-up.
+5. **Crystal MolProbity calibration.** Crystal clashscore 13.85 vs predictions 0.68-2.82. Frame as score-function idealization (predictions trained on energy-minimized targets; crystals at cryogenic packing); not a critique of crystallography. 1Y64 named as the single Boltz target where AMBER pre-conditioning makes MolProbity worse (Δ MP +0.46).
 
 ## Reproducibility (Blue vs Green agreement)
 

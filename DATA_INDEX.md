@@ -72,13 +72,14 @@ All sync scripts are atomic (`rsync --partial --delay-updates`) and idempotent.
   | `sources` | 7 | af_relaxed, af_unrelaxed, amber_af, amber_boltz, amber_crystal, boltz, crystal |
   | `protocols` | 6 | cartesian/dualspace/normal × beta_nov16/ref2015 |
   | `prerosetta_metrics` | **13,364** | 13,344 from `combined_molprobity.tsv` + 20 Stage C backfilled from Green crystal MP (PDB-identical, MolProbity deterministic). |
-  | `tm_scores` | **104,765** | 12,065 pre-Rosetta + 92,700 post-Rosetta. PK uses `is_post_rosetta` flag; pre-Rosetta has NULL protocol_id and rep. |
-  | `rosetta_energy` | **416,340** | Schema-extension table (added 2026-04-28). Total_score + per_residue_energy per (target, pipeline, src_type, protocol, rep) cell. **100% coverage of rosetta_metrics**, 0 orphans, 0 gaps. Extracted via patched `extract_rosetta_energy.py` (canonical `relax.fasc` + sidecar `score_*.sc` fillers + final fallback to `POSE_ENERGIES_TABLE` parsed directly from PDBs for any rep that wasn't otherwise covered). |
+  | `tm_scores` | **105,550** | 12,850 pre-Rosetta (post green af_unrelaxed backfill of 157 missing targets) + 92,700 post-Rosetta. PK uses `is_post_rosetta` flag; pre-Rosetta has NULL protocol_id and rep. |
+  | `rosetta_energy` | **416,340** | Total_score + per_residue_energy per (target, pipeline, src_type, protocol, rep) cell. 100% coverage of rosetta_metrics, 0 orphans, 0 gaps. Extracted via patched `extract_rosetta_energy.py` (relax.fasc + sidecar score_*.sc + PDB POSE_ENERGIES_TABLE fallback). |
+  | `dockq_metrics` | **13,878** | DockQ + i-RMSD + l-RMSD + f_nat per (target, pipeline, src_type) cell on the 27 input structures. 100% symmetric across Blue and Green after 257-row Blue amber_crystal backfill. |
   | `qc_quarantine` | **0** | Empty; the snapshot is fully consistent. |
-  | `build_runs` | 1 | Single locked snapshot 2026-04-27a, qc_status=pass, raw_manifest_hash recomputed against supplemental TSVs. |
+  | `build_runs` | 1 | Single locked snapshot 2026-04-27a, qc_status=pass. |
   | views: `v_cell_summary`, `v_per_target_mp_means` | n/a | Pre-built convenience views |
 
-  **Status:** Every fact table at 100% coverage as of 2026-04-28. Loader: `db/scripts/build_db_supplements.py` (idempotent, applies schema migration for `rosetta_energy` + `targets.parent_pdb_id` on first run, wipe-and-reload for energy table on every run). Energy extraction: `red_analysis/scripts/extract_rosetta_energy.py` (patched to handle sidecar `score_*.sc` fill-ins and PDB POSE_ENERGIES_TABLE fallback). Single citation point for the manuscript: snapshot 2026-04-27a.
+  **Status (2026-04-29):** Every fact table at 100% coverage post data-gap fixes (157 green af_unrelaxed TM rows + 257 Blue amber_crystal DockQ rows backfilled; 1Y64 Boltz outlier identified). Loader: `db/scripts/build_db_supplements.py` (idempotent, applies schema migrations for `rosetta_energy` + `dockq_metrics` + `targets.parent_pdb_id` on first run; wipe-and-reload on each run). Single citation point for the manuscript: snapshot 2026-04-27a.
 
 ### Per-target output (Blue pipeline, individual target metrics)
 - **ACCRE source:** `accre:/data/p_csb_meiler/agarwm5/red_analysis/metrics/molprobity_blue_<TARGET>.tsv` and `molprobity_green_<TARGET>.tsv` (one per target × per pipeline)
@@ -163,8 +164,12 @@ All three are clean at upstream HEAD as of 2026-04-28. DB at 100% coverage: `ros
 
 ---
 
-## Three findings (manuscript-ready, source-of-truth)
+## Five findings (manuscript-ready, source-of-truth)
 
-1. **AMBER free lunch.** Cliff's d clashscore = -0.99 at TM Cliff's d = -0.01. 257/257 AF + 256/257 Boltz improved.
-2. **Crystal worst MolProbity.** Crystal clashscore 13.85 vs relaxed predictions 0.68-2.82. Frame as idealization artifact.
-3. **Rosetta protocol ranking.** dualspace_beta wins integrated MP (0.22, clashscore 0.68) at 0.019-0.025 TM cost. beta_nov16 dominates ref2015 on MP/clash/rama (40-42 of 42 triples), reverses on rotamer outliers (21/42).
+See `repos/Protein_Relax_Pipeline/red_analysis/PAPER_FINDINGS.md` for the canonical version with full numbers and figure pointers.
+
+1. **AMBER fixes prediction defects without meaningfully changing global fold or interface.** Clashscore Cliff's d = -0.99 (mean drop 13-21 per target). TM mean Δ < 0.001 absolute; DockQ mean Δ < 0.0002 (below DockQ practitioner threshold). 257/257 AF + 256/257 Boltz improved. 1Y64 is the one Boltz outlier where AMBER raises MP by 0.46.
+2. **AMBER on crystal: small structural perturbation comparable to crystallographic refinement uncertainty.** Median Δ i-RMSD 0.246 Å (within Luzzati 0.2-0.3 Å envelope at BM5.5 ~2.2 Å median resolution); Δ DockQ -0.022 below practitioner decision threshold. Cliff's d = -1.0 mathematically tautological. Skip AMBER on crystal sources held as unmodified reference.
+3. **Post-Rosetta paired AMBER effect: small, directionally consistent, below practitioner noise floor.** 0/16 paired-t cells, 2/16 Wilcoxon (Blue amber_boltz dualspace_beta, mean Δ MP -0.005). Magnitude below n=257 paired-t MDE. AMBER as geometry pre-conditioner, not Rosetta-MP scoring enhancer.
+4. **`dualspace_beta` and `normal_beta` tie at the top of integrated MolProbity** (within 0.01 MP units). beta_nov16 dominates ref2015 on 40-42 of 42 triples for MP/clash/Rama; ref2015 wins on rotamer outliers (21/42). cartesian_beta is the TM-retentive runner-up.
+5. **Crystal MolProbity calibration.** Clashscore 13.85 vs predictions 0.68-2.82. Frame as score-function idealization (predictions+AMBER+Rosetta optimize toward score-function ideal; crystals reflect refinement constraints).
