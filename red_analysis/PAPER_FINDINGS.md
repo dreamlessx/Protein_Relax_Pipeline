@@ -256,3 +256,42 @@ S1-S5: Per the existing supp set.
 **No comparison to ClusPro / HADDOCK / pyDock.** Out of paper scope. The recommended pipeline claim is bounded to "best end-to-end relaxation pipeline given AlphaFold or Boltz starting points," not "best docking pipeline." Discussion paragraph addresses this scoping.
 
 **43 AlphaFold targets used `reduced_dbs` fallback** (HHblits hit the 32,763-residue limit on antibody/immunoglobulin sequences). Source list trace pending. Mention as non-blocking caveat in Discussion.
+
+---
+
+## 11. References
+
+The bibliography below is the canonical set for the Methods + Discussion sections of the manuscript. Numbered for in-text [N] citation when manuscript drafting begins.
+
+**Prediction methods**:
+1. Jumper, J., Evans, R., Pritzel, A. et al. Highly accurate protein structure prediction with AlphaFold. *Nature* 596, 583-589 (2021).
+2. Wohlwend, J., Corso, G., Passaro, S. et al. Boltz-1: Democratizing Biomolecular Interaction Modeling. *bioRxiv* (2024).
+
+**Force fields and relaxation engines**:
+3. Eastman, P., Swails, J., Chodera, J.D. et al. OpenMM 7: Rapid Development of High Performance Algorithms for Molecular Dynamics. *PLOS Comput. Biol.* 13(7): e1005659 (2017).
+4. Maier, J.A., Martinez, C., Kasavajhala, K., Wickstrom, L., Hauser, K.E., Simmerling, C. ff14SB: Improving the Accuracy of Protein Side Chain and Backbone Parameters from ff99SB. *J. Chem. Theory Comput.* 11, 3696-3713 (2015).
+5. Conway, P., Tyka, M.D., DiMaio, F., Konerding, D.E., Baker, D. Relaxation of backbone bond geometry improves protein energy landscape modeling. *Protein Sci.* 23, 47-55 (2014).
+6. Park, H., Bradley, P., Greisen, P. Jr et al. Simultaneous Optimization of Biomolecular Energy Functions on Features from Small Molecules and Macromolecules. *J. Chem. Theory Comput.* 12, 6201-6212 (2016) (beta_nov16).
+7. Alford, R.F., Leaver-Fay, A., Jeliazkov, J.R. et al. The Rosetta All-Atom Energy Function for Macromolecular Modeling and Design. *J. Chem. Theory Comput.* 13, 3031-3048 (2017) (REF2015).
+
+**Structure validation metrics**:
+8. Williams, C.J., Headd, J.J., Moriarty, N.W. et al. MolProbity: More and better reference data for improved all-atom structure validation. *Protein Sci.* 27, 293-315 (2018).
+9. Zhang, Y., Skolnick, J. TM-align: a protein structure alignment algorithm based on the TM-score. *Nucleic Acids Res.* 33, 2302-2309 (2005).
+10. Basu, S., Wallner, B. DockQ: A Quality Measure for Protein-Protein Docking Models. *PLoS ONE* 11(8): e0161879 (2016).
+
+**Crystallographic refinement uncertainty (cited inline in Section 1)**:
+11. Cruickshank, D.W.J. Remarks about protein structure precision. *Acta Crystallogr. D Biol. Crystallogr.* 55, 583-601 (1999).
+12. Lindorff-Larsen, K., Maragakis, P., Piana, S., Eastwood, M.P., Dror, R.O., Shaw, D.E. Systematic validation of protein force fields against experimental data. *PLoS ONE* 7(2): e32131 (2012).
+13. Raval, A., Piana, S., Eastwood, M.P., Dror, R.O., Shaw, D.E. Refinement of protein structure homology models via long, all-atom molecular dynamics simulations. *Proteins* 80, 2071-2079 (2012).
+14. Beauchamp, K.A., Lin, Y.-S., Das, R., Pande, V.S. Are Protein Force Fields Getting Better? A Systematic Benchmark on 524 Diverse NMR Measurements. *J. Chem. Theory Comput.* 8, 1409-1414 (2012).
+
+**Statistical methodology**:
+15. Benjamini, Y., Hochberg, Y. Controlling the False Discovery Rate: A Practical and Powerful Approach to Multiple Testing. *J. Royal Stat. Soc. B* 57, 289-300 (1995).
+16. Cliff, N. Dominance statistics: Ordinal analyses to answer ordinal questions. *Psychol. Bull.* 114, 494-509 (1993).
+
+**Dataset**:
+17. Vreven, T., Moal, I.H., Vangone, A. et al. Updates to the Integrated Protein-Protein Interaction Benchmarks. *J. Mol. Biol.* 427, 3031-3041 (2015) (BM5.0).
+18. Guest, J.D., Vreven, T., Zhou, J. et al. An expanded benchmark for antibody-antigen docking and affinity prediction reveals insights into antibody recognition determinants. *J. Mol. Biol.* 433, 166983 (2021) (BM5.5).
+
+**Mentioned out-of-scope (Phase 1 pilot validator)**:
+19. Buttenschoen, M., Morris, G.M., Deane, C.M. PoseBusters: AI-based docking methods fail to generate physically valid ligand poses. *Chem. Sci.* 15, 3130-3139 (2024).

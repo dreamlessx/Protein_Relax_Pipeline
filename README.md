@@ -77,7 +77,7 @@ The DB is the canonical artifact. Single citation point for the manuscript.
 |---|---|---|
 | `rosetta_metrics` | 416,340 | Locked. 663 exact-duplicate + 27 legacy-source rows filtered at ingest. |
 | `prerosetta_metrics` | 13,364 | Pre-Rosetta MolProbity on the 27 input sources. 13,344 from `combined_molprobity.tsv` plus 20 Stage C Blue crystal rows backfilled from Green (PDBs verified byte-identical, MolProbity deterministic). |
-| `tm_scores` | 104,765 | 12,065 pre-Rosetta TM-score against crystal reference, plus 92,700 post-Rosetta TM-score per Rosetta cell. |
+| `tm_scores` | 105,550 | 12,850 pre-Rosetta TM-score against crystal reference (post green af_unrelaxed backfill), plus 92,700 post-Rosetta TM-score per Rosetta cell. |
 | `rosetta_energy` | 416,340 | Total score and per-residue energy per cell. 1:1 with `rosetta_metrics`. Recovered from `relax.fasc` plus per-rep `score_*.sc` sidecars plus `POSE_ENERGIES_TABLE` parsing of PDB outputs as a final fallback. |
 | `targets` | 257 | Difficulty (162R/60M/35D), category (zlab AA/AS/EI/ER/ES/OG/OR/OX), n_chains, n_residues, non_standard_flag, parent_pdb_id. |
 | `qc_quarantine` | 0 | Clean. |
@@ -113,7 +113,7 @@ Protein_Relax_Pipeline/
 
 Blue is primary. Green is an independent matched-parameters re-run that lives in [`Protein_Ideal`](https://github.com/dreamlessx/Protein_Ideal). The two pipelines use the same 257 targets, the same 27 input structures per target, the same 6 Rosetta protocols with identical flags, and the same 5-replicate count. Blue runs at `/data/p_csb_meiler/agarwm5/protein_pipeline/` on ACCRE with prefix `blue_`; Green runs at `/data/p_csb_meiler/agarwm5/protein_ideal_test/` with prefix `green_`. The DB unifies both under the same snapshot.
 
-Reproducibility (Blue vs Green agreement): pre-Rosetta TM Pearson r = 0.997 (n = 1,128); pre-Rosetta RMSD r = 0.994; post-Rosetta TM r = 0.999 (n = 60); per-source clashscore r = 0.867 to 0.991; per-source MP score r = 0.941 to 0.984. The independent run reproduces Blue's three findings.
+Reproducibility (Blue vs Green agreement): pre-Rosetta TM Pearson r = 0.997 (n = 1,128); pre-Rosetta RMSD r = 0.994; post-Rosetta TM r = 0.999 (n = 60); per-source clashscore r = 0.867 to 0.991; per-source MP score r = 0.941 to 0.984. The independent run reproduces Blue's five findings.
 
 ## Computational resources
 

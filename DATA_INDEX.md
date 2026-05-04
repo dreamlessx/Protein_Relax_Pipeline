@@ -4,7 +4,7 @@
 
 ## The story in one paragraph
 
-We benchmark structure-prediction and relaxation pipelines on the 257-complex BM5.5 protein-protein docking dataset. AlphaFold 2.3.2 (5 ranked + 5 unrelaxed) and Boltz-1 v0.4.1 (5 single-sequence) predictions feed a relaxation matrix: AMBER as a pre-conditioning step, then Rosetta 3.15 under 6 protocols (cartesian / dualspace / normal × beta_nov16 / ref2015) at 5 replicates each. Two independent pipelines (Blue, primary; Green, matched-parameters re-run) produce 416,340 Rosetta MolProbity rows, 416,340 Rosetta energy rows, 104,765 TM scores, 13,364 pre-Rosetta MolProbity rows, and 257 targets with full metadata in a single locked SQLite DB at snapshot 2026-04-27a (qc_status = pass). Three findings emerge: AMBER fixes local geometry without touching global fold (clashscore Cliff's d = -0.99 at TM Cliff's d = -0.01); crystal structures carry the worst pre-Rosetta MolProbity (idealization artifact); dualspace_beta wins integrated MolProbity at small TM cost.
+We benchmark structure-prediction and relaxation pipelines on the 257-complex BM5.5 protein-protein docking dataset. AlphaFold 2.3.2 (5 ranked + 5 unrelaxed) and Boltz-1 v0.4.1 (5 single-sequence) predictions feed a relaxation matrix: AMBER as a pre-conditioning step, then Rosetta 3.15 under 6 protocols (cartesian / dualspace / normal × beta_nov16 / ref2015) at 5 replicates each. Two independent pipelines (Blue, primary; Green, matched-parameters re-run) produce 416,340 Rosetta MolProbity rows, 416,340 Rosetta energy rows, 105,550 TM scores, 13,364 pre-Rosetta MolProbity rows, 13,878 DockQ rows, and 257 targets with full metadata in a single locked SQLite DB at snapshot 2026-04-27a (qc_status = pass). Five findings emerge: AMBER fixes prediction defects without meaningfully changing global fold or interface; AMBER on crystal produces a small perturbation comparable to refinement uncertainty; post-Rosetta paired AMBER effect is small and below practitioner noise floor (16 of 16 cells below MDE); dualspace_beta and normal_beta tie at top of integrated MolProbity (within 0.01 MP units), with beta_nov16 dominating ref2015 on 40-42 of 42 triples; crystal MolProbity reflects score-function idealization rather than crystallographer failure.
 
 Last verified: 2026-04-28. Every fact table at 100% coverage; no audit-log padding.
 
@@ -50,7 +50,7 @@ All sync scripts are atomic (`rsync --partial --delay-updates`) and idempotent.
   | File | Rows | What |
   |---|---|---|
   | `combined_molprobity.tsv` | 13,344 | Pre-Rosetta MP (initials: AF / Boltz / AMBER variants / crystal MolProbity before Rosetta). 20 Blue crystal rows backfilled in DB from Green source via Stage C. |
-  | `combined_tmscore.tsv` | 12,065 | Pre-Rosetta TM-score (initials vs crystal) |
+  | `combined_tmscore.tsv` | 12,850 | Pre-Rosetta TM-score (initials vs crystal); post green af_unrelaxed backfill |
   | `combined_rosetta_molprobity.tsv` | 418,060 raw / 416,340 in lock | Post-Rosetta MP (the paper's primary fact table) |
   | `combined_rosetta_tmscore.tsv` | 92,700 | Post-Rosetta TM-score |
   | `combined_rosetta_energy.tsv` | 416,370 raw / 416,340 in DB | Rosetta total_score + per_residue_energy. 30 legacy src_type rows filtered at ingest. |
@@ -130,7 +130,7 @@ All sync scripts are atomic (`rsync --partial --delay-updates`) and idempotent.
 ### Sub-agent (Claude Code)
 - **Location:** `~/.claude/agents/proteins.md`
 - **Auto-fires:** for any session in `~/proteins-workspace/` or any session about BM5.5 / protein docking / Meiler-lab work.
-- **Knows:** dataset (257 + 7 sources + 27 inputs + 6 protocols + 416,340 lock), three findings, repo + ACCRE + vault layouts, figure naming, voice rules.
+- **Knows:** dataset (257 + 7 sources + 27 inputs + 6 protocols + 416,340 lock), five findings, repo + ACCRE + vault layouts, figure naming, voice rules.
 
 ---
 
@@ -142,7 +142,7 @@ All sync scripts are atomic (`rsync --partial --delay-updates`) and idempotent.
 | `Protein_Ideal` | github.com/dreamlessx/Protein_Ideal | GREEN pipeline + dataset prep |
 | `Protein_Data_Analysis` | github.com/dreamlessx/Protein_Data_Analysis | MolProbity validation toolchain (Phase 1 pilot, 20 proteins) |
 
-All three are clean at upstream HEAD as of 2026-04-28. DB at 100% coverage: `rosetta_metrics` 416,340 + `prerosetta_metrics` 13,364 + `tm_scores` 104,765 + `rosetta_energy` 416,340 + `targets` 257 (full metadata + parent_pdb_id) + `qc_quarantine` 0. Loader: `Protein_Relax_Pipeline/db/scripts/build_db_supplements.py`. Energy extractor: `Protein_Relax_Pipeline/red_analysis/scripts/extract_rosetta_energy.py`. Live SQLite + 5 raw TSVs in the `db-2026-04-27a-supp` GitHub Release.
+All three are clean at upstream HEAD as of 2026-04-29. DB at 100% coverage: `rosetta_metrics` 416,340 + `prerosetta_metrics` 13,364 + `tm_scores` 105,550 + `rosetta_energy` 416,340 + `dockq_metrics` 13,878 + `targets` 257 (full metadata + parent_pdb_id) + `qc_quarantine` 0. Loader: `Protein_Relax_Pipeline/db/scripts/build_db_supplements.py`. Energy extractor: `Protein_Relax_Pipeline/red_analysis/scripts/extract_rosetta_energy.py`. DockQ extractor: `Protein_Relax_Pipeline/red_analysis/scripts/compute_dockq_inputs.py`. Live SQLite + 6 raw TSVs in the `db-2026-04-27a-supp` GitHub Release.
 
 ---
 
@@ -155,7 +155,7 @@ All three are clean at upstream HEAD as of 2026-04-28. DB at 100% coverage: `ros
 416,340 Rosetta MP rows  = 5 × 77,100 (5-model sources) + 2 × 15,420 (1-model sources). Blue (208,170) + Green (208,170); the DB unifies under one snapshot.
 208,170 per pipeline     = 257 × 810 outputs/target = 257 × 27 × 6 × 5
 13,364 pre-Rosetta MP    = post-Stage-C. 13,344 from combined TSV + 20 Stage C Blue crystal backfill. 6,682 Blue + 6,682 Green; symmetric.
-12,065 pre-Rosetta TM    = initials vs crystal TM-score
+12,850 pre-Rosetta TM    = initials vs crystal TM-score (post green af_unrelaxed backfill of 157 missing targets)
 92,700 post-Rosetta TM   = Rosetta outputs vs crystal TM-score
 416,340 Rosetta energy   = total_score + per_residue_energy per Rosetta cell, 1:1 with rosetta_metrics
 1,720 filtered at lock   = 663 exact-duplicate + 27 legacy-source + 1,030 secondary dedup (re-aggregation duplicates from per-target TSVs)
