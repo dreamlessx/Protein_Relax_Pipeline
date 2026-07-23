@@ -108,9 +108,9 @@ All sync scripts are atomic (`rsync --partial --delay-updates`) and idempotent.
 - **Re-fetch a single (target, source, protocol) cell:** `rsync accre:/data/p_csb_meiler/agarwm5/protein_pipeline/blue_relax/1ACB/<src_type>/<protocol>/r*.pdb.gz ./tmp/`
 
 ### Manuscript (drafted from scratch, post-deletion 2026-04-28)
-- **Vault:** `Dreamless_Machine/03-Research/Protein/Docs/manuscript/` (subdir to be created when the proteins agent generates fresh v2 drafts; v1 cleared 2026-04-28)
+- **Vault:** `Dreamless_Machine/03-Research/Protein/Docs/manuscript/` (v2 workspace; v1 cleared 2026-04-28)
 - **Workspace:** `manuscript/` (workspace-side new sections, response-to-reviewer drafts, build artifacts)
-- **Style:** Academic register from `~/.claude/VOICE.md` (Bair pattern). No iter logs in frontmatter, use `verifier_history` list.
+- **Style:** Concise academic register with quantitative, data-led results. No iteration logs in frontmatter; use the `verifier_history` list.
 - **Target:** Proteins: Structure, Function, and Bioinformatics (250-word abstract limit).
 
 ### PI briefs and weekly status
@@ -119,18 +119,13 @@ All sync scripts are atomic (`rsync --partial --delay-updates`) and idempotent.
 - **Template:** model new briefs on the canonical PI brief structure (1-line narrative → 3 headline findings → method defensibility → open items → file index).
 
 ### Vault landmark docs
-- `Plan.md`: strategic plan (operator-editable)
-- `Status.md`: live status (operator refreshes)
+- `Plan.md`: strategic plan
+- `Status.md`: live project status
 - `Notes.md`, `Ideas.md`: Damien / Ary owned, free-form
 - `Protein.md`: hub dashboard with dataview queries
 - `Docs/{Architecture, Overview, Decisions, Glossary, References, Changelog, Status}.md`, landmark docs
 - `Docs/audits/`, historical audit snapshots (citation audit, data completeness iter48, interim rosetta 2026-04-18)
 - `pi_review_2026-04-26/`, PI brief + files index
-
-### Sub-agent (Claude Code)
-- **Location:** `~/.claude/agents/proteins.md`
-- **Auto-fires:** for any session in `~/proteins-workspace/` or any session about BM5.5 / protein docking / Meiler-lab work.
-- **Knows:** dataset (257 + 7 sources + 27 inputs + 6 protocols + 416,340 lock), five findings, repo + ACCRE + vault layouts, figure naming, voice rules.
 
 ---
 

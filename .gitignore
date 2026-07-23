@@ -1,7 +1,3 @@
-# local-only agent scaffolding
-.claude-flow/
-.claude/local/
-
 # python
 __pycache__/
 *.pyc
